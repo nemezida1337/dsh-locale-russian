@@ -6,24 +6,39 @@
  * capture a screenshot. Both `screenshot-gui.mjs` and `gui-sweep.mjs` build on
  * it, so the protocol plumbing lives in one place.
  */
-import { spawn } from 'node:child_process'
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { spawn, spawnSync } from 'node:child_process'
+import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
 export const sleep = (ms) => new Promise((resolvePromise) => setTimeout(resolvePromise, ms))
 
-const DEFAULT_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+/** Chrome candidates: an explicit path, the macOS bundle, then PATH names. */
+const CHROME_CANDIDATES = ['chrome', 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']
+
+/** Resolves a Chrome executable, preferring CHROME_PATH and the macOS bundle. */
+function resolveChrome(explicit) {
+  if (explicit !== undefined) return explicit
+  if (process.env.CHROME_PATH !== undefined) return process.env.CHROME_PATH
+  if (existsSync(MAC_CHROME)) return MAC_CHROME
+  for (const name of CHROME_CANDIDATES) {
+    const found = spawnSync('which', [name], { encoding: 'utf8' })
+    if (found.status === 0 && found.stdout.trim().length > 0) return found.stdout.trim()
+  }
+  throw new Error('Chrome не найден: задайте CHROME_PATH или установите chrome/chromium в PATH')
+}
 
 /** Starts headless Chrome and waits for its DevTools endpoint. */
 export async function launchChrome({
   port = 9333,
   lang = 'ru-RU',
-  chromePath = process.env.CHROME_PATH ?? DEFAULT_CHROME,
+  chromePath,
   windowSize = '1440,1000',
 } = {}) {
+  const executable = resolveChrome(chromePath)
   const profileDir = resolve(tmpdir(), `dsh-chrome-${process.pid}-${port}`)
-  const chrome = spawn(chromePath, [
+  const chrome = spawn(executable, [
     '--headless=new',
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${profileDir}`,

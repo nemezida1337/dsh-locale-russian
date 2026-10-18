@@ -113,10 +113,11 @@ const expectedPluginText = new Set(pluginMeta.descriptions.map((entry) => entry.
 for (const entry of pluginMeta.packages) {
   if (typeof entry.title === 'string' && entry.title !== entry.name && /\s/.test(entry.title)) expectedPluginText.add(entry.title)
 }
-let missingPluginText = 0
+const missingPluginSources = []
 for (const source of expectedPluginText) {
-  if (pluginText[source] === undefined) missingPluginText += 1
+  if (pluginText[source] === undefined) missingPluginSources.push(source)
 }
+const missingPluginText = missingPluginSources.length
 
 const failedSteps = steps.filter((step) => !step.ok)
 console.log('\n================ сводка обновления ================')
@@ -124,6 +125,8 @@ console.log(`источники: приложение ${existsSync(packagesDir) 
 console.log(`ключей в инвентаре: ${inventory.stats.keys}`)
 console.log(`без перевода: ${missing}, с изменившимся английским: ${reworded}`)
 console.log(`описаний плагинов без перевода: ${missingPluginText}`)
+for (const source of missingPluginSources.slice(0, 20)) console.log(`  · ${source.slice(0, 120)}`)
+if (missingPluginSources.length > 20) console.log(`  · … и ещё ${missingPluginSources.length - 20}`)
 if (failedSteps.length > 0) {
   console.log(`шаги с ошибкой: ${failedSteps.map((step) => step.label).join(', ')}`)
 }

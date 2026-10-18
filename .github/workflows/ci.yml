@@ -66,6 +66,7 @@ jobs:
       - name: Установить DSH
         run: npm install --no-save --no-package-lock @deepseek-ai/dsh@latest
       - name: Установить Chrome для проверки вёрстки
+        id: chrome
         uses: browser-actions/setup-chrome@v1
       - name: Поднять web-профиль с пакетом
         run: |
@@ -90,6 +91,8 @@ jobs:
           grep -q 'dsh-locale-russian/client.js' index.html
           echo 'модуль языкового пакета попал в boot-граф'
       - name: Обход интерфейса (обрезка текста)
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
           TOKEN=$(grep -o 'token=[A-Za-z0-9_-]*' web.log | head -1 | cut -d= -f2)
           node tools/gui-sweep.mjs --url "http://127.0.0.1:5610/?token=$TOKEN" --fail-on-clip
