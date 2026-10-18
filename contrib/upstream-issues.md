@@ -1,8 +1,17 @@
 # Upstream proposals
 
-Two issues this language pack would like to see resolved in DeepSeek Harness.
+Two things this language pack would like to see resolved in DeepSeek Harness.
 Both are written as ready-to-file reports: the language pack works today, but
 each one costs either an internal-API dependency or an untranslatable surface.
+
+The upstream repository disables issues and pull requests and asks for GitHub
+Discussions instead (`CONTRIBUTING.md`), so these were posted as ideas:
+
+| Topic | Discussion |
+|---|---|
+| Public pluralization hook | https://github.com/deepseek-ai/deepseek-harness/discussions/10147 |
+| Desktop shell localization | https://github.com/deepseek-ai/deepseek-harness/discussions/10148 |
+| Plugin showcase (this pack) | https://github.com/deepseek-ai/deepseek-harness/discussions/10146 |
 
 Verified against DSH `0.2.1-rc.2` (desktop) and `0.2.0-rc.2` (npm CLI release).
 
@@ -18,10 +27,16 @@ rules differ from English.
 per key:
 
 ```ts
-// packages/client/locale/src/client/index.ts
-const template = this.lookup(ns, key, chain) ?? … ?? key
-if (!params) return template
-return template.replace(/\{(\w+)\}/g, (match, name) => name in params ? String(params[name]) : match)
+// packages/client/locale/src/client/index.ts:466
+private translate(ns: string, key: string, params?: Record<string, unknown>): string {
+  const chain = this.fallbackChain(this.snapshot.active)
+  const template = this.lookup(ns, key, chain)
+    ?? (ns !== COMMON_NS ? this.lookup(COMMON_NS, key, chain) : undefined)
+    ?? key
+  if (!params) return template
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match)
+}
 ```
 
 Components choose the grammatical form themselves, by English rules — for

@@ -216,7 +216,7 @@ https://nemezida1337.github.io/dsh-locale-russian/index.json
 ## Совместимость
 
 - Проверено на DeepSeek Harness `0.1.5-rc.x` (CLI-сборка, клиентские пакеты `0.1.5-rc.2`) и на приложении `0.2.1-rc.2` (клиентские пакеты распакованы из `app.asar`; покрытие — 2901 строка, пропусков нет).
-- Пакет использует публичный контракт локали (`addLanguage`, `register`, `getSnapshot`) и два приватных метода рантайма: `translate` для склонений и `resolveText` для метаданных плагинов. Оба вызова защищены проверкой типа: если метод исчезнет, пакет продолжит работать — склонения перестанут выбираться, описания плагинов останутся английскими, строки интерфейса не пострадают. Обращения в upstream об этом — в [contrib/upstream-issues.md](contrib/upstream-issues.md).
+- Пакет использует публичный контракт локали (`addLanguage`, `register`, `getSnapshot`) и два приватных метода рантайма: `translate` для склонений и `resolveText` для метаданных плагинов. Оба вызова защищены проверкой типа: если метод исчезнет, пакет продолжит работать — склонения перестанут выбираться, описания плагинов останутся английскими, строки интерфейса не пострадают. Обсуждения в upstream об этом — [хук склонений](https://github.com/deepseek-ai/deepseek-harness/discussions/10147) и [локализация оболочки](https://github.com/deepseek-ai/deepseek-harness/discussions/10148); тексты лежат в [contrib/upstream-issues.md](contrib/upstream-issues.md), витрина плагина — [discussions/10146](https://github.com/deepseek-ai/deepseek-harness/discussions/10146).
 
 ## Лицензия
 
