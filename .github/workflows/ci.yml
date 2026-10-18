@@ -1,0 +1,102 @@
+name: checks
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  schedule:
+    # Раз в неделю проверяем, не вышла ли новая версия DSH с новыми строками.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  # Линтер, сборка пакета и проверка собранного бандла. Зависимостей нет,
+  # поэтому job быстрый и не требует установки DSH.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Линтер переводов
+        run: npm run lint
+      - name: Сборка пакета
+        run: npm run build
+      - name: Индекс маркета
+        run: npm run market
+      - name: Проверка бандла
+        run: npm run verify
+
+  # Детектор обновлений: ставим свежий @deepseek-ai/dsh из npm, снимаем с него
+  # словари и падаем, если появились непереведённые или переписанные строки.
+  dsh-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Установить свежий DSH
+        run: npm install --no-save --no-package-lock @deepseek-ai/dsh@latest
+      - name: Снять строки и проверить дельту
+        run: |
+          node tools/refresh.mjs \
+            --skip-asar --skip-repo \
+            --packages node_modules/@deepseek-ai \
+            --install-root node_modules/@deepseek-ai \
+            --check
+      - name: Показать, что нужно перевести
+        if: failure()
+        run: |
+          echo '### Дельта перевода' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Новая версия DSH добавила или переписала строки.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Скачайте артефакты job-а и переведите batches/p3-*.json и batches/plugin-*.json.' >> "$GITHUB_STEP_SUMMARY"
+          node tools/report-drift.mjs | head -40 >> "$GITHUB_STEP_SUMMARY" || true
+
+  # Дымовой тест: поднимаем настоящий веб-сервер DSH с нашим пакетом через
+  # строку патча и проверяем, что модуль попал в boot-граф страницы.
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Установить DSH
+        run: npm install --no-save --no-package-lock @deepseek-ai/dsh@latest
+      - name: Установить Chrome для проверки вёрстки
+        uses: browser-actions/setup-chrome@v1
+      - name: Поднять web-профиль с пакетом
+        run: |
+          set -euo pipefail
+          export DSH_HOME="$PWD/.ci-home"
+          mkdir -p "$DSH_HOME"
+          npx --no-install dsh --profile web --dump-config > /dev/null
+          cat > "$DSH_HOME/profiles/web/cordis.patch.yml" <<YAML
+          - insert:
+              - id: locale-ru
+                name: file://$PWD/lib/index.js
+          YAML
+          (npx --no-install dsh --profile web --port 5610 --no-open > web.log 2>&1 &)
+          for _ in $(seq 1 40); do
+            grep -q 'token=' web.log && break
+            sleep 2
+          done
+          cat web.log
+          TOKEN=$(grep -o 'token=[A-Za-z0-9_-]*' web.log | head -1 | cut -d= -f2)
+          test -n "$TOKEN"
+          curl -sL -c cookies.txt "http://127.0.0.1:5610/?token=$TOKEN" -o index.html
+          grep -q 'dsh-locale-russian/client.js' index.html
+          echo 'модуль языкового пакета попал в boot-граф'
+      - name: Обход интерфейса (обрезка текста)
+        run: |
+          TOKEN=$(grep -o 'token=[A-Za-z0-9_-]*' web.log | head -1 | cut -d= -f2)
+          node tools/gui-sweep.mjs --url "http://127.0.0.1:5610/?token=$TOKEN" --fail-on-clip
+      - name: Сохранить снимки экранов
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-sweep
+          path: reports/sweep
+          if-no-files-found: ignore

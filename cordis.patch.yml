@@ -1,0 +1,5 @@
+# Слой патча пакета-бандла: единственная строка, подключающая языковой пакет.
+# Файл генерируется tools/build-package.mjs — имя строки берётся из package.json.
+- insert:
+    - id: locale-ru
+      name: dsh-locale-russian

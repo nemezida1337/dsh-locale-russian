@@ -1,0 +1,75 @@
+{
+  "name": "dsh-locale-russian",
+  "version": "0.1.0",
+  "description": "Russian (ru) language pack for the DeepSeek Harness web client",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./icon": "./icon.svg",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "dictionary",
+    "locale/*.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "GLOSSARY.md",
+    "STYLE.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "scripts": {
+    "inventory": "node tools/build-inventory.mjs",
+    "lint": "node tools/lint-translations.mjs",
+    "build": "node tools/build-package.mjs",
+    "verify": "node tools/verify-package.mjs",
+    "test": "npm run lint && npm run build && npm run market && npm run verify",
+    "market": "node tools/build-market.mjs",
+    "asar": "node tools/extract-asar.mjs",
+    "refresh": "node tools/refresh.mjs",
+    "refresh:check": "node tools/refresh.mjs --check",
+    "mark-translated": "node tools/mark-translated.mjs",
+    "plugin-meta": "node tools/extract-plugin-meta.mjs && node tools/build-plugin-batches.mjs",
+    "sweep": "node tools/gui-sweep.mjs",
+    "sweep:check": "node tools/gui-sweep.mjs --compare --fail-on-clip"
+  },
+  "license": "MIT",
+  "engines": {
+    "dsh": "^0.1.5-rc.1 || ^0.2.1-rc.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nemezida1337/dsh-locale-russian.git"
+  },
+  "homepage": "https://github.com/nemezida1337/dsh-locale-russian#readme",
+  "bugs": {
+    "url": "https://github.com/nemezida1337/dsh-locale-russian/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "locale",
+    "localization",
+    "i18n",
+    "russian",
+    "ru",
+    "plugin"
+  ],
+  "author": "dsh-locale-ru contributors"
+}

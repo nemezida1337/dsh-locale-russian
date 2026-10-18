@@ -1,0 +1,92 @@
+{
+  "format": 1,
+  "title": {
+    "en": "DSH community plugins",
+    "ru": "Плагины сообщества DSH"
+  },
+  "description": {
+    "en": "Community-published DeepSeek Harness bundles. Add this index URL in the Plugins page to browse and install them.",
+    "ru": "Наборы плагинов DeepSeek Harness от сообщества. Добавьте адрес этого индекса на странице «Плагины», чтобы просматривать и устанавливать их."
+  },
+  "metadata": {
+    "categories": {
+      "localization": {
+        "title": {
+          "en": "Localization",
+          "ru": "Локализация"
+        }
+      },
+      "interface": {
+        "title": {
+          "en": "Interface",
+          "ru": "Интерфейс"
+        }
+      }
+    },
+    "labels": {
+      "community": {
+        "title": {
+          "en": "Community",
+          "ru": "Сообщество"
+        }
+      },
+      "no-telemetry": {
+        "title": {
+          "en": "No telemetry",
+          "ru": "Без телеметрии"
+        }
+      }
+    }
+  },
+  "plugins": [
+    {
+      "name": "dsh-locale-russian",
+      "title": {
+        "en": "Russian localization",
+        "ru": "Русская локализация"
+      },
+      "description": {
+        "en": "Russian (ru) language pack for the DeepSeek Harness web client",
+        "ru": "Полный перевод интерфейса DeepSeek Harness на русский язык: панели, настройки, диалоги, карточки инструментов, форматы дат и русские склонения."
+      },
+      "icon": "icon.svg",
+      "author": "dsh-locale-ru contributors",
+      "homepage": "https://github.com/nemezida1337/dsh-locale-russian#readme",
+      "repository": {
+        "url": "https://github.com/nemezida1337/dsh-locale-russian"
+      },
+      "metadata": {
+        "category": "localization",
+        "labels": [
+          "community",
+          "no-telemetry"
+        ],
+        "keywords": [
+          "dsh",
+          "deepseek-harness",
+          "locale",
+          "localization",
+          "i18n",
+          "russian",
+          "ru",
+          "plugin"
+        ]
+      },
+      "dist-tags": {
+        "latest": "0.1.0"
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1792320411,
+          "source": {
+            "type": "npm"
+          },
+          "engines": {
+            "dsh": "^0.1.5-rc.1 || ^0.2.1-rc.2"
+          }
+        }
+      ]
+    }
+  ]
+}

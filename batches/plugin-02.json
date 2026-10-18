@@ -1,0 +1,637 @@
+{
+  "id": "plugin-02",
+  "kind": "plugin-meta",
+  "count": 90,
+  "items": [
+    {
+      "kind": "description",
+      "en": "Event-sourced session store for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-session"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Exa-backed search provider for the DeepSeek Harness web capability seam (ctx.web)",
+      "packages": [
+        "@deepseek-ai/dsh-web-search-exa"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Exclusive named browser-use provider registration",
+      "packages": [
+        "@deepseek-ai/dsh-browser-use"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Exclusive named computer-use provider registration",
+      "packages": [
+        "@deepseek-ai/dsh-computer-use"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Experimental bridge: load Claude Code mods (hooks modules) and run their hook chains on DeepSeek Harness extension points",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-claude-code-mods"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Experimental Stagehand browser tools with separately configured native models",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-stagehand-native"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Explicit product usage events exported through OpenTelemetry HTTP logs",
+      "packages": [
+        "@deepseek-ai/dsh-host-product-telemetry-otel"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Explicit workspace file delivery declarations for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-tool-present"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Expose safe account operations over authenticated Remote",
+      "packages": [
+        "@deepseek-ai/dsh-api-account-controller"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Extensible Sidebar previews for Office documents, spreadsheets, Markdown, code, images, PDF, HTML, and plain text",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-sidebar-documentpreview"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Feedback-authorized Session logs over byte-bounded OpenTelemetry HTTP requests",
+      "packages": [
+        "@deepseek-ai/dsh-session-telemetry-otel"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "File-backed credentials provider ($DSH_HOME/.env under the live process environment) for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-credentials-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "File-context policy plugin for the DeepSeek Harness — observed-state, read-before-edit, and version-guarded write/edit added over the ctx.fs provider seam through the fs/* event gate (no service API)",
+      "packages": [
+        "@deepseek-ai/dsh-fs-observation-policy"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "File-reference discovery contract and shared @file grammar",
+      "packages": [
+        "@deepseek-ai/dsh-file-reference"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Filesystem provider over the shared POSIX SSH helper",
+      "packages": [
+        "@deepseek-ai/dsh-fs-ssh"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Fire-and-forget webhook rule runtime that creates Workspace-backed DeepSeek Harness Sessions",
+      "packages": [
+        "@deepseek-ai/dsh-webhook"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "First-message LLM provider plugin for DeepSeek Harness session titles",
+      "packages": [
+        "@deepseek-ai/dsh-session-title-first-prompt-llm"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Frozen released-v0 Session codec and identity migration to v1",
+      "packages": [
+        "@deepseek-ai/dsh-session-format-v0-to-v1"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Frozen released-v1 Session codec and assistant-stream migration to v2",
+      "packages": [
+        "@deepseek-ai/dsh-session-format-v1-to-v2"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "General settings control for Session-log upload with DeepSeek API requests",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-session-log"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Generic stdio language-server provider for the DeepSeek Harness LSP capability seam (ctx.lsp) — spawns configured servers, translates JSON-RPC, and serves transient-open goToDefinition/findReferences/goToImplementation/hover queries in the host filesystem namespace",
+      "packages": [
+        "@deepseek-ai/dsh-lsp-stdio"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Give agents tools to coordinate members, exchange messages, and manage shared tasks.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-tool-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Give Agents tools to search and read earlier sessions from the current workspace.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-session-search"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Globally named send_message, interrupt_agent, and list_agents tools over ctx.subagents continuations",
+      "packages": [
+        "@deepseek-ai/dsh-tool-subagent-control"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Host half of open-in-app: resolved application catalog, icons, and the launch endpoint as three webServer routes",
+      "packages": [
+        "@deepseek-ai/dsh-host-open-in-app"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Host-native command and path-opening utilities with shell-free execution, cancellation, desktop detection, and WSL handoff",
+      "packages": [
+        "@deepseek-ai/dsh-native-command"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Human-facing slash command for explicit session compaction",
+      "packages": [
+        "@deepseek-ai/dsh-command-compact"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Human-facing slash command for persisted same-session goals",
+      "packages": [
+        "@deepseek-ai/dsh-command-goal"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Immutable command-line handoff from a dsh launcher to any app plugin that injects cmdlineArgs",
+      "packages": [
+        "@deepseek-ai/dsh-cmdline"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Immutable DeepSeek Harness launch environment that records which layer supplied each value",
+      "packages": [
+        "@deepseek-ai/dsh-launch-environment"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "In-app browsing backend of the directory-picker seam (listing/creation primitives over the host filesystem)",
+      "packages": [
+        "@deepseek-ai/dsh-host-directory-picker-browse"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "In-app directory browsing surface: the workspace directory-flow owner rendering the host's listing and creation primitives",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-directory-picker-browse"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "In-process fork subagent backend: runs a child agent seeded with a prefix of the parent's log",
+      "packages": [
+        "@deepseek-ai/dsh-subagent-fork-in-process"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "In-process spawn subagent backend: runs a fresh child agent on ctx.agents",
+      "packages": [
+        "@deepseek-ai/dsh-subagent-spawn-in-process"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Include files in cordis configurations",
+      "packages": [
+        "@deepseek-ai/cordis-plugin-include"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Incremental lossless session-log request extension for the official DeepSeek LLM API",
+      "packages": [
+        "@deepseek-ai/dsh-session-log-deepseek"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Input trigger pipeline: '/' and '@' detection, candidate menu, pick routing to registered sources",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-input-trigger"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Inspect and debug raw session data, grouped chat messages, and the NodeJS backend.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-inspector-profile"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Interactive shell tabs for the right Sidebar",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-sidebar-terminal"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Job Remote observation stream and the reference-counted client job-output service",
+      "packages": [
+        "@deepseek-ai/dsh-api-job-controller"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "JSON file KV storage backend for the DeepSeek Harness storage hub",
+      "packages": [
+        "@deepseek-ai/dsh-storage-json"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "JSONL durable session persistence backend for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-session-persistence-jsonl"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Keep shell processes alive across tool calls.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-terminal-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Keyboard shortcut reference, recording, and local preference editing",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-shortcuts"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let agents add a “powered by dsh” badge to documents, pull requests, and other outputs.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-badge-skill-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let the agent create a new Git branch and worktree, then continue there.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-tool-worktree"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let the model browse and operate web pages through Playwright MCP in a launched Chromium.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-playwright-mcp"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let the model inspect and operate web pages through Chrome DevTools MCP in a launched Chrome.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-chrome-devtools-mcp"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let the model operate the desktop through a separately installed cua-driver executable.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Let the model operate the desktop with the bundled Cua Driver runtime; needs desktop permissions for the app that launches dsh.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Loader integration for generated Typert package contributions",
+      "packages": [
+        "@deepseek-ai/dsh-typert-loader"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local filesystem skill provider for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-skill-filesystem"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local PowerShell implementation of the DeepSeek Harness bash executor seam",
+      "packages": [
+        "@deepseek-ai/dsh-pwsh-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local process-sandbox backends for the DeepSeek Harness sandbox seam: bwrap, the npm-distributed landlock-run launcher, macOS Seatbelt, or the Windows ACL restricted-token runner — functionally probed, fail-closed",
+      "packages": [
+        "@deepseek-ai/dsh-sandbox-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local-filesystem ctx.fileReferences provider with bounded fuzzy indexes",
+      "packages": [
+        "@deepseek-ai/dsh-file-reference-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local-filesystem implementation of the DeepSeek Harness filesystem seam (ctx.fs)",
+      "packages": [
+        "@deepseek-ai/dsh-fs-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local-filesystem implementation of the DeepSeek Harness spill storage seam (private session-scoped files)",
+      "packages": [
+        "@deepseek-ai/dsh-spill-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local-subprocess implementation of the DeepSeek Harness bash executor seam",
+      "packages": [
+        "@deepseek-ai/dsh-bash-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Local-subprocess implementation of the DeepSeek Harness subprocess seam",
+      "packages": [
+        "@deepseek-ai/dsh-subprocess-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Locale plugin: Host-backed preference, extensible language catalog, browser fallback, and typed built-in dictionaries",
+      "packages": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Log-backed session title service and provider registry for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-session-title"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Log-only session feedback: the record event, the sessionFeedback Host Remote, and the human-facing slash command",
+      "packages": [
+        "@deepseek-ai/dsh-command-feedback"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Logged per-agent plan mode with deployment guidance, a direct slash command, and a user-reviewed exit",
+      "packages": [
+        "@deepseek-ai/dsh-plan-mode"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Machine translation of expanded reasoning; source text is sent to the selected service",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-cot-translation-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Machine translation with reusable Session results",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-translator"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "macOS native provider for shared Computer Use application and window objects",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-cua-macos"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Manage DeepSeek login and open Platform billing pages",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-account"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Manage speech transcription and select a recognition service.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-speech-to-text"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Manage team members, member messages, and shared tasks.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Masks recognized keys, tokens, and passwords in sent messages.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-secret-mask"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "MCP client bridge: connects to MCP servers and registers their tools on ctx.tools",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-client"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Meta-Framework for Modern JavaScript Applications",
+      "packages": [
+        "@deepseek-ai/cordis"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Method-level Remote access control for non-owner Peers and the per-Peer access snapshot",
+      "packages": [
+        "@deepseek-ai/dsh-api-remote-access"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model context naming the DeepSeek Harness checkout and Web GUI URL without letting either change the system prompt",
+      "packages": [
+        "@deepseek-ai/dsh-harness-dev-context"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model selection over the shared model catalog, Session projection, and session.selectModel",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-model-selection"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing ask_user_question tool over the ctx.userQuestions seam",
+      "packages": [
+        "@deepseek-ai/dsh-tool-ask-user"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing background job control tools (job_output, job_list, job_kill) over the ctx.jobs registry",
+      "packages": [
+        "@deepseek-ai/dsh-tool-jobs"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing bash tool with optional generic background-job and sandbox-escalation support",
+      "packages": [
+        "@deepseek-ai/dsh-tool-bash"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing filesystem discovery tools (glob, grep) backed by the packaged ripgrep binary (@vscode/ripgrep)",
+      "packages": [
+        "@deepseek-ai/dsh-tool-fs-search"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing filesystem tools (read, write, edit) over the DeepSeek Harness filesystem seam (ctx.fs)",
+      "packages": [
+        "@deepseek-ai/dsh-tool-fs"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing fresh-agent Ralph loop over the workflow and subagent seams",
+      "packages": [
+        "@deepseek-ai/dsh-tool-ralph"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing lsp tool over the DeepSeek Harness LSP capability seam (ctx.lsp) — one read-only tool with goToDefinition/findReferences/goToImplementation/hover operations, one-based UTF-16 cursor coordinates, bounded location rendering, and hover normalization",
+      "packages": [
+        "@deepseek-ai/dsh-tool-lsp"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing owner-scoped persistent Bash tool backed by the Harness PTY service",
+      "packages": [
+        "@deepseek-ai/dsh-tool-bash-persistent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing owner-scoped persistent PowerShell tool backed by the Harness PTY service",
+      "packages": [
+        "@deepseek-ai/dsh-tool-pwsh-persistent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing pwsh tool over the bash executor seam",
+      "packages": [
+        "@deepseek-ai/dsh-tool-pwsh"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing reminder management tools (schedule_create, schedule_list, schedule_update, schedule_delete) over the Host ctx.schedule service",
+      "packages": [
+        "@deepseek-ai/dsh-tool-schedule"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing same-session goal tools with execution-time authority checks",
+      "packages": [
+        "@deepseek-ai/dsh-tool-goal"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing skill loading tool for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-tool-skill"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing subagent delegation tool over the ctx.subagents seam",
+      "packages": [
+        "@deepseek-ai/dsh-tool-subagent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing todo_write tool over the DeepSeek Harness event-sourced session log",
+      "packages": [
+        "@deepseek-ai/dsh-tool-todo"
+      ]
+    }
+  ]
+}

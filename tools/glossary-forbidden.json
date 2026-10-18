@@ -1,0 +1,211 @@
+{
+  "_comment": "Machine-checked forbidden renderings. Patterns are matched case-insensitively against every Russian string; `except` unblocks a string when the exception pattern also matches. Keep in sync with GLOSSARY.md. A rule may carry `whenSource`: it applies only when the English source matches that pattern.",
+  "rules": [
+    {
+      "pattern": "рабочее\\s+пространство",
+      "why": "workspace → рабочая область"
+    },
+    {
+      "pattern": "воркспейс",
+      "why": "workspace → рабочая область"
+    },
+    {
+      "pattern": "беседа|беседы|бесед\\b",
+      "why": "conversation → диалог, session → сессия"
+    },
+    {
+      "pattern": "\\bдифф",
+      "why": "diff → изменения"
+    },
+    {
+      "pattern": "\\bаккаунт",
+      "why": "account → учётная запись"
+    },
+    {
+      "pattern": "\\bкреды|\\bкредов",
+      "why": "credential → учётные данные"
+    },
+    {
+      "pattern": "\\bретрай|\\bретраи",
+      "why": "retry → повтор"
+    },
+    {
+      "pattern": "\\bпермишн|\\bпермишены",
+      "why": "permission → разрешение"
+    },
+    {
+      "pattern": "\\bапрув",
+      "why": "approval → подтверждение"
+    },
+    {
+      "pattern": "\\bфидбек",
+      "why": "feedback → отзыв"
+    },
+    {
+      "pattern": "\\bтултип",
+      "why": "tooltip → подсказка"
+    },
+    {
+      "pattern": "\\bмодалк",
+      "why": "dialog → окно"
+    },
+    {
+      "pattern": "\\bскролл",
+      "why": "scroll → прокрутка"
+    },
+    {
+      "pattern": "\\bзум",
+      "why": "zoom → масштаб"
+    },
+    {
+      "pattern": "\\bдефолтн",
+      "why": "default → по умолчанию"
+    },
+    {
+      "pattern": "\\bкастомн",
+      "why": "custom → свой"
+    },
+    {
+      "pattern": "\\bсеттинг",
+      "why": "settings → настройки"
+    },
+    {
+      "pattern": "\\bтул\\b|\\bтулы\\b",
+      "why": "tool → инструмент"
+    },
+    {
+      "pattern": "\\bскилл",
+      "why": "skill → навык"
+    },
+    {
+      "pattern": "\\bснапшот",
+      "why": "snapshot → снимок"
+    },
+    {
+      "pattern": "чекпойнт",
+      "why": "checkpoint → контрольная точка"
+    },
+    {
+      "pattern": "\\bтранскрипт",
+      "why": "transcript → стенограмма"
+    },
+    {
+      "pattern": "\\bкомпактифик",
+      "why": "compaction → сжатие контекста"
+    },
+    {
+      "pattern": "\\bстеп\\b",
+      "why": "step → шаг"
+    },
+    {
+      "pattern": "\\bраунд",
+      "why": "turn → ход"
+    },
+    {
+      "pattern": "\\bфорк\\b|\\bфоркнуть",
+      "why": "fork → ответвление"
+    },
+    {
+      "pattern": "\\bворкфлоу",
+      "why": "workflow → рабочий процесс"
+    },
+    {
+      "pattern": "\\bшедулер",
+      "why": "schedule → расписание"
+    },
+    {
+      "pattern": "бэкграунд-джоб",
+      "why": "background job → фоновая задача"
+    },
+    {
+      "pattern": "\\bделиверабл",
+      "why": "deliverable → результат"
+    },
+    {
+      "pattern": "\\bаттач",
+      "why": "attachment → вложение"
+    },
+    {
+      "pattern": "\\bреференс",
+      "why": "reference → ссылка"
+    },
+    {
+      "pattern": "\\bревью\\b",
+      "why": "review → проверка",
+      "except": [
+        "код-ревью"
+      ],
+      "whenSource": "review"
+    },
+    {
+      "pattern": "\\bобзор\\b",
+      "why": "review → проверка (обзор = overview)",
+      "whenSource": "review"
+    },
+    {
+      "pattern": "\\bдиректори",
+      "why": "directory → каталог"
+    },
+    {
+      "pattern": "\\bсандбокс",
+      "why": "sandbox → песочница"
+    },
+    {
+      "pattern": "\\bшелл",
+      "why": "shell → оболочка"
+    },
+    {
+      "pattern": "\\bбаш\\b",
+      "why": "Bash не переводится"
+    },
+    {
+      "pattern": "\\bапи-ключ|\\bапи\\b",
+      "why": "API не переводится"
+    },
+    {
+      "pattern": "системная\\s+подсказка",
+      "why": "system prompt → системный промпт"
+    },
+    {
+      "pattern": "усилие\\s+рассужден",
+      "why": "reasoning effort → глубина рассуждений"
+    },
+    {
+      "pattern": "под-агент|вложенный\\s+агент",
+      "why": "subagent → субагент"
+    },
+    {
+      "pattern": "петля\\s+агента",
+      "why": "agent loop → цикл агента"
+    },
+    {
+      "pattern": "тул-колл",
+      "why": "tool call → вызов инструмента"
+    },
+    {
+      "pattern": "\\bлог\\s+сессии|\\bлоги\\s+сессии",
+      "why": "session log → журнал сессии"
+    },
+    {
+      "pattern": "инвентарь\\s+плагинов",
+      "why": "plugin inventory → состав плагинов"
+    },
+    {
+      "pattern": "поставщик\\s+модели",
+      "why": "model provider → провайдер модели"
+    },
+    {
+      "pattern": "\\bварнинг",
+      "why": "warning → предупреждение"
+    },
+    {
+      "pattern": "\\bвыгрузить\\b",
+      "why": "download → скачать"
+    },
+    {
+      "pattern": "\\bпапк",
+      "why": "directory → каталог",
+      "whenSource": "director"
+    }
+  ]
+}

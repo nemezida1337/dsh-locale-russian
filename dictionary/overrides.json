@@ -1,0 +1,92 @@
+{
+  "_comment": "Редакционные решения после вычитки: применяются поверх батчей при сборке и участвуют в линтере.",
+  "approval": {
+    "waiting": "Ожидает подтверждения"
+  },
+  "workspace": {
+    "status.waitingApproval": "Ожидает подтверждения"
+  },
+  "chat": {
+    "message.compaction.running": "Сжатие контекста…",
+    "message.turnUsage.count": "{count} токен|{count} токена|{count} токенов",
+    "message.tokensPerSecond": "{tps} токен/с|{tps} токена/с|{tps} токенов/с",
+    "number.groupSeparator": " "
+  },
+  "trajectory": {
+    "layout.compacting": "Сжатие контекста…",
+    "details.retry": "Повторить",
+    "unit.tokens": "{value} токен|{value} токена|{value} токенов",
+    "history.clickToLoadEarlier": "Нажмите, чтобы загрузить более раннюю историю",
+    "history.loadEarlier": "Загрузить более раннюю историю",
+    "history.loadingEarlier": "Загрузка более ранней истории…",
+    "history.loadingEarlierAria": "Загрузка более ранней истории…",
+    "unit.tokensPerSecond": "{value} токен/с|{value} токена/с|{value} токенов/с"
+  },
+  "conversation": {
+    "access.confirm.description": "Полный доступ сокращает число шагов подтверждения и позволяет агенту напрямую выполнять больше действий, включая чувствительные операции, изменение файлов и внешние команды. Используйте его, только если доверяете текущей задаче.",
+    "hero.preview": "Предварительная версия",
+    "tool.title.spawnTeammate": "Создать участника команды",
+    "placeholder.default": "Сообщение или задача; / — команды, @ — файлы и сессии",
+    "placeholder.hero": "Опишите, что хотите создать; / — команды, @ — файлы и сессии"
+  },
+  "permission.access": {
+    "confirm.description": "Полный доступ сокращает число шагов подтверждения и позволяет агенту напрямую выполнять больше действий, включая чувствительные операции, изменение файлов и внешние команды. Используйте его, только если доверяете текущей задаче.",
+    "mode": "Текущий режим доступа: {name}"
+  },
+  "settings": {
+    "hostRelease.reload": "Перезагрузить, чтобы загрузить новую версию"
+  },
+  "settings.account": {
+    "quotaTitle": "Нет доступного баланса",
+    "quotaDescription": "DeepSeek Harness не может начать новую задачу с этой учётной записью, если нет доступного баланса. Хотите пополнить баланс? Это также можно сделать позже в разделе «Настройки» → «Учётная запись»."
+  },
+  "settings.agentPreset": {
+    "duplicateUnavailable": "В этом развёртывании нет каталога пресетов, доступного для записи"
+  },
+  "settings.models": {
+    "fetchNoMatches": "Нет подходящих моделей.",
+    "modelAdvanced": "Параметры модели"
+  },
+  "settings.pluginInventory": {
+    "clientSyncRetry": "Повторить синхронизацию"
+  },
+  "sidebarFiles": {
+    "entry.other": "Это не файл и не каталог, поэтому открыть его нельзя."
+  },
+  "job": {
+    "terminal.commandLine": "Строка команды {n}"
+  },
+  "pluginManager": {
+    "terminalCommandLine": "Строка команды {n}",
+    "infoDescription": "Здесь настраиваются официальные плагины, а также устанавливаются и управляются остальные. Список встроенных плагинов и их состояние при работе — в разделе «Настройки → Встроенные»."
+  },
+  "schedule.manager": {
+    "timing.second": "Секунда"
+  },
+  "session-log-download": {
+    "header.more": "Другие действия"
+  },
+  "question": {
+    "nav.cancel": "Отменить все вопросы"
+  },
+  "goal": {
+    "action.cancel": "Отменить редактирование"
+  },
+  "model": {
+    "option.deepseekV4Flash.description": "Быстрая, эффективная и экономичная; подходит для целенаправленных, рутинных или параллельных задач."
+  },
+  "slash.menu": {
+    "crumbs.aria": "Навигация по папкам",
+    "drill.aria": "Открыть папку",
+    "drill.hint": "Открыть папку"
+  },
+  "agent-team": {
+    "owner": "Владелец"
+  },
+  "subagent": {
+    "tokens.total": "{value} токен|{value} токена|{value} токенов"
+  },
+  "settings.plugins": {
+    "nav": "Встроенные"
+  }
+}

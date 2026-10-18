@@ -1,0 +1,7 @@
+{
+ "id": "p4-001",
+ "namespace": "chat",
+ "translations": {
+  "message.accountStopped": "Задача остановлена"
+ }
+}

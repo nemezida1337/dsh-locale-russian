@@ -1,0 +1,1 @@
+{"id":"p2-033","namespace":"settings.pluginInventory","translations":{"clientSyncFailed":"Некоторые плагины не удалось синхронизировать на этой странице. Включение на Хосте не изменилось.","clientSyncRetry":"Повторить эту страницу","clientSyncing":"Синхронизация плагинов на этой странице…","metadataError":"Ошибка метаданных пакета: {error}"}}
