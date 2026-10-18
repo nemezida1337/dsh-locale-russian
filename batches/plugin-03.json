@@ -5,6 +5,34 @@
   "items": [
     {
       "kind": "description",
+      "en": "Model-facing same-session goal tools with execution-time authority checks",
+      "packages": [
+        "@deepseek-ai/dsh-tool-goal"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing skill loading tool for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-tool-skill"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing subagent delegation tool over the ctx.subagents seam",
+      "packages": [
+        "@deepseek-ai/dsh-tool-subagent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing todo_write tool over the DeepSeek Harness event-sourced session log",
+      "packages": [
+        "@deepseek-ai/dsh-tool-todo"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Model-facing view, create, literal replace, and line insert tool over the Harness filesystem service",
       "packages": [
         "@deepseek-ai/dsh-tool-str-replace-editor"
@@ -197,6 +225,13 @@
       "en": "Prebuilt POSIX flock Node-API binding for macOS arm64",
       "packages": [
         "@deepseek-ai/node-addon-system-darwin-arm64"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Prebuilt POSIX flock Node-API binding for macOS x64",
+      "packages": [
+        "@deepseek-ai/node-addon-system-darwin-x64"
       ]
     },
     {
@@ -596,41 +631,6 @@
       "en": "Shared Claude Code / Codex hook wire protocol: matcher engine, stdin/exit-code/stdout codec, multi-hook merge, and hook/* session events",
       "packages": [
         "@deepseek-ai/dsh-hook-protocol"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared Computer Use application objects, authorization, and logged tool execution",
-      "packages": [
-        "@deepseek-ai/dsh-cua"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared filesystem path helpers for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-home-paths"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared LLM generation policy for DeepSeek Harness session-title providers",
-      "packages": [
-        "@deepseek-ai/dsh-session-title-llm"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared low-level Win32 process, stdio, and Job Object primitives",
-      "packages": [
-        "@deepseek-ai/dsh-win32-process"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared Office-to-PDF conversion with bounded queues and caching",
-      "packages": [
-        "@deepseek-ai/dsh-office-to-pdf"
       ]
     }
   ]

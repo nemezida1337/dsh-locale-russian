@@ -5,6 +5,41 @@
   "items": [
     {
       "kind": "description",
+      "en": "Shared Computer Use application objects, authorization, and logged tool execution",
+      "packages": [
+        "@deepseek-ai/dsh-cua"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared filesystem path helpers for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-home-paths"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared LLM generation policy for DeepSeek Harness session-title providers",
+      "packages": [
+        "@deepseek-ai/dsh-session-title-llm"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared low-level Win32 process, stdio, and Job Object primitives",
+      "packages": [
+        "@deepseek-ai/dsh-win32-process"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared Office-to-PDF conversion with bounded queues and caching",
+      "packages": [
+        "@deepseek-ai/dsh-office-to-pdf"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Shared OpenSSH connection and versioned POSIX remote helper",
       "packages": [
         "@deepseek-ai/dsh-ssh"
@@ -596,41 +631,6 @@
       "en": "Agent Teams",
       "packages": [
         "@deepseek-ai/dsh-experimental-agent-team-profile"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Speech transcription API",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-api-speech-to-text"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Auto Authorization Review",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-auto-review"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "DSH badge skill",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-badge-skill-bundle"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Team Panel",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-client-ui-agent-team"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Machine translation of reasoning",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-client-ui-cot-translation"
       ]
     }
   ]

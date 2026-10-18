@@ -5,6 +5,13 @@
   "items": [
     {
       "kind": "description",
+      "en": "Event-sourced same-session goal state and lifecycle service for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-goal"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Event-sourced session store for the DeepSeek Harness",
       "packages": [
         "@deepseek-ai/dsh-session"
@@ -187,6 +194,13 @@
     },
     {
       "kind": "description",
+      "en": "Hot Module Replacement Plugin for Cordis",
+      "packages": [
+        "@deepseek-ai/cordis-plugin-hmr"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Human-facing slash command for explicit session compaction",
       "packages": [
         "@deepseek-ai/dsh-command-compact"
@@ -351,6 +365,20 @@
       "en": "Let the model operate the desktop with the bundled Cua Driver runtime; needs desktop permissions for the app that launches dsh.",
       "packages": [
         "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Linux arm64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "packages": [
+        "@deepseek-ai/node-addon-system-linux-arm64"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Linux x64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "packages": [
+        "@deepseek-ai/node-addon-system-linux-x64"
       ]
     },
     {
@@ -603,34 +631,6 @@
       "en": "Model-facing reminder management tools (schedule_create, schedule_list, schedule_update, schedule_delete) over the Host ctx.schedule service",
       "packages": [
         "@deepseek-ai/dsh-tool-schedule"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing same-session goal tools with execution-time authority checks",
-      "packages": [
-        "@deepseek-ai/dsh-tool-goal"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing skill loading tool for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-tool-skill"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing subagent delegation tool over the ctx.subagents seam",
-      "packages": [
-        "@deepseek-ai/dsh-tool-subagent"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing todo_write tool over the DeepSeek Harness event-sourced session log",
-      "packages": [
-        "@deepseek-ai/dsh-tool-todo"
       ]
     }
   ]

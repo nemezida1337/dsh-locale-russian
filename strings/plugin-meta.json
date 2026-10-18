@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-18T09:40:33.747Z",
+  "generatedAt": "2026-10-18T10:57:58.585Z",
   "packagesDir": "/Users/ram/Developer/dsh-locale-ru/.app-packages",
   "repoRoot": "/Users/ram/Developer/deepseek-harness",
   "stats": {
-    "packages": 352,
-    "withDescription": 352,
-    "uniqueDescriptions": 352
+    "packages": 357,
+    "withDescription": 357,
+    "uniqueDescriptions": 357
   },
   "descriptions": [
     {
@@ -348,6 +348,12 @@
       "en": "Configured plugin market indexes for the Web Discover page and the plugin_market agent tool",
       "packages": [
         "@deepseek-ai/dsh-plugin-market"
+      ]
+    },
+    {
+      "en": "Console logger exporter for cordis",
+      "packages": [
+        "@deepseek-ai/cordis-plugin-logger-console"
       ]
     },
     {
@@ -705,6 +711,12 @@
       ]
     },
     {
+      "en": "Hot Module Replacement Plugin for Cordis",
+      "packages": [
+        "@deepseek-ai/cordis-plugin-hmr"
+      ]
+    },
+    {
       "en": "Human-facing slash command for explicit session compaction",
       "packages": [
         "@deepseek-ai/dsh-command-compact"
@@ -846,6 +858,18 @@
       "en": "Let the model operate the desktop with the bundled Cua Driver runtime; needs desktop permissions for the app that launches dsh.",
       "packages": [
         "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native"
+      ]
+    },
+    {
+      "en": "Linux arm64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "packages": [
+        "@deepseek-ai/node-addon-system-linux-arm64"
+      ]
+    },
+    {
+      "en": "Linux x64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "packages": [
+        "@deepseek-ai/node-addon-system-linux-x64"
       ]
     },
     {
@@ -1254,6 +1278,12 @@
       "en": "Prebuilt POSIX flock Node-API binding for macOS arm64",
       "packages": [
         "@deepseek-ai/node-addon-system-darwin-arm64"
+      ]
+    },
+    {
+      "en": "Prebuilt POSIX flock Node-API binding for macOS x64",
+      "packages": [
+        "@deepseek-ai/node-addon-system-darwin-x64"
       ]
     },
     {
@@ -4251,6 +4281,27 @@
       "source": "app"
     },
     {
+      "name": "@deepseek-ai/node-addon-system-darwin-x64",
+      "version": "0.1.2",
+      "title": "@deepseek-ai/node-addon-system-darwin-x64",
+      "description": "Prebuilt POSIX flock Node-API binding for macOS x64",
+      "source": "repo"
+    },
+    {
+      "name": "@deepseek-ai/node-addon-system-linux-arm64",
+      "version": "0.1.2",
+      "title": "@deepseek-ai/node-addon-system-linux-arm64",
+      "description": "Linux arm64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "source": "repo"
+    },
+    {
+      "name": "@deepseek-ai/node-addon-system-linux-x64",
+      "version": "0.1.2",
+      "title": "@deepseek-ai/node-addon-system-linux-x64",
+      "description": "Linux x64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons",
+      "source": "repo"
+    },
+    {
       "name": "@deepseek-ai/dsh-browser-use",
       "version": "0.2.1-rc.2",
       "title": "@deepseek-ai/dsh-browser-use",
@@ -4584,6 +4635,20 @@
       "version": "0.2.1-rc.2",
       "title": "@deepseek-ai/dsh-web-search-perplexity",
       "description": "Perplexity-backed search provider for the DeepSeek Harness web capability seam (ctx.web)",
+      "source": "repo"
+    },
+    {
+      "name": "@deepseek-ai/cordis-plugin-hmr",
+      "version": "1.0.20",
+      "title": "@deepseek-ai/cordis-plugin-hmr",
+      "description": "Hot Module Replacement Plugin for Cordis",
+      "source": "repo"
+    },
+    {
+      "name": "@deepseek-ai/cordis-plugin-logger-console",
+      "version": "1.0.5",
+      "title": "@deepseek-ai/cordis-plugin-logger-console",
+      "description": "Console logger exporter for cordis",
       "source": "repo"
     }
   ]

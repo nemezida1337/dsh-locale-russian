@@ -1,0 +1,12 @@
+{
+ "id": "plugin-06",
+ "kind": "plugin-meta",
+ "translations": {
+  "Console logger exporter for cordis": "Экспортёр журнала в консоль для Cordis",
+  "Hot Module Replacement Plugin for Cordis": "Плагин горячей замены модулей для Cordis",
+  "Linux arm64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons": "Системные бинарники Linux arm64: статический лаунчер Landlock и надстройки Node-API flock для glibc/musl",
+  "Linux x64 system binaries: static Landlock launcher and glibc/musl Node-API flock addons": "Системные бинарники Linux x64: статический лаунчер Landlock и надстройки Node-API flock для glibc/musl",
+  "Prebuilt POSIX flock Node-API binding for macOS x64": "Предустановленная привязка POSIX flock на Node-API для macOS x64",
+  "Linux Node WebAssembly OOXML-to-PDF engine assets": "Ресурсы движка OOXML-to-PDF на Node WebAssembly для Linux"
+ }
+}

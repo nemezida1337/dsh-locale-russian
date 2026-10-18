@@ -1,8 +1,43 @@
 {
   "id": "plugin-05",
   "kind": "plugin-meta",
-  "count": 22,
+  "count": 27,
   "items": [
+    {
+      "kind": "title",
+      "en": "Speech transcription API",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-api-speech-to-text"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Auto Authorization Review",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-auto-review"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "DSH badge skill",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-badge-skill-bundle"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Team Panel",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-agent-team"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Machine translation of reasoning",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-cot-translation"
+      ]
+    },
     {
       "kind": "title",
       "en": "Voice recording",

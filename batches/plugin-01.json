@@ -404,6 +404,13 @@
     },
     {
       "kind": "description",
+      "en": "Console logger exporter for cordis",
+      "packages": [
+        "@deepseek-ai/cordis-plugin-logger-console"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Coordinated module and profile configuration hot reload",
       "packages": [
         "@deepseek-ai/dsh-hmr"
@@ -624,13 +631,6 @@
       "en": "Endpoint-named mock for Typert Remote traffic: unary answers and stream scripts per <namespace>/<method>, live stream control, a log, and the Connection carrier face whole-client specs install",
       "packages": [
         "@deepseek-ai/dsh-remote-mock"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Event-sourced same-session goal state and lifecycle service for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-goal"
       ]
     }
   ]

@@ -20,7 +20,9 @@ const CHROME_CANDIDATES = ['chrome', 'google-chrome', 'google-chrome-stable', 'c
 /** Resolves a Chrome executable, preferring CHROME_PATH and the macOS bundle. */
 function resolveChrome(explicit) {
   if (explicit !== undefined) return explicit
-  if (process.env.CHROME_PATH !== undefined) return process.env.CHROME_PATH
+  // An empty value must fall through to the PATH lookup: CI passes the output
+  // of the setup action, which is empty when the action names it differently.
+  if (typeof process.env.CHROME_PATH === 'string' && process.env.CHROME_PATH.length > 0) return process.env.CHROME_PATH
   if (existsSync(MAC_CHROME)) return MAC_CHROME
   for (const name of CHROME_CANDIDATES) {
     const found = spawnSync('which', [name], { encoding: 'utf8' })
@@ -47,6 +49,10 @@ export async function launchChrome({
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-gpu',
+    // Needed in containers and on CI runners; harmless on a workstation.
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
     '--hide-scrollbars',
     `--window-size=${windowSize}`,
     'about:blank',
@@ -66,7 +72,9 @@ export async function launchChrome({
     }
     await sleep(250)
   }
-  if (version === undefined) throw new Error(`DevTools endpoint did not answer on port ${port}\n${log}`)
+  if (version === undefined) {
+    throw new Error(`DevTools endpoint did not answer on port ${port} (executable: ${executable})\n${log}`)
+  }
 
   return {
     chrome,

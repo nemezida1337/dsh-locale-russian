@@ -79,16 +79,32 @@ if (existsSync(packagesDir)) {
     collect(join(packagesDir, name.name), 'app')
   }
 }
-const repoPackages = join(repoRoot, 'packages')
-if (existsSync(repoPackages)) {
-  for (const group of readdirSync(repoPackages, { withFileTypes: true })) {
-    if (!group.isDirectory()) continue
-    for (const name of readdirSync(join(repoPackages, group.name), { withFileTypes: true })) {
-      if (!name.isDirectory()) continue
-      collect(join(repoPackages, group.name, name.name), 'repo')
-    }
+// The repository ships packages under several roots: packages/<group>/<name>,
+// native/<name>/packages/<platform>, vendor, and so on. Walking the whole tree
+// keeps platform variants (Linux, Windows, arm64) in the table instead of only
+// the ones the current machine installs.
+const REPO_SKIP = new Set([
+  'node_modules', '.git', 'lib', 'dist', 'coverage', '.pnpm',
+  // Fixture and example manifests are not shipped packages.
+  'tests', 'test', '__tests__', 'fixtures', '__fixtures__', 'examples', 'docs', 'website',
+])
+function walkRepo(dir, depth) {
+  if (depth > 4) return
+  let entries
+  try {
+    entries = readdirSync(dir, { withFileTypes: true })
+  } catch {
+    return
+  }
+  // A monorepo root has a manifest *and* child packages, so collecting never
+  // stops the descent.
+  if (entries.some((entry) => entry.isFile() && entry.name === 'package.json')) collect(dir, 'repo')
+  for (const entry of entries) {
+    if (!entry.isDirectory() || REPO_SKIP.has(entry.name) || entry.name.startsWith('.')) continue
+    walkRepo(join(dir, entry.name), depth + 1)
   }
 }
+if (existsSync(repoRoot)) walkRepo(repoRoot, 0)
 
 // Translation works on unique strings: several packages share a description.
 const uniqueDescriptions = new Map()
