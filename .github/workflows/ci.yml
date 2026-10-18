@@ -61,7 +61,13 @@ jobs:
   # Дымовой тест: поднимаем настоящий веб-сервер DSH с нашим пакетом через
   # строку патча и проверяем, что модуль попал в boot-граф страницы.
   smoke:
-    runs-on: ubuntu-latest
+    # Вёрстка зависит от шрифтовых метрик системы: Linux уже находил обрезки,
+    # которых нет на macOS, поэтому проверяем обе платформы.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -73,15 +79,17 @@ jobs:
         id: chrome
         uses: browser-actions/setup-chrome@v1
       - name: Поднять web-профиль с пакетом
+        shell: bash
         run: |
           set -euo pipefail
           export DSH_HOME="$PWD/.ci-home"
           mkdir -p "$DSH_HOME"
           npx --no-install dsh --profile web --dump-config > /dev/null
+          PACK_URL=$(node -p "require('node:url').pathToFileURL(process.cwd() + '/lib/index.js').href")
           cat > "$DSH_HOME/profiles/web/cordis.patch.yml" <<YAML
           - insert:
               - id: locale-ru
-                name: file://$PWD/lib/index.js
+                name: $PACK_URL
           YAML
           (npx --no-install dsh --profile web --port 5610 --no-open > web.log 2>&1 &)
           for _ in $(seq 1 40); do
@@ -95,6 +103,7 @@ jobs:
           grep -q 'dsh-locale-russian/client.js' index.html
           echo 'модуль языкового пакета попал в boot-граф'
       - name: Обход интерфейса (обрезка текста)
+        shell: bash
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
