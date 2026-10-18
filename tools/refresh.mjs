@@ -88,20 +88,22 @@ const translatedFrom = existsSync(translatedFromPath)
   ? JSON.parse(readFileSync(translatedFromPath, 'utf8')).keys ?? {}
   : {}
 
-let missing = 0
-let reworded = 0
+const missingKeys = []
+const rewordedKeys = []
 for (const [namespace, entry] of Object.entries(inventory.namespaces)) {
   for (const [key, value] of Object.entries(entry.keys)) {
     const translated = overrides[namespace]?.[key] ?? dictionary[namespace]?.[key]
     if (typeof translated !== 'string' || (translated.length === 0 && value.en.length > 0)) {
-      missing += 1
+      missingKeys.push(`${namespace}/${key}`)
       continue
     }
     if (value.wordingChangedFrom !== undefined && translatedFrom[`${namespace}\u0000${key}`] !== value.en) {
-      reworded += 1
+      rewordedKeys.push(`${namespace}/${key}`)
     }
   }
 }
+const missing = missingKeys.length
+const reworded = rewordedKeys.length
 
 const pluginText = existsSync(resolve(root, 'dictionary/plugin-meta.json'))
   ? JSON.parse(readFileSync(resolve(root, 'dictionary/plugin-meta.json'), 'utf8'))
@@ -124,6 +126,10 @@ console.log('\n================ сводка обновления ==============
 console.log(`источники: приложение ${existsSync(packagesDir) ? 'да' : 'нет'}, CLI ${haveInstall ? 'да' : 'нет'}, репозиторий ${haveRepo ? 'да' : 'нет'}`)
 console.log(`ключей в инвентаре: ${inventory.stats.keys}`)
 console.log(`без перевода: ${missing}, с изменившимся английским: ${reworded}`)
+for (const key of missingKeys.slice(0, 20)) console.log(`  − ${key}`)
+if (missing > 20) console.log(`  − … и ещё ${missing - 20}`)
+for (const key of rewordedKeys.slice(0, 20)) console.log(`  ~ ${key}`)
+if (reworded > 20) console.log(`  ~ … и ещё ${reworded - 20}`)
 console.log(`описаний плагинов без перевода: ${missingPluginText}`)
 for (const source of missingPluginSources.slice(0, 20)) console.log(`  · ${source.slice(0, 120)}`)
 if (missingPluginSources.length > 20) console.log(`  · … и ещё ${missingPluginSources.length - 20}`)

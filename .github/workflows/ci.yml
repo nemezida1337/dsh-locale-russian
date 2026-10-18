@@ -38,6 +38,9 @@ jobs:
     # Установленный набор пакетов зависит от платформы: на Linux приезжают
     # linux-варианты системных бинарников, на Windows — свои. Проверяем обе,
     # иначе описания платформенных пакетов останутся английскими.
+    permissions:
+      contents: read
+      issues: write
     strategy:
       fail-fast: false
       matrix:
@@ -54,19 +57,54 @@ jobs:
         # Явный bash: на Windows PowerShell не понимает перенос строки через \.
         shell: bash
         run: |
+          set -o pipefail
           node tools/refresh.mjs \
             --skip-asar --skip-repo \
             --packages node_modules/@deepseek-ai \
             --install-root node_modules/@deepseek-ai \
-            --check
-      - name: Показать, что нужно перевести
+            --check 2>&1 | tee drift.log
+      - name: Собрать отчёт о дельте
         if: failure()
         shell: bash
         run: |
-          echo '### Дельта перевода' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Новая версия DSH добавила или переписала строки.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Скачайте артефакты job-а и переведите batches/p3-*.json и batches/plugin-*.json.' >> "$GITHUB_STEP_SUMMARY"
-          node tools/report-drift.mjs | head -40 >> "$GITHUB_STEP_SUMMARY" || true
+          {
+            echo '### Дельта перевода'
+            echo
+            echo 'Свежий `@deepseek-ai/dsh` из npm добавил или переписал строки.'
+            echo
+            echo '```'
+            tail -40 drift.log
+            echo '```'
+            echo
+            echo 'Дальше: `npm run refresh`, перевести `batches/p3-*.json` и `batches/plugin-*.json`,'
+            echo 'затем `npm run mark-translated && npm test` и выпустить версию по тегу.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Открыть issue с дельтой
+        # Недельный прогон — это и есть слежение: результат должен быть виден
+        # в трекере, а не только в упавшем job-е.
+        if: failure() && matrix.os == 'ubuntu-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Новая версия DSH: появились строки для перевода'
+        run: |
+          {
+            echo "Недельная проверка $(date -u +%Y-%m-%d) нашла расхождение с релизом DSH в npm."
+            echo
+            echo '```'
+            tail -40 drift.log
+            echo '```'
+            echo
+            echo 'Порядок действий: `npm run refresh` → перевести батчи → `npm run mark-translated` → `npm test` → `npm version patch && git push --follow-tags`.'
+          } > issue.md
+          EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+            echo "дополнен открытый issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --body-file issue.md
+          fi
 
   # Дымовой тест: поднимаем настоящий веб-сервер DSH с нашим пакетом через
   # строку патча и проверяем, что модуль попал в boot-граф страницы.
