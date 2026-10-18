@@ -1,0 +1,35 @@
+name: market index
+
+# Публикует каталог market/ (index.json + иконка) на GitHub Pages, чтобы
+# пользователи могли добавить адрес индекса в разделе «Плагины → Обзор».
+on:
+  push:
+    branches: [main]
+    paths: ['market/**', 'icon.svg']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Пересобрать индекс из манифеста
+        run: node tools/build-market.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: market
+      - id: deployment
+        uses: actions/deploy-pages@v4
