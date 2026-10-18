@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-18T10:57:57.645Z",
-  "packageRoot": "/Users/ram/.dsh/profiles/node_modules/@deepseek-ai",
+  "generatedAt": "2026-10-18T12:29:12.508Z",
+  "packageRoot": "~/.dsh/profiles/node_modules/@deepseek-ai",
   "packages": [
     {
       "package": "dsh-api-gateway",

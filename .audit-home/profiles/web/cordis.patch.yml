@@ -1,0 +1,3 @@
+- insert:
+    - id: locale-ru
+      name: file:///Users/ram/Developer/dsh-locale-ru/lib/index.js

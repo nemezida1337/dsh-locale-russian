@@ -124,7 +124,12 @@ writeFileSync(resolve(root, 'dictionary/plugin-meta.json'), `${JSON.stringify(so
 const manifestName = existingManifest.name ?? 'dsh-locale-russian'
 const dictionaryJson = JSON.stringify(sortedDictionary)
 const pluginTextJson = JSON.stringify(sortedPluginText)
-const digest = createHash('sha256').update(dictionaryJson).digest('hex').slice(0, 16)
+// The digest identifies the whole shipped copy: both the namespace
+// dictionaries and the plugin display text.
+const digest = createHash('sha256')
+  .update(`${dictionaryJson}\u0000${pluginTextJson}`)
+  .digest('hex')
+  .slice(0, 16)
 
 const clientBundle = `window.__ModuleLoader__.load({
 \t// Module id must equal the package name: the client module system matches\n\t// the resolved package against the registered id.\n\tid: "${manifestName}",

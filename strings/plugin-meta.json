@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-18T10:57:58.585Z",
-  "packagesDir": "/Users/ram/Developer/dsh-locale-ru/.app-packages",
-  "repoRoot": "/Users/ram/Developer/deepseek-harness",
+  "generatedAt": "2026-10-18T12:29:13.005Z",
+  "packagesDir": "~/Developer/dsh-locale-ru/.app-packages",
+  "repoRoot": "~/Developer/deepseek-harness",
   "stats": {
     "packages": 357,
     "withDescription": 357,

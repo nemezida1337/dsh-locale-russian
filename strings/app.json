@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-18T10:57:57.450Z",
-  "packageRoot": "/Users/ram/Developer/dsh-locale-ru/.app-packages",
+  "generatedAt": "2026-10-18T12:29:12.313Z",
+  "packageRoot": "~/Developer/dsh-locale-ru/.app-packages",
   "packages": [
     {
       "package": "dsh-api-job-controller",

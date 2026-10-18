@@ -248,11 +248,3 @@ export async function openPage(version, { width = 1440, height = 1000, scale = 2
   page.close = () => socket.close()
   return page
 }
-
-/** Reads the access token a `dsh web` run printed into its log. */
-export function tokenFromLog(logPath) {
-  const text = require('node:fs').readFileSync(logPath, 'utf8')
-  const match = /token=([A-Za-z0-9_-]+)/u.exec(text)
-  if (match === null) throw new Error(`no access token in ${logPath}`)
-  return match[1]
-}

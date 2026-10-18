@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-18T10:57:58.645Z",
+  "generatedAt": "2026-10-18T12:29:13.063Z",
   "sources": {
     "app": {
       "present": true,
-      "root": "/Users/ram/Developer/dsh-locale-ru/.app-packages"
+      "root": "~/Developer/dsh-locale-ru/.app-packages"
     },
     "installed": {
       "present": true,
-      "root": "/Users/ram/.dsh/profiles/node_modules/@deepseek-ai"
+      "root": "~/.dsh/profiles/node_modules/@deepseek-ai"
     },
     "repo": {
       "present": true,
-      "root": "/Users/ram/Developer/deepseek-harness"
+      "root": "~/Developer/deepseek-harness"
     }
   },
   "stats": {

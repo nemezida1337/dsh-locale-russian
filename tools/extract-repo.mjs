@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url'
 import {
   state, resolveDeclaration, splitArguments, resolveValue,
 } from './lib/parse-js.mjs'
+import { displayPath } from './lib/paths.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)
@@ -92,7 +93,7 @@ function collectImports(file, text) {
 const packagesRoot = join(repoRoot, 'packages')
 const groups = ['client', 'extensions', 'experimental']
 const namespaces = new Map()
-const report = { generatedAt: new Date().toISOString(), repoRoot, packages: [], unresolved: [] }
+const report = { generatedAt: new Date().toISOString(), repoRoot: displayPath(repoRoot), packages: [], unresolved: [] }
 
 function record(ns, locale, dict, source) {
   if (!namespaces.has(ns)) namespaces.set(ns, { en: {}, zh: {}, other: {}, sources: [] })

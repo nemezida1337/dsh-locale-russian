@@ -14,6 +14,7 @@ import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 
 import { join, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { homedir } from 'node:os'
+import { displayPath } from './lib/paths.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)
@@ -328,7 +329,7 @@ function resolveDeclaration(text, name) {
 const namespaces = new Map()
 const report = {
   generatedAt: new Date().toISOString(),
-  packageRoot: PKG_ROOT,
+  packageRoot: displayPath(PKG_ROOT),
   packages: [],
   unresolved: [],
 }

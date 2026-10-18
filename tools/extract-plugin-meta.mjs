@@ -16,6 +16,7 @@
  */
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
+import { displayPath } from './lib/paths.mjs'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -118,8 +119,8 @@ for (const entry of entries) {
 mkdirSync(dirname(outFile), { recursive: true })
 writeFileSync(outFile, `${JSON.stringify({
   generatedAt: new Date().toISOString(),
-  packagesDir,
-  repoRoot,
+  packagesDir: displayPath(packagesDir),
+  repoRoot: displayPath(repoRoot),
   stats: {
     packages: entries.length,
     withDescription: entries.filter((entry) => entry.description !== undefined).length,
