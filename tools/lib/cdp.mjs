@@ -83,7 +83,14 @@ export async function launchChrome({
     async close() {
       chrome.kill('SIGTERM')
       await sleep(300)
-      rmSync(profileDir, { recursive: true, force: true })
+      // Windows holds the profile's files for a moment after the process ends,
+      // so removal is best-effort with retries; a leftover temp directory is not
+      // a reason to fail the check.
+      try {
+        rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+      } catch {
+        // The runner cleans its temp directory anyway.
+      }
     },
   }
 }

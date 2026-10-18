@@ -251,6 +251,7 @@
   "Plugin market index format 1: JSON validation, relative icon resolution, and pinned install arguments": "Формат индекса рынка плагинов версии 1: проверка JSON, определение относительных значков и закреплённые аргументы установки",
   "Plugin-owned human command registry for DeepSeek Harness UIs": "Принадлежащий плагинам реестр пользовательских команд для интерфейсов DeepSeek Harness",
   "Prebuilt LibreOfficeKit engine for darwin-arm64": "Предустановленный движок LibreOfficeKit для darwin-arm64",
+  "Prebuilt LibreOfficeKit engine for win32-x64": "Предустановленный движок LibreOfficeKit для win32-x64",
   "Prebuilt POSIX flock Node-API binding for macOS arm64": "Готовая привязка Node-API для POSIX flock под macOS arm64",
   "Prebuilt POSIX flock Node-API binding for macOS x64": "Предустановленная привязка POSIX flock на Node-API для macOS x64",
   "Prebuilt system primitives: a Linux Landlock launcher and asynchronous POSIX flock through stable Node-API": "Готовые системные примитивы: лаунчер Landlock для Linux и асинхронный POSIX flock через стабильный Node-API",
