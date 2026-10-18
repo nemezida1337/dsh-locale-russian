@@ -88,6 +88,8 @@ node tools/gui-sweep.mjs          # обход интерфейса: текст,
 node tools/screenshot-gui.mjs     # снимок одного экрана (для отладки)
 ```
 
+Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](contrib/plugin-recipe.md).
+
 Общие помощники лежат в `tools/lib`: `cdp.mjs` — запуск headless Chrome и операции над страницей, `parse-js.mjs` — чтение словарей из бандлов и исходников, `paths.mjs` — сокращение машинных путей в отчётах.
 
 Порядок извлечения строк:
@@ -217,6 +219,11 @@ https://nemezida1337.github.io/dsh-locale-russian/index.json
 
 - Проверено на DeepSeek Harness `0.1.5-rc.x` (CLI-сборка, клиентские пакеты `0.1.5-rc.2`) и на приложении `0.2.1-rc.2` (клиентские пакеты распакованы из `app.asar`; покрытие — 2901 строка, пропусков нет).
 - Пакет использует публичный контракт локали (`addLanguage`, `register`, `getSnapshot`) и два приватных метода рантайма: `translate` для склонений и `resolveText` для метаданных плагинов. Оба вызова защищены проверкой типа: если метод исчезнет, пакет продолжит работать — склонения перестанут выбираться, описания плагинов останутся английскими, строки интерфейса не пострадают. Обсуждения в upstream об этом — [хук склонений](https://github.com/deepseek-ai/deepseek-harness/discussions/10147) и [локализация оболочки](https://github.com/deepseek-ai/deepseek-harness/discussions/10148); тексты лежат в [contrib/upstream-issues.md](contrib/upstream-issues.md), витрина плагина — [discussions/10146](https://github.com/deepseek-ai/deepseek-harness/discussions/10146).
+
+## См. также
+
+- [contrib/plugin-recipe.md](contrib/plugin-recipe.md) — как делать плагины для DeepSeek Harness: скелет пакета, манифест, грабли, проверки, публикация.
+- [contrib/upstream-issues.md](contrib/upstream-issues.md) — обсуждения в upstream с ссылками на код.
 
 ## Лицензия
 
