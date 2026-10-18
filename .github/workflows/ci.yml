@@ -51,6 +51,8 @@ jobs:
       - name: Установить свежий DSH
         run: npm install --no-save --no-package-lock @deepseek-ai/dsh@latest
       - name: Снять строки и проверить дельту
+        # Явный bash: на Windows PowerShell не понимает перенос строки через \.
+        shell: bash
         run: |
           node tools/refresh.mjs \
             --skip-asar --skip-repo \
@@ -59,6 +61,7 @@ jobs:
             --check
       - name: Показать, что нужно перевести
         if: failure()
+        shell: bash
         run: |
           echo '### Дельта перевода' >> "$GITHUB_STEP_SUMMARY"
           echo 'Новая версия DSH добавила или переписала строки.' >> "$GITHUB_STEP_SUMMARY"
