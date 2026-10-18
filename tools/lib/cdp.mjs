@@ -181,7 +181,8 @@ export class Page {
     return await this.evaluate(`(() => {
       return [...document.querySelectorAll('*')]
         .filter((node) => node.children.length === 0
-          && node.clientWidth > 0
+          // Screen-reader-only copy is one pixel wide on purpose.
+          && node.clientWidth > 4
           && node.scrollWidth > node.clientWidth + 1
           && (node.textContent || '').trim().length > 0
           && !['auto', 'scroll'].includes(getComputedStyle(node).overflowX))
