@@ -35,7 +35,14 @@ jobs:
   # Детектор обновлений: ставим свежий @deepseek-ai/dsh из npm, снимаем с него
   # словари и падаем, если появились непереведённые или переписанные строки.
   dsh-drift:
-    runs-on: ubuntu-latest
+    # Установленный набор пакетов зависит от платформы: на Linux приезжают
+    # linux-варианты системных бинарников, на Windows — свои. Проверяем обе,
+    # иначе описания платформенных пакетов останутся английскими.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
