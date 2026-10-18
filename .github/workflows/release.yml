@@ -1,9 +1,14 @@
 name: release
 
 # Выпуск по тегу: версия берётся из имени тега, пакет собирается, проверяется и
-# публикуется в npm. Нужен секрет репозитория NPM_TOKEN — granular access token
-# с правом публикации и включённой опцией «Bypass 2FA»; иначе npm потребует
-# подтверждение отпечатком и публикация из CI не пройдёт.
+# публикуется в npm.
+#
+# Публикация идёт через trusted publishing (OIDC): секреты не нужны, npm
+# доверяет этому репозиторию и workflow. На npmjs.com в настройках пакета
+# (Publishing access → Trusted publishing) укажите:
+#   владелец: nemezida1337, репозиторий: dsh-locale-russian, workflow: release.yml
+# Долгоживущие токены не используются: npm сворачивает токены с обходом 2FA для
+# прямой публикации, а аттестация происхождения выдаётся по OIDC.
 on:
   push:
     tags: ['v*']
@@ -15,7 +20,7 @@ on:
         default: true
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -26,10 +31,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Версия из тега
         if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           node -e "
@@ -63,20 +68,16 @@ jobs:
       - name: Публикация
         if: ${{ (github.event_name == 'push' && steps.published.outputs.exists != 'true') || inputs.dry-run == false }}
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Что ушло бы в реестр
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
+        run: npm publish --access public --dry-run
 
       - name: Релиз на GitHub
-        if: startsWith(github.ref, 'refs/tags/v') && steps.published.outputs.exists != 'true'
+        if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" --title "${GITHUB_REF_NAME#v}" --generate-notes \
             || echo 'релиз уже существует'
-
-      - name: Что ушло бы в реестр
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
-        run: npm publish --access public --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

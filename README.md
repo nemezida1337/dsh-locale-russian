@@ -118,9 +118,20 @@ npm version patch          # или minor / major — поднимает вер�
 git push --follow-tags     # тег vX.Y.Z запускает workflow release
 ```
 
-`.github/workflows/release.yml` берёт версию из тега, собирает пакет, прогоняет проверки и публикует в npm с аттестацией происхождения (`--provenance`). Для этого нужен секрет репозитория **`NPM_TOKEN`**: granular access token с правом публикации и включённой опцией «Bypass 2FA» (Settings → Secrets and variables → Actions → New repository secret). Без опции «Bypass 2FA» npm потребует подтверждение отпечатком, и публикация из CI не пройдёт.
+`.github/workflows/release.yml` берёт версию из тега, собирает пакет, прогоняет проверки, публикует в npm с аттестацией происхождения (`--provenance`) и создаёт GitHub-релиз. Если версия уже есть в реестре, публикация пропускается.
 
-Ручной выпуск тоже работает — `npm publish --access public` из локального терминала.
+Секреты не нужны: публикация идёт через **trusted publishing** (OIDC). На npmjs.com в настройках пакета → *Publishing access* → *Trusted publishing* добавьте издателя:
+
+| Поле | Значение |
+|---|---|
+| Owner | `nemezida1337` |
+| Repository | `dsh-locale-russian` |
+| Workflow | `release.yml` |
+| Environment | пусто |
+
+После этого выпуск — это `npm version patch && git push --follow-tags`. Токены не нужны, и npm не требует подтверждения отпечатком: он доверяет репозиторию. Это важно, потому что npm сворачивает granular-токены с обходом 2FA для прямой публикации ([анонс](https://gh.io/npm-gat-bypass2fa-deprecation)).
+
+Ручной выпуск тоже работает — `npm publish --access public` из локального терминала (там подтверждение отпечатком проходит через браузер).
 
 ### Обход интерфейса
 
