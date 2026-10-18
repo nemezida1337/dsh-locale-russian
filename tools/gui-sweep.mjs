@@ -48,6 +48,12 @@ const SECTIONS = [
 const chrome = await launchChrome({ port: Number(option('port', 9401)) })
 const page = await openPage(chrome.version)
 
+// Копия, которой владеет пакет, — кириллическая. Латинские строки приходят из
+// данных хоста: описания навыков из SKILL.md, имена пакетов, модели и команды;
+// они не переводятся (так же ведёт себя и китайская локаль), поэтому обрезка
+// таких строк — замечание, а не провал проверки.
+const OWN_COPY = /[А-Яа-яЁё]/
+
 const screens = []
 /** Captures the current screen: text, clipping, screenshot. */
 async function capture(id, title) {
@@ -58,17 +64,24 @@ async function capture(id, title) {
   mkdirSync(outDir, { recursive: true })
   await page.screenshot(png)
   writeFileSync(txt, `# ${title}\n\n${text}\n`)
+  const clippedItems = (Array.isArray(clipped) ? clipped : []).map((item) => ({
+    ...item,
+    ours: OWN_COPY.test(item.text),
+  }))
   screens.push({
     id,
     title,
     chars: typeof text === 'string' ? text.length : 0,
-    clipped: Array.isArray(clipped) ? clipped : [],
+    clipped: clippedItems,
     png: `${id}.png`,
     txt: `${id}.txt`,
   })
-  const clippedNote = Array.isArray(clipped) && clipped.length > 0
-    ? ` ⚠ обрезано: ${clipped.map((item) => JSON.stringify(item.text)).join(', ')}`
-    : ''
+  const own = clippedItems.filter((item) => item.ours)
+  const data = clippedItems.filter((item) => !item.ours)
+  const clippedNote = own.length + data.length === 0
+    ? ''
+    : ` ⚠ обрезано:${own.length > 0 ? ` ${own.map((item) => JSON.stringify(item.text)).join(', ')}` : ''}`
+      + `${data.length > 0 ? ` (+${data.length} строк данных хоста)` : ''}`
   console.log(`${id.padEnd(28)} ${String(screens[screens.length - 1].chars).padStart(6)} знаков${clippedNote}`)
 }
 
@@ -124,6 +137,7 @@ if (await page.focus('textarea, [contenteditable="true"]')) {
 }
 
 const clippedTotal = screens.reduce((sum, screen) => sum + screen.clipped.length, 0)
+const clippedOwn = screens.reduce((sum, screen) => sum + screen.clipped.filter((item) => item.ours).length, 0)
 const summary = {
   generatedAt: new Date().toISOString(),
   url: url.replace(/token=.*/u, 'token=…'),
@@ -135,12 +149,12 @@ const summary = {
     png: screen.png,
     txt: screen.txt,
   })),
-  totals: { screens: screens.length, clipped: clippedTotal },
+  totals: { screens: screens.length, clipped: clippedTotal, clippedOwnCopy: clippedOwn },
 }
 mkdirSync(outDir, { recursive: true })
 writeFileSync(resolve(outDir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`)
 
-console.log(`\nэкранов: ${screens.length}, обрезанных элементов: ${clippedTotal}`)
+console.log(`\nэкранов: ${screens.length}, обрезанных элементов: ${clippedTotal} (из них наша копия: ${clippedOwn})`)
 console.log(`сводка: ${resolve(outDir, 'summary.json')}`)
 
 let regressions = 0
@@ -166,9 +180,12 @@ if (compare && existsSync(baselinePath)) {
 
 page.close()
 await chrome.close()
-if (failOnClip && clippedTotal > 0) {
-  console.log(`обрезанных элементов: ${clippedTotal} — проверка не пройдена`)
+if (failOnClip && clippedOwn > 0) {
+  console.log(`обрезано элементов нашей копии: ${clippedOwn} — проверка не пройдена`)
   process.exitCode = 1
+} else if (failOnClip && clippedTotal > 0) {
+  console.log(`обрезаны только строки данных хоста (${clippedTotal}) — это не наша копия, проверка пройдена`)
+  process.exitCode = regressions > 0 ? 1 : 0
 } else {
   process.exitCode = regressions > 0 ? 1 : 0
 }
