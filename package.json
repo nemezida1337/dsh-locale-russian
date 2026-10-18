@@ -13,10 +13,11 @@
   },
   "files": [
     "lib",
-    "dictionary",
     "locale/*.json",
     "cordis.patch.yml",
     "icon.svg",
+    "dictionary/ru.json",
+    "dictionary/plugin-meta.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

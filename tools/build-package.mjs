@@ -380,7 +380,21 @@ const manifest = {
     './locale/*.json': './locale/*.json',
     './package.json': './package.json',
   },
-  files: ['lib', 'dictionary', 'locale/*.json', 'cordis.patch.yml', 'icon.svg', 'README.md', 'CHANGELOG.md', 'LICENSE', 'GLOSSARY.md', 'STYLE.md'],
+  // Только то, что нужно во время работы, плюс документация: слои правок и
+  // состояние переводов остаются в репозитории.
+  files: [
+    'lib',
+    'locale/*.json',
+    'cordis.patch.yml',
+    'icon.svg',
+    'dictionary/ru.json',
+    'dictionary/plugin-meta.json',
+    'README.md',
+    'CHANGELOG.md',
+    'LICENSE',
+    'GLOSSARY.md',
+    'STYLE.md',
+  ],
   dsh: {
     // Both roles: a bundle so a profile installs it as one unit, and a client
     // plugin so the browser half is served. `immediately` registers the
