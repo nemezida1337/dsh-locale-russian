@@ -1,0 +1,60 @@
+name: release
+
+# Выпуск по тегу: версия берётся из имени тега, пакет собирается, проверяется и
+# публикуется в npm. Нужен секрет репозитория NPM_TOKEN — granular access token
+# с правом публикации и включённой опцией «Bypass 2FA»; иначе npm потребует
+# подтверждение отпечатком и публикация из CI не пройдёт.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Собрать и проверить, но не публиковать'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Версия из тега
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node -e "
+            const fs = require('node:fs')
+            const manifest = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+            manifest.version = process.argv[1]
+            fs.writeFileSync('package.json', JSON.stringify(manifest, null, 2) + '\n')
+          " "$VERSION"
+          echo "версия: $VERSION"
+
+      - name: Сборка и проверки
+        run: |
+          npm run lint
+          npm run build
+          npm run market
+          npm run verify
+
+      - name: Публикация
+        if: ${{ github.event_name == 'push' || inputs.dry-run == false }}
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Что ушло бы в реестр
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
+        run: npm publish --access public --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

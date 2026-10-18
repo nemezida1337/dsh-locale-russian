@@ -111,6 +111,17 @@ node tools/build-batches.mjs --delta                                 # толь�
 
 `dsh-drift` — это и есть сигнал «вышел новый DSH, нужна дельта»: в отчёте job-а видно, сколько строк добавилось и какие именно. После публикации репозитория на GitHub эти проверки включаются сами, без настройки секретов.
 
+### Выпуск версии
+
+```sh
+npm version patch          # или minor / major — поднимает версию в package.json
+git push --follow-tags     # тег vX.Y.Z запускает workflow release
+```
+
+`.github/workflows/release.yml` берёт версию из тега, собирает пакет, прогоняет проверки и публикует в npm с аттестацией происхождения (`--provenance`). Для этого нужен секрет репозитория **`NPM_TOKEN`**: granular access token с правом публикации и включённой опцией «Bypass 2FA» (Settings → Secrets and variables → Actions → New repository secret). Без опции «Bypass 2FA» npm потребует подтверждение отпечатком, и публикация из CI не пройдёт.
+
+Ручной выпуск тоже работает — `npm publish --access public` из локального терминала.
+
 ### Обход интерфейса
 
 ```sh
