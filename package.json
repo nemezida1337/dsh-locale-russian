@@ -49,7 +49,8 @@
     "mark-translated": "node tools/mark-translated.mjs",
     "plugin-meta": "node tools/extract-plugin-meta.mjs && node tools/build-plugin-batches.mjs",
     "sweep": "node tools/gui-sweep.mjs",
-    "sweep:check": "node tools/gui-sweep.mjs --compare --fail-on-clip"
+    "sweep:check": "node tools/gui-sweep.mjs --compare --fail-on-clip",
+    "validate-market": "node tools/validate-market.mjs"
   },
   "license": "MIT",
   "engines": {

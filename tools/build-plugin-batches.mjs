@@ -5,7 +5,7 @@
  * Usage:
  *   node tools/build-plugin-batches.mjs [--size 90]
  */
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 

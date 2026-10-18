@@ -8,7 +8,7 @@
  *   node tools/extract-asar.mjs --asar "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar" \
  *     --out .app-packages [--prefix dsh/node_modules/@deepseek-ai]
  */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
