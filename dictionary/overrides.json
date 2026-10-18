@@ -42,9 +42,9 @@
   },
   "settings.agentPreset": {
     "duplicateUnavailable": "В этом развёртывании нет каталога пресетов, доступного для записи",
-    "inUse": "По умолчанию",
-    "presetStandardName": "Стандартный",
-    "presetMinimalName": "Минимальный",
+    "inUse": "Основной",
+    "presetStandardName": "Стандарт",
+    "presetMinimalName": "Минимум",
     "presetCordisName": "Создание"
   },
   "settings.models": {
