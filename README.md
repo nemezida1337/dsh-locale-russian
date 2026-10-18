@@ -1,6 +1,10 @@
-# dsh-locale-ru
+# dsh-locale-russian
 
 Русская локализация web-интерфейса [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+
+[![checks](https://github.com/nemezida1337/dsh-locale-russian/actions/workflows/ci.yml/badge.svg)](https://github.com/nemezida1337/dsh-locale-russian/actions/workflows/ci.yml)
+
+Индекс маркета: `https://nemezida1337.github.io/dsh-locale-russian/index.json` — добавьте его на странице **Плагины → Обзор**, чтобы установить пакет оттуда.
 
 Пакет — обычный клиентский плагин DSH: он добавляет язык `ru` в расширяемый каталог локалей и регистрирует переводы для всех namespace интерфейса. Недостающие ключи автоматически показываются по-английски, поэтому неполный перевод не ломает интерфейс. Одновременно это bundle, поэтому ставится одной командой и умеет обновляться как обычный пакет.
 
