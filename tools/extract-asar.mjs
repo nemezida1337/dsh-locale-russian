@@ -8,7 +8,7 @@
  *   node tools/extract-asar.mjs --asar "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar" \
  *     --out .app-packages [--prefix dsh/node_modules/@deepseek-ai]
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -26,6 +26,12 @@ const prefix = option('prefix', 'dsh/node_modules/@deepseek-ai')
 
 // The archive starts with a nested pickle: [4][size+8][size+4][json length],
 // then the JSON directory tree, then the file payloads, aligned to 4 bytes.
+if (!existsSync(asarPath)) {
+  console.error(`архив не найден: ${asarPath}`)
+  console.error('укажите путь флагом --asar, например:')
+  console.error('  node tools/extract-asar.mjs --asar "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar"')
+  process.exit(2)
+}
 const archive = readFileSync(asarPath)
 const jsonStart = 16
 const jsonLength = archive.readUInt32LE(12)

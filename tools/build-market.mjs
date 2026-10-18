@@ -26,6 +26,38 @@ const publishTimestamp = timestampIndex === -1
 const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
 const repositoryUrl = (manifest.repository?.url ?? '').replace(/^git\+/u, '').replace(/\.git$/u, '')
 
+/**
+ * Resolves the version's real publish time from the registry, so a regenerated
+ * index (for example by the Pages workflow) keeps an honest timestamp instead
+ * of recording when the index was built.
+ * @param name - published package name.
+ * @param version - exact version in the manifest.
+ * @returns Unix seconds, or undefined when the version is not published yet.
+ */
+async function publishedAt(name, version) {
+  try {
+    const response = await fetch(`https://registry.npmjs.org/${name}`)
+    if (!response.ok) return undefined
+    const packument = await response.json()
+    const time = packument.time?.[version]
+    if (typeof time !== 'string') return undefined
+    const parsed = Date.parse(time)
+    return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+const registryTimestamp = timestampIndex === -1
+  ? await publishedAt(manifest.name, manifest.version)
+  : undefined
+const effectiveTimestamp = registryTimestamp ?? publishTimestamp
+if (timestampIndex === -1) {
+  console.log(registryTimestamp === undefined
+    ? `время публикации неизвестно (версия ${manifest.version} ещё не в реестре) — берём текущее`
+    : `время публикации ${manifest.version} из реестра`)
+}
+
 const index = {
   format: 1,
   title: {
@@ -70,7 +102,7 @@ const index = {
       versions: [
         {
           version: manifest.version,
-          publishTimestamp,
+          publishTimestamp: effectiveTimestamp,
           source: { type: 'npm' },
           engines: { dsh: manifest.engines?.dsh ?? '*' },
         },
