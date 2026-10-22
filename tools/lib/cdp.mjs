@@ -76,9 +76,13 @@ export async function launchChrome({
     const marker = resolve(profileDir, 'DevToolsActivePort')
     for (let attempt = 0; attempt < 60 && endpoint === undefined; attempt += 1) {
       if (existsSync(marker)) {
-        const [line] = readFileSync(marker, 'utf8').split('\n')
-        const parsed = Number(line)
-        if (Number.isInteger(parsed) && parsed > 0) endpoint = parsed
+        try {
+          const [line] = readFileSync(marker, 'utf8').split('\n')
+          const parsed = Number(line)
+          if (Number.isInteger(parsed) && parsed > 0) endpoint = parsed
+        } catch {
+          // Windows держит файл, пока Chrome его пишет: повторим на следующем шаге.
+        }
       }
       if (endpoint === undefined) await sleep(250)
     }
