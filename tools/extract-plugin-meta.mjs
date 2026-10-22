@@ -15,6 +15,7 @@
  *   node tools/extract-plugin-meta.mjs
  */
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
+import { createArgs } from './lib/cli.mjs'
 import { dirname, resolve, join } from 'node:path'
 import { displayPath } from './lib/paths.mjs'
 import { fileURLToPath } from 'node:url'
@@ -22,10 +23,7 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
+const { option, flag } = createArgs()
 
 const packagesDir = resolve(root, option('packages', '.app-packages'))
 const repoRoot = option('repo', resolve(root, '../deepseek-harness'))

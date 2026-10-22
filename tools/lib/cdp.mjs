@@ -7,7 +7,7 @@
  * it, so the protocol plumbing lives in one place.
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
@@ -33,16 +33,25 @@ function resolveChrome(explicit) {
 
 /** Starts headless Chrome and waits for its DevTools endpoint. */
 export async function launchChrome({
-  port = 9333,
+  port,
   lang = 'ru-RU',
   chromePath,
   windowSize = '1440,1000',
 } = {}) {
   const executable = resolveChrome(chromePath)
-  const profileDir = resolve(tmpdir(), `dsh-chrome-${process.pid}-${port}`)
+  if (port !== undefined) {
+    // Иначе DevTools-эндпоинт ответит чужой процесс, и команды вернут «Not supported».
+    const busy = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(400) })
+      .then(() => true, () => false)
+    if (busy) {
+      throw new Error(`порт ${port} уже занят другим процессом — укажите другой через --port или уберите флаг: тогда Chrome выберет свободный`)
+    }
+  }
+  const profileDir = resolve(tmpdir(), `dsh-chrome-${process.pid}-${Date.now()}`)
   const chrome = spawn(executable, [
     '--headless=new',
-    `--remote-debugging-port=${port}`,
+    // Порт 0 — Chrome сам выберет свободный и запишет его в DevToolsActivePort.
+    `--remote-debugging-port=${port ?? 0}`,
     `--user-data-dir=${profileDir}`,
     `--lang=${lang}`,
     `--accept-lang=${lang},ru;q=0.9,en;q=0.8`,
@@ -62,10 +71,26 @@ export async function launchChrome({
   chrome.stderr.on('data', (chunk) => { log += chunk.toString() })
   chrome.stdout.on('data', (chunk) => { log += chunk.toString() })
 
+  let endpoint = port
+  if (endpoint === undefined) {
+    const marker = resolve(profileDir, 'DevToolsActivePort')
+    for (let attempt = 0; attempt < 60 && endpoint === undefined; attempt += 1) {
+      if (existsSync(marker)) {
+        const [line] = readFileSync(marker, 'utf8').split('\n')
+        const parsed = Number(line)
+        if (Number.isInteger(parsed) && parsed > 0) endpoint = parsed
+      }
+      if (endpoint === undefined) await sleep(250)
+    }
+    if (endpoint === undefined) {
+      throw new Error(`Chrome не сообщил отладочный порт (executable: ${executable})\n${log}`)
+    }
+  }
+
   let version
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(`http://127.0.0.1:${port}/json/version`)
+      const response = await fetch(`http://127.0.0.1:${endpoint}/json/version`)
       if (response.ok) { version = await response.json(); break }
     } catch {
       // Chrome is still starting.
@@ -73,7 +98,7 @@ export async function launchChrome({
     await sleep(250)
   }
   if (version === undefined) {
-    throw new Error(`DevTools endpoint did not answer on port ${port} (executable: ${executable})\n${log}`)
+    throw new Error(`DevTools endpoint did not answer on port ${endpoint} (executable: ${executable})\n${log}`)
   }
 
   return {
@@ -82,7 +107,9 @@ export async function launchChrome({
     version,
     async close() {
       chrome.kill('SIGTERM')
-      await sleep(300)
+      for (let attempt = 0; attempt < 20 && chrome.exitCode === null; attempt += 1) await sleep(100)
+      if (chrome.exitCode === null) chrome.kill('SIGKILL')
+      await sleep(200)
       // Windows holds the profile's files for a moment after the process ends,
       // so removal is best-effort with retries; a leftover temp directory is not
       // a reason to fail the check.
@@ -108,9 +135,16 @@ export class Page {
       const entry = this.pending.get(message.id)
       if (entry === undefined) return
       this.pending.delete(message.id)
-      if (message.error !== undefined) entry.reject(new Error(JSON.stringify(message.error)))
+      // Имя команды в ошибке: без него отказ протокола нечем объяснить.
+    if (message.error !== undefined) entry.reject(new Error(`${entry.method}: ${JSON.stringify(message.error)}`))
       else entry.resolve(message.result)
     })
+  }
+
+  /** Закрывает вкладку вместе с её соединением. */
+  close() {
+    this.pending.clear()
+    this.socket.close()
   }
 
   /** Sends one protocol command. */
@@ -223,7 +257,7 @@ export async function openPage(version, { width = 1440, height = 1000, scale = 2
     nextId += 1
     const id = nextId
     return new Promise((resolvePromise, rejectPromise) => {
-      pending.set(id, { resolve: resolvePromise, reject: rejectPromise })
+      pending.set(id, { method, resolve: resolvePromise, reject: rejectPromise })
       socket.send(JSON.stringify({ id, method, params }))
     })
   }
@@ -233,7 +267,8 @@ export async function openPage(version, { width = 1440, height = 1000, scale = 2
     const entry = pending.get(message.id)
     if (entry === undefined) return
     pending.delete(message.id)
-    if (message.error !== undefined) entry.reject(new Error(JSON.stringify(message.error)))
+    // Имя команды в ошибке: без него отказ протокола нечем объяснить.
+    if (message.error !== undefined) entry.reject(new Error(`${entry.method}: ${JSON.stringify(message.error)}`))
     else entry.resolve(message.result)
   })
 
@@ -245,6 +280,5 @@ export async function openPage(version, { width = 1440, height = 1000, scale = 2
   await page.send('Emulation.setDeviceMetricsOverride', {
     width, height, deviceScaleFactor: scale, mobile: false,
   })
-  page.close = () => socket.close()
   return page
 }

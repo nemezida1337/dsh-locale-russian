@@ -11,3 +11,10 @@ node_modules/
 
 # Стенд для обхода интерфейса
 .sweep-home*/
+# Временные DSH-стенды для проверок и скриншотов
+.*-home/
+.*-home*/
+.audit-home/
+.refactor-home*/
+.verify-*/
+.npm-test-home/

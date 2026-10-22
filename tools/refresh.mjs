@@ -17,6 +17,7 @@
  * that a new DSH build shipped strings nobody translated yet.
  */
 import { spawnSync } from 'node:child_process'
+import { createArgs } from './lib/cli.mjs'
 import { readFileSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -24,12 +25,7 @@ import { homedir } from 'node:os'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
-const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
-const flag = (name) => args.includes(`--${name}`)
+const { option, flag } = createArgs()
 
 const check = flag('check')
 const asarPath = option('asar', '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar')

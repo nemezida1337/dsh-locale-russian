@@ -12,18 +12,14 @@
  * the baseline recorded, so CI or a pre-release check can gate on it.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { createArgs } from './lib/cli.mjs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { launchChrome, openPage, sleep } from './lib/cdp.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
-const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
-const flag = (name) => args.includes(`--${name}`)
+const { option, flag } = createArgs()
 
 const url = option('url')
 if (url === undefined) {
@@ -45,7 +41,11 @@ const SECTIONS = [
   'Пресеты агента', 'Учётная запись', 'Настройки плагинов', 'Список плагинов',
 ]
 
-const chrome = await launchChrome({ port: Number(option('port', 9401)) })
+// Порт не фиксируем: Chrome выберет свободный, и обход не упрётся в чужой процесс.
+const requestedPort = option('port')
+const chrome = await launchChrome({
+  ...(requestedPort === undefined ? {} : { port: Number(requestedPort) }),
+})
 const page = await openPage(chrome.version)
 
 // Копия, которой владеет пакет, — кириллическая. Латинские строки приходят из

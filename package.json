@@ -1,6 +1,6 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Russian (ru) language pack for the DeepSeek Harness web client",
   "type": "module",
   "main": "lib/index.js",
@@ -41,7 +41,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run build && npm run market && npm run verify",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -50,7 +50,8 @@
     "plugin-meta": "node tools/extract-plugin-meta.mjs && node tools/build-plugin-batches.mjs",
     "sweep": "node tools/gui-sweep.mjs",
     "sweep:check": "node tools/gui-sweep.mjs --compare --fail-on-clip",
-    "validate-market": "node tools/validate-market.mjs"
+    "validate-market": "node tools/validate-market.mjs",
+    "check-imports": "node tools/check-imports.mjs"
   },
   "license": "MIT",
   "engines": {

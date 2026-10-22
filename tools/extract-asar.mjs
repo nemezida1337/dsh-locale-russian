@@ -8,17 +8,15 @@
  *   node tools/extract-asar.mjs --asar "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar" \
  *     --out .app-packages [--prefix dsh/node_modules/@deepseek-ai]
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs'
+import { createArgs } from './lib/cli.mjs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
+const { option, flag } = createArgs()
 
 const asarPath = option('asar', '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar')
 const outDir = resolve(root, option('out', '.app-packages'))

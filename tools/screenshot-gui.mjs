@@ -15,6 +15,7 @@
  *     [--type "/"] [--focus "textarea, [contenteditable=\"true\"]"]
  */
 import { writeFileSync, mkdirSync } from 'node:fs'
+import { createArgs } from './lib/cli.mjs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { launchChrome, openPage, sleep } from './lib/cdp.mjs'
@@ -22,17 +23,15 @@ import { launchChrome, openPage, sleep } from './lib/cdp.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
+const { option, flag } = createArgs()
 
 const url = option('url', 'http://127.0.0.1:5599')
 const pngPath = resolve(root, option('png', 'reports/gui.png'))
 const textPath = resolve(root, option('text', 'reports/gui.txt'))
 const waitMs = Number(option('wait', 4000))
 const lang = option('lang', 'ru-RU')
-const port = Number(option('port', 9333))
+const requestedPort = option('port')
+const port = requestedPort === undefined ? undefined : Number(requestedPort)
 const chromePath = option('chrome', undefined)
 const clickTexts = (option('click-text', '') ?? '').split(',').map((item) => item.trim()).filter((item) => item.length > 0)
 const typeText = option('type', '')

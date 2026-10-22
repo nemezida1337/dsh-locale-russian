@@ -14,16 +14,14 @@
  *   node tools/validate-market.mjs [--index market/index.json] [--url https://…]
  */
 import { readFileSync, existsSync } from 'node:fs'
+import { createArgs } from './lib/cli.mjs'
 import { dirname, resolve, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const index = args.indexOf(`--${name}`)
-  return index === -1 ? fallback : args[index + 1]
-}
+const { option, flag } = createArgs()
 
 const indexPath = resolve(root, option('index', 'market/index.json'))
 const indexUrl = option('url', 'https://example.github.io/dsh-locale-russian/index.json')
