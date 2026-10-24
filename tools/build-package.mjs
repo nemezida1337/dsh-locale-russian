@@ -190,6 +190,7 @@ const manifest = {
   // состояние переводов остаются в репозитории.
   files: [
     'lib',
+    'bin',
     'locale/*.json',
     'cordis.patch.yml',
     'install.sh',
