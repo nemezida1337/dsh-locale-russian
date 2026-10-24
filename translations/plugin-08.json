@@ -1,0 +1,8 @@
+{
+  "id": "plugin-08",
+  "kind": "plugin-meta",
+  "translations": {
+    "Customize plugin entries in the left sidebar, conversation views, and right sidebar, and quickly create new plugins.": "Настройте записи плагинов в левой боковой панели, представлениях диалога и правой боковой панели и быстро создавайте новые плагины.",
+    "Interface customization": "Настройка интерфейса"
+  }
+}

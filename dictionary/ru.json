@@ -594,6 +594,8 @@
     "search.paths": "Путей: {shown}",
     "search.paths.truncated": "Показано {shown} из {total} путей",
     "session.hierarchy": "Иерархия сессий",
+    "session.moreViews": "Ещё представления диалога",
+    "session.moreViewsCurrent": "Ещё представления диалога · {name}",
     "settings.enter.description": "Что делают Enter и кнопка отправки, пока агент работает; Cmd/Ctrl+Enter использует другое поведение",
     "settings.enter.queue": "В очередь",
     "settings.enter.steer": "Вмешаться",
@@ -892,6 +894,13 @@
     "code.copy": "Копировать",
     "footnotes": "Сноски",
     "viewer.label": "Markdown"
+  },
+  "entryCustomization": {
+    "create": "Создать свой плагин",
+    "createPrompt.conversation": "Создать плагин представления диалога для DSH.",
+    "createPrompt.rightbar": "Создать плагин DSH с записью в правой боковой панели.",
+    "createPrompt.sidebar": "Создать плагин DSH с записью в левой боковой панели.",
+    "install": "Обзор других плагинов"
   },
   "feedback": {
     "action.dislike": "Плохой ответ",
@@ -2453,6 +2462,7 @@
   },
   "sidebar": {
     "panels.label": "Глобальные панели",
+    "panels.more": "Ещё",
     "session.new": "Новая сессия",
     "session.new.label": "Новая сессия",
     "toggle.collapse": "Свернуть боковую панель",
@@ -2634,6 +2644,7 @@
     "dock.splitPane": "Разделить",
     "dock.splitPaneDisabled": "Максимум две панели",
     "dock.splitPaneNarrow": "Не хватает ширины для разделения — расширьте боковую панель",
+    "tab.guide.more": "Ещё инструменты",
     "tab.guide.title": "Начало",
     "tab.unavailable": "Здесь пока нечем просмотреть содержимое этого типа."
   },

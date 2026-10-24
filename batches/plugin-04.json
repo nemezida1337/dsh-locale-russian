@@ -5,6 +5,13 @@
   "items": [
     {
       "kind": "description",
+      "en": "Shared Claude Code / Codex hook wire protocol: matcher engine, stdin/exit-code/stdout codec, multi-hook merge, and hook/* session events",
+      "packages": [
+        "@deepseek-ai/dsh-hook-protocol"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Shared Computer Use application objects, authorization, and logged tool execution",
       "packages": [
         "@deepseek-ai/dsh-cua"
@@ -614,23 +621,16 @@
     },
     {
       "kind": "title",
+      "en": "Interface customization",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-entry-customization"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Task interface",
       "packages": [
         "@deepseek-ai/dsh-client-ui-schedule"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Team Collaboration",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-agent-team"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Agent Teams",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-agent-team-profile"
       ]
     }
   ]

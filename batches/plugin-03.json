@@ -5,6 +5,13 @@
   "items": [
     {
       "kind": "description",
+      "en": "Model-facing reminder management tools (schedule_create, schedule_list, schedule_update, schedule_delete) over the Host ctx.schedule service",
+      "packages": [
+        "@deepseek-ai/dsh-tool-schedule"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Model-facing same-session goal tools with execution-time authority checks",
       "packages": [
         "@deepseek-ai/dsh-tool-goal"
@@ -624,13 +631,6 @@
       "en": "Shared boot glue for the app bins: .env loading, fail-loud Loader guards, snapshot-aware config resolution, and the Loader boot sequence",
       "packages": [
         "@deepseek-ai/dsh-app-boot"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared Claude Code / Codex hook wire protocol: matcher engine, stdin/exit-code/stdout codec, multi-hook merge, and hook/* session events",
-      "packages": [
-        "@deepseek-ai/dsh-hook-protocol"
       ]
     }
   ]

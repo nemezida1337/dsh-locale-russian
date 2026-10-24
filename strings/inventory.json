@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T08:19:11.137Z",
+  "generatedAt": "2026-10-24T08:27:57.162Z",
   "sources": {
     "app": {
       "present": true,
@@ -15,9 +15,9 @@
     }
   },
   "stats": {
-    "namespaces": 65,
-    "keys": 3056,
-    "fromApp": 2901,
+    "namespaces": 66,
+    "keys": 3065,
+    "fromApp": 2910,
     "fromInstalled": 142,
     "fromRepo": 13,
     "plural": 169,
@@ -3651,6 +3651,18 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "session.moreViews": {
+          "en": "More conversation views",
+          "zh": "更多会话视图",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "session.moreViewsCurrent": {
+          "en": "More conversation views · {name}",
+          "zh": "更多会话视图 · {name}",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "settings.enter.description": {
           "en": "What Enter and the Send button do while the agent is running; Cmd/Ctrl+Enter uses the other behavior",
           "zh": "智能体运行时 Enter 键和发送按钮的行为；Cmd/Ctrl+Enter 使用另一行为",
@@ -5465,6 +5477,46 @@
           "zh": "Markdown",
           "origin": "app",
           "context": "dsh-client-ui-sidebar-documentpreview"
+        }
+      }
+    },
+    "entryCustomization": {
+      "sources": [
+        "dsh-client-ui-entry-customization"
+      ],
+      "presentIn": [
+        "app"
+      ],
+      "keys": {
+        "create": {
+          "en": "Create your plugin",
+          "zh": "创建你的插件",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
+        },
+        "createPrompt.conversation": {
+          "en": "Create a DSH conversation view plugin.",
+          "zh": "创建一个 DSH 会话视图插件。",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
+        },
+        "createPrompt.rightbar": {
+          "en": "Create a DSH plugin with a right sidebar entry.",
+          "zh": "创建一个带右侧栏入口的 DSH 插件。",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
+        },
+        "createPrompt.sidebar": {
+          "en": "Create a DSH plugin with a left sidebar entry.",
+          "zh": "创建一个带左侧栏入口的 DSH 插件。",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
+        },
+        "install": {
+          "en": "Browse other plugins",
+          "zh": "浏览更多插件",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
         }
       }
     },
@@ -14929,6 +14981,12 @@
           "origin": "app",
           "context": "dsh-client-ui-sidebar"
         },
+        "panels.more": {
+          "en": "More",
+          "zh": "更多",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar"
+        },
         "session.new": {
           "en": "New Session",
           "zh": "新会话",
@@ -16024,6 +16082,12 @@
         "dock.splitPaneNarrow": {
           "en": "Not enough width to split, widen the sidebar",
           "zh": "栏宽不足，拖宽侧边栏后再分栏",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-right"
+        },
+        "tab.guide.more": {
+          "en": "More tools",
+          "zh": "更多工具",
           "origin": "app",
           "context": "dsh-client-ui-sidebar-right"
         },

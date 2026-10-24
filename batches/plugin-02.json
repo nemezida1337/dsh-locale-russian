@@ -5,6 +5,13 @@
   "items": [
     {
       "kind": "description",
+      "en": "Endpoint-named mock for Typert Remote traffic: unary answers and stream scripts per <namespace>/<method>, live stream control, a log, and the Connection carrier face whole-client specs install",
+      "packages": [
+        "@deepseek-ai/dsh-remote-mock"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Event-sourced same-session goal state and lifecycle service for the DeepSeek Harness",
       "packages": [
         "@deepseek-ai/dsh-goal"
@@ -624,13 +631,6 @@
       "en": "Model-facing pwsh tool over the bash executor seam",
       "packages": [
         "@deepseek-ai/dsh-tool-pwsh"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing reminder management tools (schedule_create, schedule_list, schedule_update, schedule_delete) over the Host ctx.schedule service",
-      "packages": [
-        "@deepseek-ai/dsh-tool-schedule"
       ]
     }
   ]

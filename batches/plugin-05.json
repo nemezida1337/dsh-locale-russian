@@ -1,8 +1,22 @@
 {
   "id": "plugin-05",
   "kind": "plugin-meta",
-  "count": 27,
+  "count": 29,
   "items": [
+    {
+      "kind": "title",
+      "en": "Team Collaboration",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-agent-team"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Agent Teams",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-agent-team-profile"
+      ]
+    },
     {
       "kind": "title",
       "en": "Speech transcription API",

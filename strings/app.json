@@ -1,55 +1,55 @@
 {
-  "generatedAt": "2026-10-22T08:19:09.902Z",
+  "generatedAt": "2026-10-24T08:27:56.105Z",
   "packageRoot": "~/Developer/dsh-locale-ru/.app-packages",
   "packages": [
     {
       "package": "dsh-api-job-controller",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-remote-access",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-remotes",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-session-controller",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-terminal-controller",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-workspace-controller",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-api-workspace-files",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-file-upload",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-hmr",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-locale",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "common",
         "settings.locale"
@@ -57,154 +57,161 @@
     },
     {
       "package": "dsh-client-modules",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-product-analytics",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-resources",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-shortcuts",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-agent-preset",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.agentPreset"
       ]
     },
     {
       "package": "dsh-client-ui-approval",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "approval"
       ]
     },
     {
       "package": "dsh-client-ui-attachment",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-brand-official",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-chat",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "chat"
       ]
     },
     {
       "package": "dsh-client-ui-commands",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "command"
       ]
     },
     {
       "package": "dsh-client-ui-conversation",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "conversation"
       ]
     },
     {
       "package": "dsh-client-ui-cordis",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "cordis"
       ]
     },
     {
       "package": "dsh-client-ui-deepseek-model-label-1017",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "deepseek-model-label-1017"
       ]
     },
     {
       "package": "dsh-client-ui-deliverables",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "deliverables"
       ]
     },
     {
       "package": "dsh-client-ui-directory-picker-browse",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "directory-browser"
       ]
     },
     {
       "package": "dsh-client-ui-directory-picker-native",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
+      "package": "dsh-client-ui-entry-customization",
+      "version": "0.2.1-rc.3",
+      "namespaces": [
+        "entryCustomization"
+      ]
+    },
+    {
       "package": "dsh-client-ui-goal",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "goal"
       ]
     },
     {
       "package": "dsh-client-ui-input-trigger",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "slash.menu"
       ]
     },
     {
       "package": "dsh-client-ui-jobs",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "job"
       ]
     },
     {
       "package": "dsh-client-ui-layout",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "shortcuts.layout"
       ]
     },
     {
       "package": "dsh-client-ui-message-feedback",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "feedback"
       ]
     },
     {
       "package": "dsh-client-ui-model-selection",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "model"
       ]
     },
     {
       "package": "dsh-client-ui-open-in-app",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "open-in-app"
       ]
     },
     {
       "package": "dsh-client-ui-permission-presets",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "permission.access",
         "settings.permission"
@@ -212,40 +219,40 @@
     },
     {
       "package": "dsh-client-ui-plan",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "plan"
       ]
     },
     {
       "package": "dsh-client-ui-plugin-manager",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "pluginManager"
       ]
     },
     {
       "package": "dsh-client-ui-plugin-market",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "pluginMarket"
       ]
     },
     {
       "package": "dsh-client-ui-reference",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "reference"
       ]
     },
     {
       "package": "dsh-client-ui-renderer",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-schedule",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "schedule.catalog",
         "schedule.manager"
@@ -253,115 +260,115 @@
     },
     {
       "package": "dsh-client-ui-secret-mask",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "secretMask"
       ]
     },
     {
       "package": "dsh-client-ui-session",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-settings",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-settings-account",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.account"
       ]
     },
     {
       "package": "dsh-client-ui-settings-agent-loop",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.agentLoop"
       ]
     },
     {
       "package": "dsh-client-ui-settings-general",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings"
       ]
     },
     {
       "package": "dsh-client-ui-settings-models",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.models"
       ]
     },
     {
       "package": "dsh-client-ui-settings-plugin-inventory",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.pluginInventory"
       ]
     },
     {
       "package": "dsh-client-ui-settings-plugins",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.plugins"
       ]
     },
     {
       "package": "dsh-client-ui-settings-session-log",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.sessionLog"
       ]
     },
     {
       "package": "dsh-client-ui-settings-shell",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.shell"
       ]
     },
     {
       "package": "dsh-client-ui-settings-subagent",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.subagent"
       ]
     },
     {
       "package": "dsh-client-ui-settings-web-search",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.webSearch"
       ]
     },
     {
       "package": "dsh-client-ui-shortcuts",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "shortcuts"
       ]
     },
     {
       "package": "dsh-client-ui-sidebar",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "sidebar"
       ]
     },
     {
       "package": "dsh-client-ui-sidebar-browser",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "sidebarBrowser"
       ]
     },
     {
       "package": "dsh-client-ui-sidebar-documentpreview",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "documentMarkdown",
         "documentHtml",
@@ -375,120 +382,120 @@
     },
     {
       "package": "dsh-client-ui-sidebar-files",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "sidebarFiles"
       ]
     },
     {
       "package": "dsh-client-ui-sidebar-right",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "sidebarRight"
       ]
     },
     {
       "package": "dsh-client-ui-sidebar-terminal",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "sidebarTerminal"
       ]
     },
     {
       "package": "dsh-client-ui-skill",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "skill"
       ]
     },
     {
       "package": "dsh-client-ui-subagent",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "subagent"
       ]
     },
     {
       "package": "dsh-client-ui-theme",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "settings.theme"
       ]
     },
     {
       "package": "dsh-client-ui-tool",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-client-ui-trajectory",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "trajectory"
       ]
     },
     {
       "package": "dsh-client-ui-user-questions",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "question"
       ]
     },
     {
       "package": "dsh-client-ui-workflow-run",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "workflowRun"
       ]
     },
     {
       "package": "dsh-client-ui-workspace",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "workspace"
       ]
     },
     {
       "package": "dsh-cordis-client-runner",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-experimental-client-ui-agent-team",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "agent-team"
       ]
     },
     {
       "package": "dsh-experimental-client-ui-cot-translation",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "cotTranslation"
       ]
     },
     {
       "package": "dsh-experimental-client-ui-voice-input",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "voice-input"
       ]
     },
     {
       "package": "dsh-experimental-inspector",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": []
     },
     {
       "package": "dsh-experimental-session-inspector",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "session-inspector"
       ]
     },
     {
       "package": "dsh-session-log-export",
-      "version": "0.2.1-rc.2",
+      "version": "0.2.1-rc.3",
       "namespaces": [
         "session-log-download"
       ]
@@ -1198,6 +1205,8 @@
         "hero.preview": "Preview",
         "hero.chooseWorkspace": "Choose workspace",
         "session.hierarchy": "Session hierarchy",
+        "session.moreViews": "More conversation views",
+        "session.moreViewsCurrent": "More conversation views · {name}",
         "todo.title": "To-dos",
         "todo.progress.done": "{done} completed",
         "todo.progress.active": "{active} in progress",
@@ -1573,6 +1582,8 @@
         "hero.preview": "预览版",
         "hero.chooseWorkspace": "选择工作区",
         "session.hierarchy": "会话层级",
+        "session.moreViews": "更多会话视图",
+        "session.moreViewsCurrent": "更多会话视图 · {name}",
         "todo.title": "任务",
         "todo.progress.done": "{done} 已完成",
         "todo.progress.active": "{active} 进行中",
@@ -2281,6 +2292,26 @@
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
+      ]
+    },
+    "entryCustomization": {
+      "en": {
+        "install": "Browse other plugins",
+        "create": "Create your plugin",
+        "createPrompt.sidebar": "Create a DSH plugin with a left sidebar entry.",
+        "createPrompt.conversation": "Create a DSH conversation view plugin.",
+        "createPrompt.rightbar": "Create a DSH plugin with a right sidebar entry."
+      },
+      "zh": {
+        "install": "浏览更多插件",
+        "create": "创建你的插件",
+        "createPrompt.sidebar": "创建一个带左侧栏入口的 DSH 插件。",
+        "createPrompt.conversation": "创建一个 DSH 会话视图插件。",
+        "createPrompt.rightbar": "创建一个带右侧栏入口的 DSH 插件。"
+      },
+      "other": {},
+      "sources": [
+        "dsh-client-ui-entry-customization"
       ]
     },
     "feedback": {
@@ -5381,14 +5412,16 @@
         "session.new.label": "New session",
         "toggle.open": "Open sidebar",
         "toggle.collapse": "Collapse sidebar",
-        "panels.label": "Global panels"
+        "panels.label": "Global panels",
+        "panels.more": "More"
       },
       "zh": {
         "session.new": "新会话",
         "session.new.label": "新建会话",
         "toggle.open": "打开侧边栏",
         "toggle.collapse": "收起侧边栏",
-        "panels.label": "全局面板"
+        "panels.label": "全局面板",
+        "panels.more": "更多"
       },
       "other": {},
       "sources": [
@@ -5758,6 +5791,7 @@
         "dock.drop.top": "Add top split",
         "dock.drop.bottom": "Add bottom split",
         "tab.guide.title": "Start",
+        "tab.guide.more": "More tools",
         "tab.unavailable": "Nothing here can view this kind of content yet."
       },
       "zh": {
@@ -5794,6 +5828,7 @@
         "dock.drop.top": "上分栏",
         "dock.drop.bottom": "下分栏",
         "tab.guide.title": "开始",
+        "tab.guide.more": "更多工具",
         "tab.unavailable": "这类内容还没有可用的查看方式。"
       },
       "other": {},

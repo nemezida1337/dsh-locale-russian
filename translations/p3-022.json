@@ -1,0 +1,11 @@
+{
+  "id": "p3-022",
+  "namespace": "entryCustomization",
+  "translations": {
+    "create": "Создать свой плагин",
+    "createPrompt.conversation": "Создать плагин представления диалога для DSH.",
+    "createPrompt.rightbar": "Создать плагин DSH с записью в правой боковой панели.",
+    "createPrompt.sidebar": "Создать плагин DSH с записью в левой боковой панели.",
+    "install": "Обзор других плагинов"
+  }
+}

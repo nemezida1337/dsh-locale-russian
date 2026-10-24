@@ -1,0 +1,8 @@
+{
+  "id": "p3-021",
+  "namespace": "conversation",
+  "translations": {
+    "session.moreViews": "Ещё представления диалога",
+    "session.moreViewsCurrent": "Ещё представления диалога · {name}"
+  }
+}
