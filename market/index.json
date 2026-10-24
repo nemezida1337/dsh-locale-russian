@@ -46,7 +46,7 @@
         "ru": "Русская локализация"
       },
       "description": {
-        "en": "Russian (ru) language pack for the DeepSeek Harness web client",
+        "en": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
         "ru": "Полный перевод интерфейса DeepSeek Harness на русский язык: панели, настройки, диалоги, карточки инструментов, форматы дат и русские склонения."
       },
       "icon": "icon.svg",
@@ -73,12 +73,12 @@
         ]
       },
       "dist-tags": {
-        "latest": "0.1.4"
+        "latest": "0.2.0"
       },
       "versions": [
         {
-          "version": "0.1.4",
-          "publishTimestamp": 1792830587,
+          "version": "0.2.0",
+          "publishTimestamp": 1792831603,
           "source": {
             "type": "npm"
           },
