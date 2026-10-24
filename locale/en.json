@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Russian localization",
-    "description": "Russian (ru) language pack for the DeepSeek Harness web client: 3065 interface strings across 65 namespaces, 423 plugin display strings, one terminology, and Russian plural forms."
+    "description": "Russian (ru) language pack for the DeepSeek Harness web client: 3065 interface strings across 66 namespaces, 423 plugin display strings, one terminology, Russian plural forms, and local Russian speech recognition for voice input."
   }
 }
