@@ -4,8 +4,8 @@
  * the translated batches.
  *
  * Outputs: `dictionary/ru.json` (the merged dictionary), `lib/client.js` (the
- * browser bundle in the loader's factory format), `lib/index.js` (the empty
- * host half), and `package.json` for the plugin row.
+ * browser bundle in the loader's factory format), `lib/index.js` (the host half
+ * with the local Russian speech provider), and `package.json` for the plugin row.
  *
  * Usage:
  *   node tools/build-package.mjs [--allow-missing]
@@ -152,28 +152,31 @@ writeFileSync(resolve(root, 'lib/client.js'), clientBundle)
 
 // The bundle patch is generated: its single row must name the installed
 // package, so a rename in package.json cannot leave a stale specifier behind.
-const patchFile = `# Слой патча пакета-бандла: единственная строка, подключающая языковой пакет.
-# Файл генерируется tools/build-package.mjs — имя строки берётся из package.json.
+const patchFile = `# Слой патча пакета-бандла: подключает строку языкового пакета и делает
+# локальный русский распознаватель выбором по умолчанию для штатного голосового
+# ввода. Файл генерируется tools/build-package.mjs — имя строки берётся из
+# package.json.
 - insert:
     - id: locale-ru
       name: ${manifestName}
+# Строка speech-to-text вставляется бандлом голосового ввода. Патч конфигурации
+# применяется к ней, если этот слой идёт после бандла голосового ввода; при
+# обратном порядке выбор остаётся штатным, и провайдер выбирают в настройках.
+- id: speech-to-text
+  config:
+    defaultProvider: gigaam-local
 `
 writeFileSync(resolve(root, 'cordis.patch.yml'), patchFile)
-writeFileSync(resolve(root, 'lib/index.js'), `/**
- * Host half of the Russian language pack. Every dictionary lives in the browser
- * half (\`./client\`), which the client module system serves as a plugin bundle,
- * so the host contributes nothing.
- */
-
-/** No-op host registration for the language pack row. */
-export function apply() {}
-`)
+// Хост-половина — отдельный шаблон: словари живут в браузерной половине, а хост
+// добавляет локальное распознавание русской речи для штатного голосового ввода.
+const hostPlugin = readFileSync(resolve(here, 'templates/host-plugin.js'), 'utf8')
+writeFileSync(resolve(root, 'lib/index.js'), hostPlugin)
 
 const manifest = {
   ...existingManifest,
   name: existingManifest.name ?? 'dsh-locale-russian',
   version: existingManifest.version ?? '0.1.0',
-  description: 'Russian (ru) language pack for the DeepSeek Harness web client',
+  description: 'Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input',
   type: 'module',
   main: 'lib/index.js',
   exports: {
@@ -189,6 +192,7 @@ const manifest = {
     'lib',
     'locale/*.json',
     'cordis.patch.yml',
+    'install.sh',
     'icon.svg',
     'dictionary/ru.json',
     'dictionary/plugin-meta.json',

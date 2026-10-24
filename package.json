@@ -1,7 +1,7 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.1.4",
-  "description": "Russian (ru) language pack for the DeepSeek Harness web client",
+  "version": "0.2.0",
+  "description": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -15,6 +15,7 @@
     "lib",
     "locale/*.json",
     "cordis.patch.yml",
+    "install.sh",
     "icon.svg",
     "dictionary/ru.json",
     "dictionary/plugin-meta.json",
@@ -41,7 +42,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -51,7 +52,8 @@
     "sweep": "node tools/gui-sweep.mjs",
     "sweep:check": "node tools/gui-sweep.mjs --compare --fail-on-clip",
     "validate-market": "node tools/validate-market.mjs",
-    "check-imports": "node tools/check-imports.mjs"
+    "check-imports": "node tools/check-imports.mjs",
+    "test:speech": "node tools/test-speech-provider.mjs"
   },
   "license": "MIT",
   "engines": {
