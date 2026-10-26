@@ -66,6 +66,31 @@ jobs:
             --packages node_modules/@deepseek-ai \
             --install-root node_modules/@deepseek-ai \
             --check 2>&1 | tee drift.log
+      - name: Проверить предварительный релиз (тег next)
+        # Приложение обновляется из канала next раньше, чем тег latest: так и
+        # появилась сборка 0.2.1-rc.3, пока latest указывал на rc.2.
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -o pipefail
+          LATEST=$(node -e "console.log(require('node_modules/@deepseek-ai/dsh/package.json').version)")
+          NEXT=$(npm view @deepseek-ai/dsh@next version 2>/dev/null || true)
+          if [ -z "$NEXT" ] || [ "$NEXT" = "$LATEST" ]; then
+            echo "next совпадает с latest ($LATEST) — отдельная проверка не нужна"
+            exit 0
+          fi
+          echo "next=$NEXT, latest=$LATEST — проверяем предварительный релиз"
+          REPO="$PWD"
+          mkdir -p /tmp/dsh-next && cd /tmp/dsh-next
+          npm init -y > /dev/null
+          npm install --no-save --no-package-lock "@deepseek-ai/dsh@$NEXT" > /dev/null
+          cd "$REPO"
+          node tools/refresh.mjs \
+            --skip-asar --skip-repo \
+            --packages /tmp/dsh-next/node_modules/@deepseek-ai \
+            --install-root /tmp/dsh-next/node_modules/@deepseek-ai \
+            --check 2>&1 | tee -a drift.log
+
       - name: Собрать отчёт о дельте
         if: failure()
         shell: bash
