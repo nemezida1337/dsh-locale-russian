@@ -73,7 +73,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          LATEST=$(node -e "console.log(require('node_modules/@deepseek-ai/dsh/package.json').version)")
+          LATEST=$(node -e "console.log(require('./node_modules/@deepseek-ai/dsh/package.json').version)")
           NEXT=$(npm view @deepseek-ai/dsh@next version 2>/dev/null || true)
           if [ -z "$NEXT" ] || [ "$NEXT" = "$LATEST" ]; then
             echo "next совпадает с latest ($LATEST) — отдельная проверка не нужна"
