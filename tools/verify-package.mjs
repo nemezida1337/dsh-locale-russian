@@ -139,6 +139,10 @@ check(captured.id === manifest.name, `module id equals the package name (${captu
 check(manifest.dsh?.bundle?.patch === './cordis.patch.yml', 'manifest declares the bundle patch')
 check(readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8').includes(`name: ${manifest.name}`), 'bundle patch names the package')
 check(typeof plugin.apply === 'function', 'apply is exported')
+check(
+  typeof manifest.engines?.dsh === 'string' && manifest.engines.dsh.includes('0.2.2-alpha'),
+  'engines.dsh covers the verified 0.2.2 prerelease line',
+)
 check(Array.isArray(plugin.inject) && plugin.inject.includes('locale'), 'inject declares the locale service')
 
 const locale = new FakeLocale()

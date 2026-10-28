@@ -216,7 +216,10 @@ const manifest = {
     },
   },
   // Verified against these DSH builds; widen the range when a new build ships.
-  engines: { dsh: '^0.1.5-rc.1 || ^0.2.1-rc.2' },
+  // Диапазон совместимости — решение о проверенных сборках, а не вывод сборки:
+  // генератор сохраняет значение из манифеста и подставляет базовое только если
+  // поля ещё нет.
+  engines: existingManifest.engines ?? { dsh: '^0.1.5-rc.1 || ^0.2.1-rc.2' },
   repository: {
     type: 'git',
     url: 'git+https://github.com/nemezida1337/dsh-locale-russian.git',
