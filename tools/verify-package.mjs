@@ -130,6 +130,9 @@ const ctx = {
   },
 }
 plugin.apply(ctx)
+// Клиентская половина регистрирует язык и словари на следующем тике: каталог
+// локали и соседние клиентские плагины успевают активироваться (см. шаблон).
+await new Promise((resolve) => setTimeout(resolve, 0))
 
 const bundles = JSON.parse(readFileSync(resolve(root, 'dictionary/ru.json'), 'utf8'))
 const bundleNamespaces = Object.keys(bundles).length

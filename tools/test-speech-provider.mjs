@@ -5,13 +5,17 @@
  * sees before the engine and the model are prepared. The real recognition is
  * exercised by `install.sh` + the plugin card, which need the model on disk.
  *
+ * Two activation scenarios matter: with the speech registry present (provider
+ * registers) and without it (the voice-input bundle is disabled, so the plugin
+ * must still activate — otherwise DSH refuses to boot the whole profile).
+ *
  * Usage:
  *   node tools/test-speech-provider.mjs
  */
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { apply, inject, name } from '../lib/index.js'
+import * as host from '../lib/index.js'
 
 const failures = []
 const check = (label, condition, detail) => {
@@ -23,33 +27,50 @@ const check = (label, condition, detail) => {
   }
 }
 
-console.log('регистрация провайдера')
-check('имя плагина совпадает с пакетом', name === 'dsh-locale-russian', name)
-check('плагин ждёт сервис распознавания', Array.isArray(inject) && inject.includes('speechToText'))
+// Пустые каталоги: тест не зависит от того, установлена ли модель на машине.
+const workspace = mkdtempSync(join(tmpdir(), 'dsh-speech-test-'))
+const config = {
+  binaryPath: join(workspace, 'missing-gigastt'),
+  modelDir: join(workspace, 'models'),
+  hotwordsFile: join(workspace, 'hotwords.txt'),
+}
 
-const registrations = []
 const cleanups = []
-const ctx = {
+/** Минимальный контекст Cordis: effect и динамическая инъекция сервисов. */
+const makeCtx = (services) => ({
   effect(fn) {
     cleanups.push(fn())
   },
+  inject(deps, callback) {
+    if (deps.every((dep) => services[dep] !== undefined)) callback(this)
+  },
+  ...services,
+})
+
+console.log('активация без сервиса распознавания')
+let bareError
+try {
+  host.apply(makeCtx({}), config)
+} catch (error) {
+  bareError = error
+}
+check('активация без сервиса не падает', bareError === undefined, bareError?.message)
+check('нет обязательной зависимости от сервиса', !('inject' in host))
+
+console.log('регистрация провайдера')
+const registrations = []
+const ctx = makeCtx({
   speechToText: {
     register(provider) {
       registrations.push(provider)
       return async () => {}
     },
   },
-}
-
-// Пустые каталоги: тест не зависит от того, установлена ли модель на машине.
-const workspace = mkdtempSync(join(tmpdir(), 'dsh-speech-test-'))
-apply(ctx, {
-  binaryPath: join(workspace, 'missing-gigastt'),
-  modelDir: join(workspace, 'models'),
-  hotwordsFile: join(workspace, 'hotwords.txt'),
 })
+host.apply(ctx, config)
 
 const provider = registrations[0]
+check('имя плагина совпадает с пакетом', host.name === 'dsh-locale-russian', host.name)
 check('провайдер зарегистрирован', provider !== undefined)
 check('идентификатор провайдера', provider?.info?.id === 'gigaam-local', provider?.info?.id)
 check('провайдер помечен как локальный', provider?.info?.location === 'host-local', provider?.info?.location)

@@ -128,13 +128,26 @@ window.__ModuleLoader__.load({
 		 * @param locale - the `locale` service instance.
 		 * @returns the disposer restoring the original method.
 		 */
-		function installPluralForms(locale) {
+		function installPluralForms(locale, occupied) {
 			const prototype = Object.getPrototypeOf(locale);
 			const original = prototype.translate;
 			if (typeof original !== "function") return () => {};
 			if (typeof prototype.__dshLocaleRuPlural === "function") return prototype.__dshLocaleRuPlural;
 			const patched = function (ns, key, params) {
 				if (locale.getSnapshot().active !== LANGUAGE.id) return original.call(this, ns, key, params);
+				// DSH 0.2.2+ registers its own (tiny) Russian dictionaries for a few
+				// namespaces and rejects ours, so for those the pack resolves from its
+				// own table first and falls back to the built-in copy for missing keys.
+				if (occupied.has(ns)) {
+					const own = Object.prototype.hasOwnProperty.call(DICTIONARIES, ns)
+						? DICTIONARIES[ns][key]
+						: undefined;
+					if (typeof own === "string" && own.length > 0) {
+						const count = countParameter(params);
+						const category = count === undefined ? "many" : pluralCategory(count.number);
+						return interpolate(selectForm(own.split("|"), category), params, count === undefined ? undefined : count.text);
+					}
+				}
 				const raw = original.call(this, ns, key, undefined);
 				if (typeof raw !== "string" || raw.indexOf("|") === -1) return original.call(this, ns, key, params);
 				const forms = raw.split("|");
@@ -197,16 +210,56 @@ window.__ModuleLoader__.load({
 		 * Registers the Russian language, its dictionaries, and plural selection.
 		 * @param ctx - client Cordis context carrying the `locale` service.
 		 */
-		function apply(ctx) {
-			const locale = ctx.locale;
-			ctx.effect(() => locale.addLanguage(LANGUAGE), "__MODULE_ID__: language definition");
-			for (const namespace of Object.keys(DICTIONARIES)) {
-				ctx.effect(
-					() => locale.register(namespace, LANGUAGE.id, DICTIONARIES[namespace]),
-					"__MODULE_ID__: " + namespace + " dictionary",
-				);
+		/**
+		 * DSH 0.2.2+ ships its own Russian catalog: `addLanguage` and `register`
+		 * reject an id or a namespace locale that already exists. The pack then
+		 * complements the built-in catalog instead of replacing it, so both steps
+		 * ignore an occupied slot and keep the built-in copy for it.
+		 * @param task - registration returning its disposer.
+		 * @returns the disposer, or a no-op when the slot is already taken.
+		 */
+		function tolerateExisting(task) {
+			try {
+				return task();
+			} catch (error) {
+				if (error instanceof Error && error.message.indexOf("already") !== -1) return () => {};
+				throw error;
 			}
-			ctx.effect(() => installPluralForms(locale), "__MODULE_ID__: plural forms");
+		}
+
+		function apply(ctx) {
+			// Регистрация откладывается на следующий тик: каталог локали и клиентские
+			// плагины успевают активироваться до наших изменений. На 0.2.2 регистрация
+			// прямо во время активации уронила соседние плагины (theme и зависящие от него).
+			setTimeout(() => registerAll(ctx), 0);
+		}
+
+		/**
+		 * Registers the language, dictionaries and patches once the boot settles.
+		 * @param ctx - client Cordis context carrying the `locale` service.
+		 */
+		function registerAll(ctx) {
+			const locale = ctx.locale;
+			/** Namespaces the built-in catalog already owns; the pack overrides them via translate. */
+			const occupied = new Set();
+			ctx.effect(
+				() => tolerateExisting(() => locale.addLanguage(LANGUAGE)),
+				"__MODULE_ID__: language definition",
+			);
+			for (const namespace of Object.keys(DICTIONARIES)) {
+				ctx.effect(() => {
+					try {
+						return locale.register(namespace, LANGUAGE.id, DICTIONARIES[namespace]);
+					} catch (error) {
+						if (!(error instanceof Error) || error.message.indexOf("already") === -1) throw error;
+						occupied.add(namespace);
+						return () => {
+							occupied.delete(namespace);
+						};
+					}
+				}, "__MODULE_ID__: " + namespace + " dictionary");
+			}
+			ctx.effect(() => installPluralForms(locale, occupied), "__MODULE_ID__: plural forms");
 			ctx.effect(() => installPluginText(locale), "__MODULE_ID__: plugin display text");
 		}
 

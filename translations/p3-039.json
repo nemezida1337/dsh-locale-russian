@@ -11,7 +11,7 @@
     "list.more": "Ещё действия с задачами",
     "toast.clearFailed": "Не удалось очистить задачи.",
     "toast.cleared.one": "Очищена {count} неактивная задача.",
-    "toast.cleared.other": "Очищено {count} неактивных задач.",
+    "toast.cleared.other": "Очищено {count} неактивные задачи.|Очищено {count} неактивных задач.",
     "toast.clearedNone": "Неактивных задач для очистки нет."
   }
 }

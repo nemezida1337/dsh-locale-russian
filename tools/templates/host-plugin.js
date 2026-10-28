@@ -16,9 +16,13 @@ import { createServer } from 'node:net'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-/** Cordis plugin identity and the one service the provider contributes to. */
+/**
+ * Cordis plugin identity. The speech registry is injected dynamically inside
+ * `apply`, not declared as a required dependency: a required `inject` keeps the
+ * entry pending when the voice-input bundle is disabled, and DSH refuses to boot
+ * with an entry that never activated.
+ */
 export const name = 'dsh-locale-russian'
-export const inject = ['speechToText']
 
 /** Provider identity shown by the stock voice-input settings. */
 const PROVIDER_ID = 'gigaam-local'
@@ -453,8 +457,11 @@ export function apply(ctx, config = {}) {
 
   ensureHotwordsFile()
 
-  ctx.effect(() => {
-    const remove = ctx.speechToText.register({
+  // Провайдер появляется только там, где включён голосовой ввод; без сервиса
+  // плагин остаётся активным и просто ничего не регистрирует.
+  ctx.inject(['speechToText'], (ctx) => {
+    ctx.effect(() => {
+      const remove = ctx.speechToText.register({
       info: {
         id: PROVIDER_ID,
         name: PROVIDER_NAME,
@@ -471,16 +478,17 @@ export function apply(ctx, config = {}) {
       transcribe: (input, signal) => serialized(() => transcribe(input, signal)),
     })
     console.log(`[dsh-locale-russian] registered ${PROVIDER_ID} (${PROVIDER_NAME}); binary=${binaryPath} modelDir=${modelDir} hotwords=${readHotwords().length} boost=${hotwordsBoost}`)
-    return async () => {
-      disposed = true
-      const active = preparation
-      if (active !== undefined) {
-        active.cancelled = true
-        active.child?.kill('SIGTERM')
+      return async () => {
+        disposed = true
+        const active = preparation
+        if (active !== undefined) {
+          active.cancelled = true
+          active.child?.kill('SIGTERM')
+        }
+        listeners.clear()
+        await stopServer()
+        await remove()
       }
-      listeners.clear()
-      await stopServer()
-      await remove()
-    }
+    })
   })
 }

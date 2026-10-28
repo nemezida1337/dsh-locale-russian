@@ -18,3 +18,9 @@ node_modules/
 .refactor-home*/
 .verify-*/
 .npm-test-home/
+# Временные стенды для проверок (все варианты имён)
+.bug-*/
+.bug-*b*/
+.regress*/
+.verify-*/
+
