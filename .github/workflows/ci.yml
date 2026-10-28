@@ -140,6 +140,75 @@ jobs:
 
   # Дымовой тест: поднимаем настоящий веб-сервер DSH с нашим пакетом через
   # строку патча и проверяем, что модуль попал в boot-граф страницы.
+  app-drift:
+    # Проверяет покрытие на сборке, которую реально запускают пользователи:
+    # обновление приложения приходит из публичного фида, архив сверяется по sha512.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Узнать версию приложения из фида
+        id: feed
+        shell: bash
+        run: |
+          curl -fsSL "https://download.deepseek.com/dsh-desk/feeds/mac-arm64/nightly-mac.yml" -o "$RUNNER_TEMP/feed.yml"
+          node --input-type=module -e "
+            import { readFileSync } from 'node:fs'
+            import { parseFeed } from './tools/check-app.mjs'
+            const feed = parseFeed(readFileSync(process.env.RUNNER_TEMP + '/feed.yml', 'utf8'))
+            console.log('version=' + feed.version)
+          " >> "$GITHUB_OUTPUT"
+          echo "версия приложения: $(grep version= "$GITHUB_OUTPUT" | tail -1)"
+      - name: Кэш app.asar
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/dsh-app-check
+          key: dsh-app-${{ steps.feed.outputs.version }}
+      - name: Проверить покрытие сборки приложения
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/check-app.mjs --work "$RUNNER_TEMP/dsh-app-check" --keep 2>&1 | tee drift.log
+      - name: Отчёт в summary
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '### Дельта перевода в сборке приложения'
+            echo
+            echo '```'
+            if [ -f drift.log ]; then tail -40 drift.log; else echo 'лог не создан'; fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Открыть issue с дельтой
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Новая версия приложения DSH: появились строки для перевода'
+        run: |
+          {
+            echo "Проверка сборки приложения $(date -u +%Y-%m-%d) нашла расхождение."
+            echo
+            echo '```'
+            if [ -f drift.log ]; then tail -40 drift.log; else echo 'лог не создан'; fi
+            echo '```'
+            echo
+            echo 'Порядок: node tools/check-app.mjs → npm run refresh → перевести батчи → npm run mark-translated → npm test → выпуск по тегу.'
+          } > issue.md
+          EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+          else
+            gh issue create --title "$TITLE" --body-file issue.md
+          fi
+
   smoke:
     # Вёрстка зависит от шрифтовых метрик системы: Linux уже находил обрезки,
     # которых нет на macOS, поэтому проверяем обе платформы.

@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:translate && npm run test:dashboard",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:translate && npm run test:dashboard && npm run test:check-app",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -60,7 +60,9 @@
     "test:translate": "node tools/test-translate-batches.mjs",
     "test:engine": "node tools/test-engine-install.mjs",
     "dashboard": "node tools/build-dashboard.mjs",
-    "test:dashboard": "node tools/test-dashboard.mjs"
+    "test:dashboard": "node tools/test-dashboard.mjs",
+    "check:app": "node tools/check-app.mjs",
+    "test:check-app": "node tools/test-check-app.mjs"
   },
   "license": "MIT",
   "engines": {

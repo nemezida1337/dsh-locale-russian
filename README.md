@@ -176,6 +176,8 @@ node tools/refresh.mjs            # вся цепочка обновления �
 node tools/gui-sweep.mjs          # обход интерфейса: текст, скриншоты, обрезки
 node tools/screenshot-gui.mjs     # снимок одного экрана (для отладки)
 node tools/check-imports.mjs      # согласованность импортов node:fs (входит в npm test)
+node tools/check-app.mjs          # покрытие на сборке приложения из фида обновлений
+node tools/build-dashboard.mjs    # дашборд покрытия для GitHub Pages
 node tools/test-speech-provider.mjs # офлайн-тест хост-половины (входит в npm test)
 node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)
 node tools/test-translate-batches.mjs # офлайн-тест инструмента перевода (входит в npm test)
@@ -232,6 +234,7 @@ npm run translate -- --provider openai --base-url https://api.deepseek.com/v1 \
 | `checks` | push, pull request | линтер, сборка пакета, проверка импортов, индекс маркета, проверка бандла, тест хост-половины |
 | `dsh-drift` | ежедневно по расписанию и вручную | ставит свежий `@deepseek-ai/dsh` из npm (Ubuntu и Windows) и дополнительно предрелизы из тегов `next` и `alpha` (Ubuntu), снимает строки и падает, если появились непереведённые или переписанные; при находке открывает issue в этом репозитории |
 | `smoke` | push, pull request | поднимает настоящий сервер `dsh web` с пакетом через строку патча (Ubuntu и Windows), проверяет boot-граф и прогоняет обход интерфейса |
+| `app-drift` | ежедневно по расписанию и вручную | скачивает сборку **приложения** из публичного фида обновлений, сверяет sha512, распаковывает `app.asar` и проверяет покрытие; кэширует `app.asar`, при находке открывает issue |
 
 `dsh-drift` — это и есть сигнал «вышел новый DSH, нужна дельта»: в отчёте job-а видно, сколько строк добавилось и какие именно. Проверки включаются сами, без настройки секретов.
 
