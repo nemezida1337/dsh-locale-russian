@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input — покрытие</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1b1b1f; --muted: #5b5b66; --card: #f4f4f6; --line: #e2e2e8; --accent: #2b5cff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141416; --fg: #ececf1; --muted: #a0a0ab; --card: #1d1d21; --line: #2b2b31; --accent: #7aa2ff; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 20px 64px; background: var(--bg); color: var(--fg); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .card .value { font-size: 24px; font-weight: 650; }
+  .card .label { color: var(--muted); font-size: 13px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .links a { color: var(--accent); text-decoration: none; margin-right: 14px; white-space: nowrap; }
+  .links a:hover { text-decoration: underline; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 32px; border-top: 1px solid var(--line); padding-top: 12px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Русская локализация DeepSeek Harness</h1>
+  <p class="lead">Покрытие перевода в опубликованном пакете <span class="badge">v0.3.3</span></p>
+
+  <div class="cards">
+    <div class="card"><div class="value">3929</div><div class="label">строк интерфейса</div></div>
+    <div class="card"><div class="value">75</div><div class="label">namespace</div></div>
+    <div class="card"><div class="value">555</div><div class="label">строк описаний плагинов</div></div>
+    <div class="card"><div class="value">^0.1.5-rc.1 || ^0.2.1-rc.2 || ^0.2.2-alpha.2</div><div class="label">совместимость DSH</div></div>
+  </div>
+
+  <h2>Источники строк</h2>
+  <table>
+    <tr><th>Источник</th><th class="num">Строк</th></tr>
+    <tr><td>Сборка установленного приложения (<code>app.asar</code>)</td><td class="num">2910</td></tr>
+    <tr><td>Пакеты CLI-сборки</td><td class="num">142</td></tr>
+    <tr><td>Исходники репозитория</td><td class="num">13</td></tr>
+  </table>
+
+  <h2>По namespace</h2>
+  <table>
+    <tr><th>Namespace</th><th class="num">Строк</th></tr>
+      <tr><td><code>conversation</code></td><td class="num">390</td></tr>
+      <tr><td><code>pluginManager</code></td><td class="num">290</td></tr>
+      <tr><td><code>liveshare</code></td><td class="num">225</td></tr>
+      <tr><td><code>chat</code></td><td class="num">203</td></tr>
+      <tr><td><code>forgePanel</code></td><td class="num">199</td></tr>
+      <tr><td><code>schedule.manager</code></td><td class="num">199</td></tr>
+      <tr><td><code>trajectory</code></td><td class="num">197</td></tr>
+      <tr><td><code>stats</code></td><td class="num">177</td></tr>
+      <tr><td><code>settings.models</code></td><td class="num">144</td></tr>
+      <tr><td><code>workspace</code></td><td class="num">121</td></tr>
+      <tr><td><code>voice-input</code></td><td class="num">114</td></tr>
+      <tr><td><code>settings.account</code></td><td class="num">94</td></tr>
+      <tr><td><code>pluginMarket</code></td><td class="num">87</td></tr>
+      <tr><td><code>settings.agentPreset</code></td><td class="num">76</td></tr>
+      <tr><td><code>schedule.catalog</code></td><td class="num">72</td></tr>
+      <tr><td><code>deliverables</code></td><td class="num">71</td></tr>
+      <tr><td><code>shortcuts</code></td><td class="num">56</td></tr>
+      <tr><td><code>creationRecommendations</code></td><td class="num">55</td></tr>
+      <tr><td><code>session-inspector</code></td><td class="num">52</td></tr>
+      <tr><td><code>settings.plugins</code></td><td class="num">52</td></tr>
+      <tr><td><code>cordis</code></td><td class="num">51</td></tr>
+      <tr><td><code>open-in-app</code></td><td class="num">50</td></tr>
+      <tr><td><code>cuaPermissions</code></td><td class="num">49</td></tr>
+      <tr><td><code>subagent</code></td><td class="num">45</td></tr>
+      <tr><td><code>common</code></td><td class="num">43</td></tr>
+      <tr><td><code>settings</code></td><td class="num">43</td></tr>
+      <tr><td><code>job</code></td><td class="num">40</td></tr>
+      <tr><td><code>settings.pluginInventory</code></td><td class="num">40</td></tr>
+      <tr><td><code>settings.subagent</code></td><td class="num">35</td></tr>
+      <tr><td><code>sidebarRight</code></td><td class="num">35</td></tr>
+      <tr><td><code>question</code></td><td class="num">33</td></tr>
+      <tr><td><code>cotTranslation</code></td><td class="num">32</td></tr>
+      <tr><td><code>settings.theme</code></td><td class="num">29</td></tr>
+      <tr><td><code>command</code></td><td class="num">28</td></tr>
+      <tr><td><code>sidebarTerminal</code></td><td class="num">28</td></tr>
+      <tr><td><code>settings.webSearch</code></td><td class="num">27</td></tr>
+      <tr><td><code>model</code></td><td class="num">26</td></tr>
+      <tr><td><code>sidebarBrowser</code></td><td class="num">26</td></tr>
+      <tr><td><code>agent-team</code></td><td class="num">25</td></tr>
+      <tr><td><code>pluginRecommendations</code></td><td class="num">25</td></tr>
+      <tr><td><code>sidebarDocumentPreview</code></td><td class="num">25</td></tr>
+      <tr><td><code>feedback</code></td><td class="num">20</td></tr>
+      <tr><td><code>plan</code></td><td class="num">19</td></tr>
+      <tr><td><code>workflowRun</code></td><td class="num">18</td></tr>
+      <tr><td><code>permission.access</code></td><td class="num">17</td></tr>
+      <tr><td><code>sidebarFiles</code></td><td class="num">17</td></tr>
+      <tr><td><code>reference</code></td><td class="num">15</td></tr>
+      <tr><td><code>sidebarExcel</code></td><td class="num">15</td></tr>
+      <tr><td><code>sidebarOffice</code></td><td class="num">15</td></tr>
+      <tr><td><code>sidebarPdf</code></td><td class="num">15</td></tr>
+      <tr><td><code>actionCards</code></td><td class="num">14</td></tr>
+      <tr><td><code>session-log-download</code></td><td class="num">14</td></tr>
+      <tr><td><code>settings.shell</code></td><td class="num">14</td></tr>
+      <tr><td><code>directory-browser</code></td><td class="num">13</td></tr>
+      <tr><td><code>goal</code></td><td class="num">12</td></tr>
+      <tr><td><code>settings.agentLoop</code></td><td class="num">12</td></tr>
+      <tr><td><code>settings.permission</code></td><td class="num">12</td></tr>
+      <tr><td><code>sidebarImage</code></td><td class="num">11</td></tr>
+      <tr><td><code>slash.menu</code></td><td class="num">9</td></tr>
+      <tr><td><code>skill</code></td><td class="num">8</td></tr>
+      <tr><td><code>approval</code></td><td class="num">7</td></tr>
+      <tr><td><code>sidebar</code></td><td class="num">7</td></tr>
+      <tr><td><code>entryCustomization</code></td><td class="num">5</td></tr>
+      <tr><td><code>inspectorPanel</code></td><td class="num">5</td></tr>
+      <tr><td><code>claude-code-mods</code></td><td class="num">4</td></tr>
+      <tr><td><code>documentHtml</code></td><td class="num">4</td></tr>
+      <tr><td><code>documentMarkdown</code></td><td class="num">4</td></tr>
+      <tr><td><code>settings.sessionLog</code></td><td class="num">4</td></tr>
+      <tr><td><code>sidebarCodePreview</code></td><td class="num">3</td></tr>
+      <tr><td><code>secretMask</code></td><td class="num">2</td></tr>
+      <tr><td><code>deepseek-model-label-1017</code></td><td class="num">1</td></tr>
+      <tr><td><code>fileDrag</code></td><td class="num">1</td></tr>
+      <tr><td><code>messageQuotes</code></td><td class="num">1</td></tr>
+      <tr><td><code>settings.locale</code></td><td class="num">1</td></tr>
+      <tr><td><code>shortcuts.layout</code></td><td class="num">1</td></tr>
+  </table>
+
+  <h2>Ссылки</h2>
+  <p class="links">
+    <a href="https://www.npmjs.com/package/dsh-locale-russian">npm</a>
+    <a href="https://github.com/nemezida1337/dsh-locale-russian">GitHub</a>
+    <a href="https://github.com/nemezida1337/dsh-locale-russian/releases">Релизы</a>
+    <a href="https://github.com/nemezida1337/dsh-locale-russian#readme">README</a>
+    <a href="index.json">Индекс маркета</a>
+    <a href="https://github.com/deepseek-ai/deepseek-harness/discussions/10146">Обсуждение</a>
+  </p>
+
+  <footer>Страница собирается из данных репозитория при каждом обновлении индекса. Обновлено: 2026-10-28 20:42 UTC.</footer>
+</main>
+</body>
+</html>
