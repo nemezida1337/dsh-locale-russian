@@ -1,6 +1,6 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
   "type": "module",
   "main": "lib/index.js",
@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:translate && npm run test:dashboard && npm run test:check-app",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:translate && npm run test:dashboard && npm run test:check-app && npm run test:scaffold && npm run test:discussions",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -62,7 +62,10 @@
     "dashboard": "node tools/build-dashboard.mjs",
     "test:dashboard": "node tools/test-dashboard.mjs",
     "check:app": "node tools/check-app.mjs",
-    "test:check-app": "node tools/test-check-app.mjs"
+    "test:check-app": "node tools/test-check-app.mjs",
+    "scaffold": "node tools/scaffold-locale.mjs",
+    "test:scaffold": "node tools/test-scaffold.mjs",
+    "test:discussions": "node tools/test-discussion-report.mjs"
   },
   "license": "MIT",
   "engines": {

@@ -1,0 +1,42 @@
+{
+  "name": "__PACKAGE_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "description": "__LANG_LABEL__ localization for the DeepSeek Harness web client",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./icon": "./icon.svg",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "locale/*.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    },
+    "language": {
+      "id": "__LANG_ID__",
+      "label": "__LANG_LABEL__",
+      "fallback": "__FALLBACK__"
+    }
+  },
+  "engines": {
+    "dsh": ">=0.1.5-rc.1 <0.3.0"
+  }
+}

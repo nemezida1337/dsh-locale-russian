@@ -1,0 +1,53 @@
+name: Ошибка перевода
+description: Строка интерфейса переведена неверно или осталась английской
+title: "[перевод] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за отчёт! Если строка новая и её ещё нет в переводе — это ожидаемо: такие строки показываются по-английски до следующего выпуска.
+  - type: input
+    id: where
+    attributes:
+      label: Где видно
+      description: Экран и раздел, например «Настройки → Общие → Язык»
+      placeholder: Настройки → Общие → Язык
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Как сейчас
+      description: Текст, который вы видите
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Как должно быть
+      description: Предлагаемый перевод и, если есть, объяснение
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Версия пакета
+      description: Видна на странице «Плагины» или в npm
+      placeholder: 0.4.0
+    validations:
+      required: false
+  - type: input
+    id: dsh
+    attributes:
+      label: Версия DeepSeek Harness
+      placeholder: 0.2.1-rc.3
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Дополнительно
+      description: Скриншот, контекст, ссылка на строку в словаре
+    validations:
+      required: false

@@ -1,0 +1,64 @@
+name: discussions
+
+# Еженедельно проверяет ответы в обсуждениях DeepSeek Harness, которые ведёт
+# этот проект: витрина плагина и два предложения. При новых комментариях
+# создаёт или обновляет issue в этом репозитории.
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Получить обсуждения
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api graphql -f query='{
+            repository(owner: "deepseek-ai", name: "deepseek-harness") {
+              d10146: discussion(number: 10146) { number title url comments(first: 20) { nodes { author { login } body createdAt } } }
+              d10147: discussion(number: 10147) { number title url comments(first: 20) { nodes { author { login } body createdAt } } }
+              d10148: discussion(number: 10148) { number title url comments(first: 20) { nodes { author { login } body createdAt } } }
+            }
+          }' > answer.json
+      - name: Собрать отчёт
+        id: report
+        shell: bash
+        run: |
+          set +e
+          node tools/discussion-report.mjs --input answer.json > report.md
+          code=$?
+          if [ "$code" = "10" ]; then
+            echo "новых комментариев нет"
+            echo "has_comments=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$code" != "0" ]; then
+            echo "отчёт не собрался (код $code)"
+            exit "$code"
+          fi
+          echo "has_comments=true" >> "$GITHUB_OUTPUT"
+      - name: Создать или обновить issue
+        if: steps.report.outputs.has_comments == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Ответы в обсуждениях DeepSeek Harness'
+        shell: bash
+        run: |
+          EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue edit "$EXISTING" --body-file report.md
+            echo "обновлён issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --body-file report.md
+          fi

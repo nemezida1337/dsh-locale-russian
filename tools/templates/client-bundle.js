@@ -45,10 +45,18 @@ window.__ModuleLoader__.load({
 		 * @param value - the number the copy agrees with.
 		 * @returns the CLDR plural category for Russian.
 		 */
+		/** CLDR plural rules for Russian, created once; null when Intl is unusable. */
+		let pluralRules;
+
 		function pluralCategory(value) {
-			if (typeof Intl !== "undefined" && typeof Intl.PluralRules === "function") {
-				return new Intl.PluralRules("ru").select(value);
+			if (pluralRules === undefined && typeof Intl !== "undefined" && typeof Intl.PluralRules === "function") {
+				try {
+					pluralRules = new Intl.PluralRules("ru");
+				} catch {
+					pluralRules = null;
+				}
 			}
+			if (pluralRules !== undefined && pluralRules !== null) return pluralRules.select(value);
 			const mod10 = Math.abs(value) % 10;
 			const mod100 = Math.abs(value) % 100;
 			if (mod10 === 1 && mod100 !== 11) return "one";
