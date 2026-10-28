@@ -12,6 +12,7 @@
  * Usage:
  *   node tools/test-speech-provider.mjs
  */
+import { createServer } from 'node:http'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -29,10 +30,18 @@ const check = (label, condition, detail) => {
 
 // Пустые каталоги: тест не зависит от того, установлена ли модель на машине.
 const workspace = mkdtempSync(join(tmpdir(), 'dsh-speech-test-'))
+// Локальный сервер отвечает 404: тест не должен скачивать настоящий движок.
+const unreachable = createServer((request, response) => {
+  response.writeHead(404)
+  response.end('not found')
+})
+await new Promise((resolve) => unreachable.listen(0, '127.0.0.1', resolve))
+const unreachablePort = unreachable.address().port
 const config = {
   binaryPath: join(workspace, 'missing-gigastt'),
   modelDir: join(workspace, 'models'),
   hotwordsFile: join(workspace, 'hotwords.txt'),
+  engineBaseUrl: `http://127.0.0.1:${unreachablePort}`,
 }
 
 const cleanups = []
@@ -80,7 +89,7 @@ check('подготовка описана шагами', typeof provider?.prepa
 console.log('состояния до подготовки')
 check('начальная фаза — не подготовлено', provider?.preparation?.snapshot()?.phase === 'unprepared', provider?.preparation?.snapshot()?.phase)
 
-console.log('отказ без движка распознавания')
+console.log('отказ, когда движок недоступен')
 await provider.preparation.prepare()
 const deadline = Date.now() + 20_000
 while (Date.now() < deadline) {
@@ -91,11 +100,11 @@ while (Date.now() < deadline) {
 const failed = provider.preparation.snapshot()
 check('подготовка завершилась отказом', failed.phase === 'failed', failed.phase)
 check(
-  'в отказе сказано, что установить движок',
-  typeof failed.message === 'string' && failed.message.includes('Движок распознавания не установлен'),
+  'в отказе сказано, что движок не скачался',
+  typeof failed.message === 'string' && failed.message.includes('Не удалось скачать движок'),
   failed.message,
 )
-check('отказ упоминает install.sh', typeof failed.message === 'string' && failed.message.includes('install.sh'))
+check('отказ называет HTTP-статус и адрес', typeof failed.message === 'string' && failed.message.includes('HTTP 404') && failed.message.includes('gigastt-'), failed.message)
 
 console.log('отказ при распознавании без модели')
 let transcriptionError
@@ -110,6 +119,7 @@ check(
   transcriptionError?.message,
 )
 
+await new Promise((resolve) => unreachable.close(resolve))
 for (const cleanup of cleanups.reverse()) await cleanup()
 rmSync(workspace, { recursive: true, force: true })
 console.log('  ✓ провайдер выгружается без ошибок')

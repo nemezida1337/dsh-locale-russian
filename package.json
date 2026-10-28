@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:translate",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:translate",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -57,7 +57,8 @@
     "test:speech": "node tools/test-speech-provider.mjs",
     "test:install-bin": "node --check bin/dsh-locale-russian-install.mjs",
     "translate": "node tools/translate-batches.mjs",
-    "test:translate": "node tools/test-translate-batches.mjs"
+    "test:translate": "node tools/test-translate-batches.mjs",
+    "test:engine": "node tools/test-engine-install.mjs"
   },
   "license": "MIT",
   "engines": {
