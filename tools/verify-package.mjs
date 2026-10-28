@@ -94,6 +94,28 @@ class FakeLocale {
   }
 }
 
+/**
+ * DSH 0.2.2 registers the Russian language and a few namespaces itself and
+ * rejects duplicates: the pack must complement that catalog instead of failing.
+ */
+class StrictLocale extends FakeLocale {
+  addLanguage(definition) {
+    if (this.languages.some((language) => language.id === definition.id)) {
+      throw new Error(`locale "${definition.id}" is already registered`)
+    }
+    return super.addLanguage(definition)
+  }
+
+  register(ns, localeOrDicts, maybeDict) {
+    const locales = typeof localeOrDicts === 'string' ? [localeOrDicts] : Object.keys(localeOrDicts)
+    const existing = this.dicts.get(ns)
+    for (const locale of locales) {
+      if (existing?.has(locale)) throw new Error(`locale namespace "${ns}" already has locale "${locale}"`)
+    }
+    return super.register(ns, localeOrDicts, maybeDict)
+  }
+}
+
 let captured
 const windowStub = {
   __ModuleLoader__: {
@@ -197,6 +219,39 @@ check(t('items.count.other', { n: 5 }) === '5 items', 'English copy is untouched
 check(t('plain') === 'Plain', 'English dictionary wins while en is active')
 locale.active = 'zh'
 check(t('plain') === 'Plain', 'a locale without a dictionary falls back to en')
+
+// DSH 0.2.2 ships its own Russian catalog: our plugin must not throw on the
+// occupied slots, must override the built-in copy with its own translation, and
+// must restore the built-in copy on dispose.
+{
+  const strict = new StrictLocale()
+  strict.addLanguage({ id: 'en', label: 'English', fallback: 'en' })
+  strict.addLanguage({ id: 'ru', label: 'Русский', fallback: 'en' })
+  strict.register('common', { ru: { 'builtin.only': 'встроенный', cancel: 'Встроенная отмена' } })
+  strict.active = 'ru'
+  const strictDisposers = []
+  let strictError
+  try {
+    plugin.apply({
+      locale: strict,
+      effect(callback) {
+        const disposer = callback()
+        strictDisposers.push(typeof disposer === 'function' ? disposer : () => {})
+        return disposer
+      },
+    })
+  } catch (error) {
+    strictError = error
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  check(strictError === undefined, 'activation does not throw when the built-in catalog occupies slots')
+  check(strict.languages.filter((language) => language.id === 'ru').length === 1, 'the built-in ru language is not duplicated')
+  check(strict.translate('common', 'cancel') === 'Отмена', 'our copy overrides the built-in dictionary in an occupied namespace')
+  check(strict.translate('common', 'builtin.only') === 'встроенный', 'a key missing from our table still comes from the built-in dictionary')
+  check(strict.dicts.get('chat')?.has('ru') === true, 'free namespaces register as usual')
+  for (const disposer of strictDisposers.reverse()) disposer()
+  check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'dispose restores the built-in copy')
+}
 
 for (const disposer of disposers.reverse()) disposer()
 

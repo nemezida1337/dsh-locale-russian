@@ -132,7 +132,7 @@ window.__ModuleLoader__.load({
 			const prototype = Object.getPrototypeOf(locale);
 			const original = prototype.translate;
 			if (typeof original !== "function") return () => {};
-			if (typeof prototype.__dshLocaleRuPlural === "function") return prototype.__dshLocaleRuPlural;
+			if (Object.prototype.hasOwnProperty.call(prototype, "__dshLocaleRuPlural")) return prototype.__dshLocaleRuPlural;
 			const patched = function (ns, key, params) {
 				if (locale.getSnapshot().active !== LANGUAGE.id) return original.call(this, ns, key, params);
 				// DSH 0.2.2+ registers its own (tiny) Russian dictionaries for a few
@@ -186,7 +186,7 @@ window.__ModuleLoader__.load({
 			const prototype = Object.getPrototypeOf(locale);
 			const original = prototype.resolveText;
 			if (typeof original !== "function") return () => {};
-			if (typeof prototype.__dshLocaleRuMeta === "function") return prototype.__dshLocaleRuMeta;
+			if (Object.prototype.hasOwnProperty.call(prototype, "__dshLocaleRuMeta")) return prototype.__dshLocaleRuMeta;
 			const patched = function (text) {
 				const resolved = original.call(this, text);
 				if (this.getSnapshot().active !== LANGUAGE.id) return resolved;
@@ -228,39 +228,53 @@ window.__ModuleLoader__.load({
 		}
 
 		function apply(ctx) {
-			// Регистрация откладывается на следующий тик: каталог локали и клиентские
-			// плагины успевают активироваться до наших изменений. На 0.2.2 регистрация
-			// прямо во время активации уронила соседние плагины (theme и зависящие от него).
-			setTimeout(() => registerAll(ctx), 0);
+			// Работа откладывается на следующий тик, но эффект регистрируется сразу:
+			// так выгрузка плагина снимает таймер и все регистрации. На 0.2.2
+			// регистрация прямо во время активации роняла соседние плагины
+			// (theme и зависящие от него), поэтому ждём, пока загрузка успокоится.
+			ctx.effect(() => {
+				let dispose = () => {};
+				const timer = setTimeout(() => {
+					try {
+						dispose = registerAll(ctx);
+					} catch (error) {
+						console.error("[dsh-locale-russian] registration failed", error);
+					}
+				}, 0);
+				return () => {
+					clearTimeout(timer);
+					dispose();
+				};
+			}, "__MODULE_ID__: registration");
 		}
 
 		/**
 		 * Registers the language, dictionaries and patches once the boot settles.
 		 * @param ctx - client Cordis context carrying the `locale` service.
+		 * @returns disposer that removes every registration.
 		 */
 		function registerAll(ctx) {
 			const locale = ctx.locale;
 			/** Namespaces the built-in catalog already owns; the pack overrides them via translate. */
 			const occupied = new Set();
-			ctx.effect(
-				() => tolerateExisting(() => locale.addLanguage(LANGUAGE)),
-				"__MODULE_ID__: language definition",
-			);
+			const disposers = [];
+			disposers.push(tolerateExisting(() => locale.addLanguage(LANGUAGE)));
 			for (const namespace of Object.keys(DICTIONARIES)) {
-				ctx.effect(() => {
-					try {
-						return locale.register(namespace, LANGUAGE.id, DICTIONARIES[namespace]);
-					} catch (error) {
-						if (!(error instanceof Error) || error.message.indexOf("already") === -1) throw error;
-						occupied.add(namespace);
-						return () => {
-							occupied.delete(namespace);
-						};
-					}
-				}, "__MODULE_ID__: " + namespace + " dictionary");
+				try {
+					disposers.push(locale.register(namespace, LANGUAGE.id, DICTIONARIES[namespace]));
+				} catch (error) {
+					if (!(error instanceof Error) || error.message.indexOf("already") === -1) throw error;
+					occupied.add(namespace);
+					disposers.push(() => {
+						occupied.delete(namespace);
+					});
+				}
 			}
-			ctx.effect(() => installPluralForms(locale, occupied), "__MODULE_ID__: plural forms");
-			ctx.effect(() => installPluginText(locale), "__MODULE_ID__: plugin display text");
+			disposers.push(installPluralForms(locale, occupied));
+			disposers.push(installPluginText(locale));
+			return () => {
+				for (const dispose of disposers.reverse()) dispose();
+			};
 		}
 
 		exports.apply = apply;

@@ -10,7 +10,8 @@
     "message.compaction.running": "Сжатие контекста…",
     "message.turnUsage.count": "{count} токен|{count} токена|{count} токенов",
     "message.tokensPerSecond": "{tps} токен/с|{tps} токена/с|{tps} токенов/с",
-    "number.groupSeparator": " "
+    "number.groupSeparator": " ",
+    "message.compaction.completed": "Сжато записей истории: {items} (~{tokens} токен.)|Сжато записей истории: {items} (~{tokens} токена.)|Сжато записей истории: {items} (~{tokens} токенов.)"
   },
   "trajectory": {
     "layout.compacting": "Сжатие контекста…",
@@ -65,7 +66,8 @@
     "infoDescription": "Здесь настраиваются официальные плагины, а также устанавливаются и управляются остальные. Список встроенных плагинов и их состояние при работе — в разделе «Настройки → Встроенные»."
   },
   "schedule.manager": {
-    "timing.second": "Секунда"
+    "timing.second": "Секунда",
+    "delivery.retentionBounds": "Каждая задача хранит до {records} записи доставки за последние {days} день.|Каждая задача хранит до {records} записей доставки за последние {days} дня.|Каждая задача хранит до {records} записей доставки за последние {days} дней."
   },
   "session-log-download": {
     "header.more": "Другие действия"
@@ -92,5 +94,9 @@
   },
   "settings.plugins": {
     "nav": "Встроенные"
+  },
+  "stats": {
+    "detail.truncated": "Слишком длинно: сохранён только {chars} знак.|Слишком длинно: сохранены только первые {chars} знака.|Слишком длинно: сохранены только первые {chars} знаков.",
+    "did.output": "→ {chars} знак.|→ {chars} знака.|→ {chars} знаков."
   }
 }
