@@ -1,0 +1,7 @@
+{
+  "id": "p3-027",
+  "namespace": "settings",
+  "translations": {
+    "desktop.update.fullscreenTimeout": "Не удалось выйти из полноэкранного режима. Выйдите из него и повторите обновление."
+  }
+}

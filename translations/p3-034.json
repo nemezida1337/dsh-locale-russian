@@ -1,0 +1,9 @@
+{
+  "id": "p3-034",
+  "namespace": "trajectory",
+  "translations": {
+    "record.rawResult": "Исходный результат",
+    "record.rawResultUnavailable": "Исходный результат доступен только для активных вызовов инструментов",
+    "record.renderedResult": "Оформленный результат"
+  }
+}

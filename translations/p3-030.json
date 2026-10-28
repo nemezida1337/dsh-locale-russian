@@ -1,0 +1,8 @@
+{
+  "id": "p3-030",
+  "namespace": "conversation",
+  "translations": {
+    "input.sending": "Отправка сообщения",
+    "quote.remove": "Убрать цитату"
+  }
+}

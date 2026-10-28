@@ -1,0 +1,8 @@
+{
+  "id": "p3-032",
+  "namespace": "question",
+  "translations": {
+    "text.collapse": "Свернуть",
+    "text.expand": "Развернуть"
+  }
+}

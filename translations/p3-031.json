@@ -1,0 +1,8 @@
+{
+  "id": "p3-031",
+  "namespace": "open-in-app",
+  "translations": {
+    "path.opened": "Открыто на другом устройстве",
+    "path.revealed": "Расположение файла показано на другом устройстве"
+  }
+}

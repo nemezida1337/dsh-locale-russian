@@ -1,0 +1,8 @@
+{
+  "id": "p3-029",
+  "namespace": "approval",
+  "translations": {
+    "allow": "Разрешить",
+    "allowAlways": "Разрешать всегда"
+  }
+}

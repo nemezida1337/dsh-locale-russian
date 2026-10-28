@@ -1,0 +1,10 @@
+{
+  "id": "p3-036",
+  "namespace": "session-log-download",
+  "translations": {
+    "menu.copyMarkdown": "Скопировать сессию как Markdown",
+    "toast.clipboardFailed": "Не удалось записать в буфер обмена. Проверьте разрешение и повторите.",
+    "toast.copied": "Сессия скопирована как Markdown.",
+    "toast.preparationFailed": "Не удалось прочитать сессию для копирования. Повторите."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "p3-035",
+  "namespace": "chat",
+  "translations": {
+    "settings.foldedReplies.all": "Все ответы",
+    "settings.foldedReplies.description": "Выберите, какие ответы ассистента остаются видимыми при сворачивании подробностей",
+    "settings.foldedReplies.final": "Только итоговый ответ",
+    "settings.foldedReplies.title": "Ответы после сворачивания"
+  }
+}

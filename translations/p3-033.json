@@ -1,0 +1,9 @@
+{
+  "id": "p3-033",
+  "namespace": "settings.models",
+  "translations": {
+    "fetchKeepOne": "Оставьте отмеченной хотя бы одну модель.",
+    "reorderModel": "Изменить порядок моделей",
+    "reorderModelHelp": "Перетащите или используйте стрелки вверх и вниз."
+  }
+}

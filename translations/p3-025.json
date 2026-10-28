@@ -1,0 +1,7 @@
+{
+  "id": "p3-025",
+  "namespace": "fileDrag",
+  "translations": {
+    "failed": "Не удалось перетащить. Попробуйте ещё раз."
+  }
+}
