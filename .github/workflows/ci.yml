@@ -66,30 +66,34 @@ jobs:
             --packages node_modules/@deepseek-ai \
             --install-root node_modules/@deepseek-ai \
             --check 2>&1 | tee drift.log
-      - name: Проверить предварительный релиз (тег next)
-        # Приложение обновляется из канала next раньше, чем тег latest: так и
-        # появилась сборка 0.2.1-rc.3, пока latest указывал на rc.2.
+      - name: Проверить предварительные релизы (теги next и alpha)
+        # Приложение и тестеры обновляются из каналов next и alpha раньше, чем из
+        # latest: так появились сборки 0.2.1-rc.3 и 0.2.2-alpha.2, пока latest
+        # указывал на более старую версию.
         if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
           set -o pipefail
           LATEST=$(node -e "console.log(require('./node_modules/@deepseek-ai/dsh/package.json').version)")
-          NEXT=$(npm view @deepseek-ai/dsh@next version 2>/dev/null || true)
-          if [ -z "$NEXT" ] || [ "$NEXT" = "$LATEST" ]; then
-            echo "next совпадает с latest ($LATEST) — отдельная проверка не нужна"
-            exit 0
-          fi
-          echo "next=$NEXT, latest=$LATEST — проверяем предварительный релиз"
-          REPO="$PWD"
-          mkdir -p /tmp/dsh-next && cd /tmp/dsh-next
-          npm init -y > /dev/null
-          npm install --no-save --no-package-lock "@deepseek-ai/dsh@$NEXT" > /dev/null
-          cd "$REPO"
-          node tools/refresh.mjs \
-            --skip-asar --skip-repo \
-            --packages /tmp/dsh-next/node_modules/@deepseek-ai \
-            --install-root /tmp/dsh-next/node_modules/@deepseek-ai \
-            --check 2>&1 | tee -a drift.log
+          for TAG in next alpha; do
+            PREVIEW=$(npm view "@deepseek-ai/dsh@$TAG" version 2>/dev/null || true)
+            if [ -z "$PREVIEW" ] || [ "$PREVIEW" = "$LATEST" ]; then
+              echo "$TAG совпадает с latest ($LATEST) — отдельная проверка не нужна"
+              continue
+            fi
+            echo "$TAG=$PREVIEW, latest=$LATEST — проверяем предварительный релиз"
+            DIR="/tmp/dsh-$TAG"
+            REPO="$PWD"
+            mkdir -p "$DIR" && cd "$DIR"
+            npm init -y > /dev/null
+            npm install --no-save --no-package-lock "@deepseek-ai/dsh@$PREVIEW" > /dev/null
+            cd "$REPO"
+            node tools/refresh.mjs \
+              --skip-asar --skip-repo \
+              --packages "$DIR/node_modules/@deepseek-ai" \
+              --install-root "$DIR/node_modules/@deepseek-ai" \
+              --check 2>&1 | tee -a drift.log
+          done
 
       - name: Собрать отчёт о дельте
         if: failure()
