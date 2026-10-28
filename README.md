@@ -179,6 +179,8 @@ node tools/gui-sweep.mjs          # обход интерфейса: текст,
 node tools/screenshot-gui.mjs     # снимок одного экрана (для отладки)
 node tools/check-imports.mjs      # согласованность импортов node:fs (входит в npm test)
 node tools/test-speech-provider.mjs # офлайн-тест хост-половины (входит в npm test)
+node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)
+node tools/test-translate-batches.mjs # офлайн-тест инструмента перевода (входит в npm test)
 ```
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](contrib/plugin-recipe.md).
@@ -211,6 +213,15 @@ node tools/build-batches.mjs --delta                                 # толь�
 5. `npm test` (линтер, сборка, проверка бандла, проверка импортов, тест хост-половины); при необходимости расширьте `engines.dsh` в манифесте.
 
 Проверить дельту без правок можно командой `npm run refresh:check`: она вернёт ненулевой код, если остались непереведённые или переписанные строки.
+
+Черновой перевод дельты можно получить инструментом `npm run translate` — он читает батчи, отправляет их провайдеру и пишет файлы `translations/`, проверяя плейсхолдеры и длину. Провайдеры: `mock` (тесты), `command` (внешняя программа: JSON на stdin, JSON на stdout) и `openai` (любой OpenAI-совместимый endpoint — DeepSeek API, Ollama, LM Studio):
+
+```sh
+npm run translate -- --provider openai --base-url https://api.deepseek.com/v1 \
+  --model deepseek-chat --api-key-env DEEPSEEK_API_KEY --limit 100
+```
+
+Результат — черновик: его всё равно проходят линтер, `npm test` и вычитка; инструмент не пропускает ответы с потерянными плейсхолдерами, пустые и заметно длиннее оригинала.
 
 Правки редакторов и рецензентов хранятся отдельно от батчей — в `dictionary/overrides.json` (строки интерфейса) и `dictionary/plugin-meta-overrides.json` (метаданные плагинов); они применяются поверх переводов при сборке и участвуют в проверках, поэтому не теряются при повторном извлечении строк.
 
