@@ -27,11 +27,12 @@ node tools/check-imports.mjs      # согласованность импорт�
 node tools/check-app.mjs          # покрытие на сборке приложения из фида обновлений
 node tools/build-dashboard.mjs    # дашборд покрытия для GitHub Pages
 node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)
+node tools/review-translations.mjs # вычитка перевода моделью-рецензентом и отчёт
 node tools/scaffold-locale.mjs    # генератор языкового пака из contrib/locale-template
 node tools/discussion-report.mjs  # отчёт по ответам в обсуждениях DSH
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-translate-batches`, `test-dashboard`, `test-check-app`, `test-scaffold`, `test-discussion-report`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-scaffold`, `test-discussion-report`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 
@@ -78,6 +79,20 @@ npm run translate -- --provider openai --base-url https://api.deepseek.com/v1 \
 ```
 
 Результат — черновик: его всё равно проходят линтер, `npm test` и вычитка. Инструмент пропускает строки с готовым переводом, чтобы не заменять вычитанные значения.
+
+### Вычитка
+
+`npm run review` просит модель-рецензента проверить готовые пары «английский → русский» на искажение смысла, нарушение глоссария, потерю плейсхолдеров и слишком длинный текст, и пишет отчёт `reports/review.md`:
+
+```sh
+npm run review -- --provider openai --model deepseek-chat --api-key-env DEEPSEEK_API_KEY --namespaces stats,forgePanel
+```
+
+`--fail-on-issues` возвращает ненулевой код при замечаниях (удобно для будущего CI-шага). Правки после вычитки вносятся в `dictionary/overrides.json` и `dictionary/plugin-meta-overrides.json`, а не в файлы батчей.
+
+### Прогрев движка
+
+Хост-половина запускает движок в фоне через `prewarmDelayMs` (по умолчанию 5 секунд), если провайдер `gigaam-local` выбран по умолчанию и модель подготовлена; смену провайдера она наблюдает через `speechToText.follow`. Отключается настройкой `prewarm: false`. Прогрев никогда не скачивает движок и модель сам.
 
 Правки редакторов и рецензентов хранятся отдельно от батчей — в `dictionary/overrides.json` (строки интерфейса) и `dictionary/plugin-meta-overrides.json` (метаданные плагинов); они применяются поверх переводов при сборке и участвуют в проверках, поэтому не теряются при повторном извлечении строк.
 

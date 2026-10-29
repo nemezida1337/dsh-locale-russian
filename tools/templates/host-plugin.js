@@ -25,9 +25,6 @@ import { dirname, join } from 'node:path'
  */
 export const name = 'dsh-locale-russian'
 
-/** Test seam: helpers exercised by the offline tests. */
-export const internals = { engineTarget, installEngine }
-
 /** Provider identity shown by the stock voice-input settings. */
 const PROVIDER_ID = 'gigaam-local'
 const PROVIDER_NAME = 'GigaAM v3 (локально, RU)'
@@ -578,6 +575,53 @@ export function apply(ctx, config = {}) {
 
   ensureHotwordsFile()
 
+  /**
+   * Starts the engine in the background when this provider is the selection and
+   * the model is ready, so the first dictation does not wait for the model load.
+   * The start is delayed: the app finishes booting first. A change of the
+   * selected provider is observed through the service stream.
+   * @param ctx - scoped context carrying the speech service.
+   * @returns disposer that cancels the delayed start and the subscription.
+   */
+  function schedulePrewarm(ctx) {
+    if (config.prewarm === false) return () => {}
+    let started = false
+    const controller = new AbortController()
+    const warm = () => {
+      if (started) return
+      if (!existsSync(binaryPath) || !hasModel()) return
+      started = true
+      log('prewarming engine')
+      void ensureServer().catch((error) => {
+        started = false
+        log('prewarm failed', error instanceof Error ? error.message : String(error))
+      })
+    }
+    const timer = setTimeout(() => {
+      try {
+        if (ctx.speechToText.snapshot?.()?.selection?.providerId === PROVIDER_ID) warm()
+      } catch (error) {
+        log('prewarm skipped', error instanceof Error ? error.message : String(error))
+      }
+    }, config.prewarmDelayMs ?? 5_000)
+    const follow = (async () => {
+      try {
+        for await (const snapshot of ctx.speechToText.follow?.(controller.signal) ?? []) {
+          if (snapshot?.selection?.providerId === PROVIDER_ID) warm()
+        }
+      } catch (error) {
+        if (controller.signal.aborted !== true) {
+          log('prewarm follow failed', error instanceof Error ? error.message : String(error))
+        }
+      }
+    })()
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+      void follow
+    }
+  }
+
   // Провайдер появляется только там, где включён голосовой ввод; без сервиса
   // плагин остаётся активным и просто ничего не регистрирует.
   ctx.inject(['speechToText'], (ctx) => {
@@ -611,5 +655,10 @@ export function apply(ctx, config = {}) {
         await remove()
       }
     })
+    // Прогрев необязателен: ошибки не мешают работе провайдера.
+    ctx.effect(() => schedulePrewarm(ctx), '__MODULE_ID__: prewarm')
   })
 }
+
+/** Test seam: helpers and data exercised by the offline tests. */
+export const internals = { engineTarget, installEngine, modelFiles: MODEL_FILES }

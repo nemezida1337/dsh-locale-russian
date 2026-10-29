@@ -102,7 +102,7 @@ prepare({ ui: [{ namespace: 'chat', items: uiItems }] })
 console.log('провайдер-команда')
 prepare({ ui: [{ namespace: 'chat', items: uiItems }] })
 {
-  const command = `node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const q=JSON.parse(s);process.stdout.write(JSON.stringify(q.items.map(i=>'Команда: '+i.en)))})"`
+  const command = `node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const q=JSON.parse(s);process.stdout.write(JSON.stringify(q.payload.map(i=>'Команда: '+i.en)))})"`
   const result = run(['--provider', 'command', '--command', command])
   check('команда переводит', result.status === 0, result.stderr)
   const file = readJson(join(workspace, 'translations', 'p3-001.json'))

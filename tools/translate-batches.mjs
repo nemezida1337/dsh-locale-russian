@@ -26,6 +26,7 @@ import { spawnSync } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createArgs } from './lib/cli.mjs'
+import { createProvider, parseJsonArray } from './lib/translate-providers.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const { option, flag } = createArgs()
@@ -88,70 +89,6 @@ function skipTranslated(items) {
     const existing = uiDictionary[item.namespace]?.[item.key]
     return typeof existing !== 'string' || existing.length === 0
   })
-}
-
-/** The translation contract every provider implements. */
-function mockProvider() {
-  return {
-    id: 'mock',
-    async translate(items) {
-      return items.map((item) => `Перевод: ${item.en}`)
-    },
-  }
-}
-
-/** An external command: JSON in on stdin, JSON array of strings out on stdout. */
-function commandProvider(command) {
-  return {
-    id: `command:${command}`,
-    async translate(items) {
-      const request = JSON.stringify({ items: items.map((item) => ({ en: item.en, context: item.context })) })
-      const result = spawnSync(command, { shell: true, input: request, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
-      if (result.error !== undefined) throw new Error(`провайдер не запустился: ${result.error.message}`)
-      if (result.status !== 0) throw new Error(`провайдер завершился с кодом ${result.status}: ${result.stderr.slice(0, 500)}`)
-      return parseAnswers(result.stdout)
-    },
-  }
-}
-
-/** OpenAI-compatible chat completions: one translated string per item. */
-function openaiProvider() {
-  const baseUrl = (option('base-url', 'https://api.deepseek.com/v1') ?? '').replace(/\/+$/, '')
-  const model = option('model', 'deepseek-chat')
-  const apiKeyEnv = option('api-key-env', 'DEEPSEEK_API_KEY')
-  const apiKey = process.env[apiKeyEnv]
-  if (apiKey === undefined || apiKey.length === 0) {
-    throw new Error(`провайдер openai требует ключ в переменной ${apiKeyEnv}`)
-  }
-  return {
-    id: `openai:${model}`,
-    async translate(items) {
-      const response = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model,
-          temperature: 0.2,
-          messages: [
-            { role: 'system', content: systemPrompt() },
-            {
-              role: 'user',
-              content: JSON.stringify(items.map((item) => ({ key: item.key ?? item.en.slice(0, 40), en: item.en, context: item.context }))),
-            },
-          ],
-        }),
-        signal: AbortSignal.timeout(120_000),
-      })
-      if (!response.ok) {
-        const body = await response.text().catch(() => '')
-        throw new Error(`провайдер ответил HTTP ${response.status}: ${body.slice(0, 300)}`)
-      }
-      const payload = await response.json()
-      const content = payload?.choices?.[0]?.message?.content
-      if (typeof content !== 'string') throw new Error('в ответе провайдера нет текста перевода')
-      return parseAnswers(content)
-    },
-  }
 }
 
 /** The glossary and the rules that matter for a batch translation. */
@@ -220,7 +157,7 @@ async function translateAll(provider, items) {
   const problems = []
   for (let index = 0; index < items.length; index += batchSize) {
     const group = items.slice(index, index + batchSize)
-    const answers = await provider.translate(group)
+    const answers = parseJsonArray(await provider.complete(systemPrompt(), group.map((item) => ({ key: item.key ?? item.en.slice(0, 40), en: item.en, context: item.context }))))
     if (answers.length !== group.length) {
       throw new Error(`провайдер вернул ${answers.length} строк на ${group.length} элементов`)
     }
@@ -271,13 +208,14 @@ function writeTranslations(translated) {
 
 /** Entry point: load, translate, validate, write, report. */
 async function main() {
-  const provider = providerName === 'mock'
-    ? mockProvider()
-    : providerName === 'command'
-      ? commandProvider(option('command', ''))
-      : providerName === 'openai'
-        ? openaiProvider()
-        : (() => { throw new Error(`неизвестный провайдер: ${providerName}`) })()
+  const provider = createProvider({
+    name: providerName,
+    command: option('command'),
+    baseUrl: option('base-url'),
+    model: option('model'),
+    apiKeyEnv: option('api-key-env'),
+    mockResponse: (items) => items.map((item) => `Перевод: ${item.en}`),
+  })
 
   const loaded = loadItems()
   const items = skipTranslated(loaded)
