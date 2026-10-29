@@ -45,4 +45,4 @@ curl -sI https://nemezida1337.github.io/dsh-locale-russian/icon.svg | head -1
 npm run validate-market
 ```
 
-Полное описание формата — в библиотеке-валидаторе `@deepseek-ai/dsh-plugin-market-index` из состава DeepSeek Harness и в разделе [«Индекс маркета»](../README.md#индекс-маркета) основного README.
+Полное описание формата — в библиотеке-валидаторе `@deepseek-ai/dsh-plugin-market-index` из состава DeepSeek Harness и в разделе [«Индекс маркета»](../docs/DEVELOPMENT.md#индекс-маркета) документации для мейнтейнеров.
