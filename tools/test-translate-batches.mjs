@@ -33,10 +33,13 @@ const workspace = mkdtempSync(join(tmpdir(), 'dsh-translate-test-'))
 const run = (args) => spawnSync(process.execPath, [tool, '--root', workspace, ...args], { encoding: 'utf8' })
 
 /** Creates a fresh temporary checkout with the given batches. */
-function prepare({ ui = [], plugin = [], glossary = true } = {}) {
+function prepare({ ui = [], plugin = [], glossary = true, dictionary = undefined } = {}) {
   rmSync(workspace, { recursive: true, force: true })
   mkdirSync(join(workspace, 'batches'), { recursive: true })
   mkdirSync(join(workspace, 'translations'), { recursive: true })
+  mkdirSync(join(workspace, 'dictionary'), { recursive: true })
+  writeFileSync(join(workspace, 'dictionary', 'ru.json'), JSON.stringify(dictionary?.ui ?? {}))
+  writeFileSync(join(workspace, 'dictionary', 'plugin-meta.json'), JSON.stringify(dictionary?.plugin ?? {}))
   if (glossary) {
     writeFileSync(join(workspace, 'GLOSSARY.md'), '| Английский | Русский |\n|---|---|\n| session | сессия |\n')
     writeFileSync(join(workspace, 'STYLE.md'), '# Стиль\n')
@@ -115,6 +118,32 @@ prepare({ ui: [{ namespace: 'chat', items: [uiItems[1]] }] })
   check('потерянный плейсхолдер — ошибка', result.status === 1)
   check('в отчёте назван плейсхолдер', result.stderr.includes('плейсхолдеры'), result.stderr)
   check('битый ответ не записан', readdirSync(join(workspace, 'translations')).length === 0)
+}
+
+console.log('уже переведённое пропускается')
+prepare({
+  ui: [{ namespace: 'chat', items: [uiItems[0], uiItems[1]] }],
+  plugin: [[{ kind: 'description', en: 'Already translated', packages: [] }, { kind: 'description', en: 'New string', packages: [] }]],
+  dictionary: { ui: { chat: { plain: 'Уже переведено' } }, plugin: { 'Already translated': 'Уже переведено' } },
+})
+{
+  const result = run(['--provider', 'mock'])
+  check('запуск успешен', result.status === 0, result.stderr)
+  check('сообщает о пропуске', result.stdout.includes('пропущено: 2'), result.stdout)
+  const chat = readJson(join(workspace, 'translations', 'p3-001.json'))
+  check('переведён только новый ключ', chat?.translations?.counted !== undefined && chat?.translations?.plain === undefined, JSON.stringify(chat?.translations))
+  const meta = readJson(join(workspace, 'translations', 'plugin-01.json'))
+  check('новое описание переведено', meta?.translations?.['New string'] === 'Перевод: New string')
+  check('готовое описание не перезаписано', meta?.translations?.['Already translated'] === undefined)
+}
+
+console.log('уникальные id в dry-run')
+prepare({ ui: [{ namespace: 'chat', items: [uiItems[0]] }, { namespace: 'settings', items: [uiItems[2]] }] })
+{
+  const result = run(['--provider', 'mock', '--dry-run'])
+  check('dry-run успешен', result.status === 0, result.stderr)
+  const ids = [...result.stdout.matchAll(/записан translations\/(p3-\d+\.json)/g)].map((match) => match[1])
+  check('id не повторяются', new Set(ids).size === ids.length && ids.length === 2, ids.join(','))
 }
 
 console.log('ошибки конфигурации')

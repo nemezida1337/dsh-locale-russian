@@ -73,6 +73,23 @@ function loadItems() {
   return items.slice(0, limit)
 }
 
+/**
+ * Drops items that already have a translation: a batch may list everything the
+ * source exposes, and re-translating a good string wastes calls and risks
+ * replacing a reviewed translation with a fresh draft.
+ * @param items - loaded batch items.
+ * @returns the items that still need a translation.
+ */
+function skipTranslated(items) {
+  const uiDictionary = readJson(resolve(root, 'dictionary/ru.json')) ?? {}
+  const pluginDictionary = readJson(resolve(root, 'dictionary/plugin-meta.json')) ?? {}
+  return items.filter((item) => {
+    if (item.kind === 'plugin') return pluginDictionary[item.en] === undefined
+    const existing = uiDictionary[item.namespace]?.[item.key]
+    return typeof existing !== 'string' || existing.length === 0
+  })
+}
+
 /** The translation contract every provider implements. */
 function mockProvider() {
   return {
@@ -169,13 +186,18 @@ function parseAnswers(raw) {
   return parsed.map((value) => (typeof value === 'string' ? value : String(value ?? '')))
 }
 
+/** Ids allocated in this run; dry-run does not write files, so it needs its own counter. */
+const allocatedIds = new Map()
+
 /** Next free numeric id for a prefix: p3-025 → p3-026, plugin-07 → plugin-08. */
 function nextFreeId(prefix, width) {
   const used = readdirSync(outDir)
     .map((name) => new RegExp(`^${prefix}-(\\d+)\\.json$`, 'u').exec(name))
     .filter((match) => match !== null)
     .map((match) => Number(match[1]))
-  const next = used.length === 0 ? 1 : Math.max(...used) + 1
+  const allocated = allocatedIds.get(prefix) ?? 0
+  const next = Math.max(used.length === 0 ? 0 : Math.max(...used), allocated) + 1
+  allocatedIds.set(prefix, next)
   return `${prefix}-${String(next).padStart(width, '0')}`
 }
 
@@ -257,12 +279,14 @@ async function main() {
         ? openaiProvider()
         : (() => { throw new Error(`неизвестный провайдер: ${providerName}`) })()
 
-  const items = loadItems()
+  const loaded = loadItems()
+  const items = skipTranslated(loaded)
+  if (loaded.length > items.length) console.log(`уже переведено и пропущено: ${loaded.length - items.length}`)
   if (items.length === 0) {
     console.log('нечего переводить: дельта пуста (запустите npm run refresh после обновления DSH)')
     return
   }
-  console.log(`провайдер: ${provider.id} | элементов: ${items.length} | группы по ${batchSize}`)
+  console.log(`провайдер: ${provider.id} | к переводу: ${items.length} | группы по ${batchSize}`)
   const { translated, problems } = await translateAll(provider, items)
   const written = writeTranslations(translated)
 
