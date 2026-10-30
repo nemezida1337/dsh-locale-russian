@@ -8,7 +8,7 @@
  * Usage:
  *   node tools/build-dashboard.mjs [--out market/index.html]
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createArgs } from './lib/cli.mjs'
@@ -25,6 +25,7 @@ const dictionary = readJson('dictionary/ru.json')
 const pluginText = readJson('dictionary/plugin-meta.json')
 const inventory = readJson('strings/inventory.json')
 const market = readJson('market/index.json')
+const history = existsSync(resolve(root, 'market/history.json')) ? readJson('market/history.json') : { versions: [] }
 
 const namespaces = Object.entries(dictionary)
   .map(([namespace, keys]) => ({ namespace, keys: Object.keys(keys).length }))
@@ -43,6 +44,12 @@ for (const entry of Object.values(inventory.namespaces)) {
 
 /** Escapes text for HTML. */
 const escape = (text) => String(text).replace(/[&<>"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[character])
+
+const historyRows = (history.versions ?? [])
+  .slice()
+  .reverse()
+  .map((entry) => `      <tr><td>v${escape(entry.version)}</td><td>${escape(String(entry.date ?? '').slice(0, 10))}</td><td class="num">${entry.strings}</td><td class="num">${entry.namespaces}</td><td class="num">${entry.pluginDescriptions}</td></tr>`)
+  .join('\n')
 
 const rows = namespaces
   .map((entry) => `      <tr><td><code>${escape(entry.namespace)}</code></td><td class="num">${entry.keys}</td></tr>`)
@@ -105,6 +112,12 @@ const html = `<!doctype html>
   <table>
     <tr><th>Namespace</th><th class="num">Строк</th></tr>
 ${rows}
+  </table>
+
+  <h2>История выпусков</h2>
+  <table>
+    <tr><th>Версия</th><th>Дата</th><th class="num">Строк</th><th class="num">Namespace</th><th class="num">Описаний</th></tr>
+${historyRows}
   </table>
 
   <h2>Ссылки</h2>

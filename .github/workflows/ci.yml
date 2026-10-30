@@ -19,21 +19,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Полная история нужна истории покрытия: она читает словари из тегов.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Линтер переводов
-        run: npm run lint
-      - name: Проверить индекс маркета официальным валидатором
-        run: |
-          npm install --no-save --no-package-lock @deepseek-ai/dsh-plugin-market-index
-          node tools/validate-market.mjs
-      - name: Сборка пакета
-        run: npm run build
-      - name: Индекс маркета
+      - name: Официальный валидатор индекса
+        # Нужен проверке живого индекса и validate-market.
+        run: npm install --no-save --no-package-lock @deepseek-ai/dsh-plugin-market-index
+      - name: Все проверки и тесты
+        # Линтер, импорты, сборка, проверка бандла, документация, история покрытия
+        # и все офлайн-наборы тестов инструментов.
+        run: npm test
+      - name: Индекс маркета официальным валидатором
+        run: node tools/validate-market.mjs
+      - name: Сборка индекса маркета
         run: npm run market
-      - name: Проверка бандла
-        run: npm run verify
 
   # Детектор обновлений: ставим свежий @deepseek-ai/dsh из npm, снимаем с него
   # словари и падаем, если появились непереведённые или переписанные строки.

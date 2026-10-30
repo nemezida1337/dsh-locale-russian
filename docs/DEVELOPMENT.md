@@ -26,6 +26,7 @@ node tools/screenshot-gui.mjs     # снимок одного экрана (дл
 node tools/check-imports.mjs      # согласованность импортов node:fs (входит в npm test)
 node tools/check-app.mjs          # покрытие на сборке приложения из фида обновлений
 node tools/build-dashboard.mjs    # дашборд покрытия для GitHub Pages
+node tools/build-history.mjs      # история покрытия по тегам (market/history.json)
 node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)
 node tools/review-translations.mjs # вычитка перевода моделью-рецензентом и отчёт
 node tools/scaffold-locale.mjs    # генератор языкового пака из contrib/locale-template
@@ -35,7 +36,7 @@ node tools/engine-smoke.mjs       # сквозная проверка движк
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-check-docs`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 
@@ -101,7 +102,7 @@ npm run review -- --provider openai --model deepseek-chat --api-key-env DEEPSEEK
 
 ## Проверки и CI
 
-`npm test` — линтер переводов, согласованность импортов, сборка, проверка бандла, синтаксис `bin`-скрипта и девять офлайн-наборов тестов инструментов.
+`npm test` — линтер переводов, согласованность импортов, сборка, проверка бандла, синтаксис `bin`-скрипта, проверка документации и истории покрытия и одиннадцать офлайн-наборов тестов инструментов.
 
 `.github/workflows/ci.yml` содержит три job-а (два из них выполняются на Ubuntu и Windows), а `pages.yml`, `release.yml` и `discussions.yml` публикуют индекс и дашборд, выпускают версии и следят за обсуждениями:
 
@@ -119,9 +120,12 @@ npm run review -- --provider openai --model deepseek-chat --api-key-env DEEPSEEK
 ## Выпуск версии
 
 ```sh
+npm run history            # обновить market/history.json: строка текущей версии
 npm version patch          # или minor / major — поднимает версию в package.json
 git push --follow-tags     # тег vX.Y.Z запускает workflow release
 ```
+
+`npm test` проверяет, что история покрытия содержит текущую версию; в CI job `checks` клон идёт с полной историей, поэтому `npm run history:check` сверяет и данные из тегов.
 
 `.github/workflows/release.yml` берёт версию из тега, собирает пакет, прогоняет проверки, публикует в npm с аттестацией происхождения (`--provenance`) и создаёт GitHub-релиз. Если версия уже есть в реестре, публикация пропускается.
 
@@ -151,7 +155,7 @@ npm run sweep:check -- --url "…"                          # сравнить �
 
 ## Имя пакета
 
-Имя `dsh-locale-ru` в npm **уже занято** другим автором: там лежит пакет `dsh-locale-ru@0.1.1` — тоже русская локализация DSH, но меньшего охвата (31 namespace / 1048 строк, без русских склонений, целевая версия DSH `0.1.1-rc.2`). Наш пакет называется `dsh-locale-russian` и покрывает 75 namespace / 3929 строк, включая сборку `0.2.1-rc.3`, и умеет склонения.
+Имя `dsh-locale-ru` в npm **уже занято** другим автором: там лежит пакет `dsh-locale-ru@0.1.1` — тоже русская локализация DSH, но меньшего охвата (31 namespace / 1048 строк, без русских склонений, целевая версия DSH `0.1.1-rc.2`). Наш пакет называется `dsh-locale-russian` и покрывает 75 namespace / 3929 строк, включая сборку `0.2.1-rc.5`, и умеет склонения.
 
 Смена имени — одна правка в `package.json`:
 

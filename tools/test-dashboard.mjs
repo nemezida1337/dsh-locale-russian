@@ -38,6 +38,8 @@ check('версия пакета', html.includes(manifest.version) || /v\d+\.\d+
 check('число строк совпадает со словарём', html.includes(`>${totalKeys}<`), String(totalKeys))
 check('таблица по namespace', html.includes('По namespace') && html.includes('<code>common</code>'))
 check('источники строк', html.includes('Источники строк') && html.includes('app.asar'))
+check('история выпусков', html.includes('История выпусков') && /<td>v\d+\.\d+\.\d+<\/td>/.test(html))
+check('текущая версия в истории', html.includes(`<td>v${manifest.version}</td>`), manifest.version)
 check('ссылки на npm и GitHub', html.includes('npmjs.com') && html.includes('github.com/nemezida1337/dsh-locale-russian'))
 check('нет незаполненных шаблонов', !/undefined|NaN|\$\{/.test(html))
 
