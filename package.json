@@ -76,7 +76,8 @@
     "test:market-live": "node tools/test-market-live.mjs",
     "history": "node tools/build-history.mjs",
     "history:check": "node tools/build-history.mjs --check",
-    "test:history": "node tools/test-history.mjs"
+    "test:history": "node tools/test-history.mjs",
+    "demo:gif": "node tools/demo-gif.mjs"
   },
   "license": "MIT",
   "engines": {

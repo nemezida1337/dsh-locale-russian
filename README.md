@@ -40,7 +40,7 @@ dsh plugin --profile web add dsh-locale-russian
 
 ## Как выглядит
 
-![Главный экран на русском](https://raw.githubusercontent.com/nemezida1337/dsh-locale-russian/main/docs/screenshots/main.png)
+![Главный экран на русском](https://raw.githubusercontent.com/nemezida1337/dsh-locale-russian/main/docs/screenshots/demo.gif)
 
 ![Выбор языка в настройках](https://raw.githubusercontent.com/nemezida1337/dsh-locale-russian/main/docs/screenshots/settings.png)
 
