@@ -1,6 +1,6 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
   "type": "module",
   "main": "lib/index.js",
@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run check-docs && npm run history:check && npm run test:install-bin && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:market-live && npm run test:scaffold && npm run test:discussions && npm run test:history && npm run test:check-docs",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run check-docs && npm run check-consistency && npm run history:check && npm run test:install-bin && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:market-live && npm run test:scaffold && npm run test:discussions && npm run test:history && npm run test:consistency && npm run test:check-docs",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -77,7 +77,9 @@
     "history": "node tools/build-history.mjs",
     "history:check": "node tools/build-history.mjs --check",
     "test:history": "node tools/test-history.mjs",
-    "demo:gif": "node tools/demo-gif.mjs"
+    "demo:gif": "node tools/demo-gif.mjs",
+    "check-consistency": "node tools/check-consistency.mjs",
+    "test:consistency": "node tools/test-consistency.mjs"
   },
   "license": "MIT",
   "engines": {

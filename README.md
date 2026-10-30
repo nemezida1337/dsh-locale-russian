@@ -56,9 +56,9 @@ dsh plugin --profile web add dsh-locale-russian
 
 Команда ставит пакет из npm через pnpm, добавляет его в `dependencies` и `dsh.profile.bundles`, после чего строка `locale-ru` появляется в собранном дереве.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.6.1`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.6.2`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.6.1`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.6.2`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
 
 ```sh
 dsh plugin --profile web add github:nemezida1337/dsh-locale-russian
@@ -69,7 +69,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять, поэтому пакет подключают вручную — любым из двух способов.
 
-**Из npm (рекомендуется):** добавьте `"dsh-locale-russian": "^0.6.1"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Из npm (рекомендуется):** добавьте `"dsh-locale-russian": "^0.6.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
