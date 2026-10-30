@@ -161,7 +161,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 - `engines.dsh` в манифесте (`^0.1.5-rc.1 || ^0.2.1-rc.2 || ^0.2.2-alpha.2`) перечисляет проверенные сборки: `0.1.5-rc.x` (CLI-сборка, клиентские пакеты `0.1.5-rc.2`), CLI-сборки `0.2.1-rc.2`…`rc.4`, приложения `0.2.1-rc.3` и `0.2.1-rc.5` (клиентские пакеты распакованы из `app.asar`) и `0.2.2-alpha.2` из тега `alpha`. Пропусков нет: в `0.2.1-rc.5` нет ни одной новой строки, одна удалена, английский текст не менялся.
 - Голосовой ввод проверен в живой композиции с бандлом голосового ввода и без него; тест хост-половины входит в `npm test`.
 - Пакет использует публичный контракт локали (`addLanguage`, `register`, `getSnapshot`) и два приватных метода рантайма: `translate` для склонений и `resolveText` для метаданных плагинов. Оба вызова защищены проверкой типа: если метод исчезнет, пакет продолжит работать — склонения перестанут выбираться, описания плагинов останутся английскими, строки интерфейса не пострадают.
-- Обсуждения в upstream: [хук склонений](https://github.com/deepseek-ai/deepseek-harness/discussions/10147) и [локализация оболочки](https://github.com/deepseek-ai/deepseek-harness/discussions/10148); тексты — в [contrib/upstream-issues.md](contrib/upstream-issues.md), витрина плагина — [discussions/10146](https://github.com/deepseek-ai/deepseek-harness/discussions/10146).
+- Обсуждения в upstream: [хук склонений](https://github.com/deepseek-ai/deepseek-harness/discussions/10147), [локализация оболочки](https://github.com/deepseek-ai/deepseek-harness/discussions/10148) и [локализуемые описания навыков](https://github.com/deepseek-ai/deepseek-harness/discussions/11533); тексты — в [contrib/upstream-issues.md](contrib/upstream-issues.md), витрина плагина — [discussions/10146](https://github.com/deepseek-ai/deepseek-harness/discussions/10146).
 
 ## Участие
 
@@ -182,6 +182,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 | Витрина в обсуждениях DSH | https://github.com/deepseek-ai/deepseek-harness/discussions/10146 |
 | Предложение: хук склонений | https://github.com/deepseek-ai/deepseek-harness/discussions/10147 |
 | Предложение: локализация оболочки | https://github.com/deepseek-ai/deepseek-harness/discussions/10148 |
+| Предложение: локализуемые описания навыков | https://github.com/deepseek-ai/deepseek-harness/discussions/11533 |
 | Рецепт плагина для DSH | [contrib/plugin-recipe.md](contrib/plugin-recipe.md) |
 | DeepSeek Harness | https://github.com/deepseek-ai/deepseek-harness |
 | gigastt (движок распознавания) | https://github.com/ekhodzitsky/gigastt |

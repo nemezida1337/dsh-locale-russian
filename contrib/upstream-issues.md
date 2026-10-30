@@ -1,7 +1,7 @@
 # Upstream proposals
 
-Two things this language pack would like to see resolved in DeepSeek Harness.
-Both are written as ready-to-file reports: the language pack works today, but
+Three things this language pack would like to see resolved in DeepSeek Harness.
+All are written as ready-to-file reports: the language pack works today, but
 each one costs either an internal-API dependency or an untranslatable surface.
 
 The upstream repository disables issues and pull requests and asks for GitHub
@@ -11,9 +11,11 @@ Discussions instead (`CONTRIBUTING.md`), so these were posted as ideas:
 |---|---|
 | Public pluralization hook | https://github.com/deepseek-ai/deepseek-harness/discussions/10147 |
 | Desktop shell localization | https://github.com/deepseek-ai/deepseek-harness/discussions/10148 |
+| Localizable skill descriptions | https://github.com/deepseek-ai/deepseek-harness/discussions/11533 |
 | Plugin showcase (this pack) | https://github.com/deepseek-ai/deepseek-harness/discussions/10146 |
 
-Verified against DSH `0.2.1-rc.2` (desktop) and `0.2.0-rc.2` (npm CLI release).
+Verified against DSH `0.2.1-rc.5` (desktop app, packages extracted from `app.asar`)
+and the `0.2.2-alpha.2` prerelease.
 
 ---
 
@@ -121,3 +123,31 @@ browser planes; nothing they can register reaches that dictionary, and editing
 **Scope that stays out.** Nothing here asks for translated model-facing text:
 tool descriptions, system prompts, and provider diagnostics should remain
 English, and the language pack keeps them verbatim.
+
+---
+
+## 3. Localizable skill descriptions
+
+**Summary.** Plugin display metadata arrives as `LocalizedText` and is resolved
+through `LocaleRuntime.resolveText`, so a language pack can translate it. Skill
+descriptions do not: the host reads `description` from `SKILL.md` as a plain
+string, sends it through `skills/list`, and the client renders it verbatim in
+the `/` menu, so it stays English in a localized UI.
+
+**What happens today.** `dsh-skill-filesystem` parses the frontmatter into
+`{ name, description }`, the client plugin `dsh-client-ui-skill` uses
+`skill.description` directly, and there is no hook for a language pack to
+translate it without wrapping the remote.
+
+**Proposal.** Send `name`/`description` as `LocalizedText` (like plugin metadata)
+or add an optional `localized: { [locale]: string }` next to the current string,
+keeping backwards compatibility: a plain string stays valid, and the client
+resolves it through `locale.resolveText`. Then language packs can translate the
+`/` menu with the same mechanism they already use for plugin cards.
+
+**Why it matters.** Localization currently looks complete everywhere except one
+visible place — the skill list. The `resolveText` mechanism already exists; the
+host only needs to hand over localizable values.
+
+**Ready to help.** The Russian pack already overrides `resolveText`, so we can
+verify the behavior in a real interface and send feedback or a client-side patch.
