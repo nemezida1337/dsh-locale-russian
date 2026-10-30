@@ -209,6 +209,65 @@ jobs:
             gh issue create --title "$TITLE" --body-file issue.md
           fi
 
+  engine-smoke:
+    # Сквозная проверка движка распознавания на платформах, где пакет не запускался
+    # вживую: скачивает настоящий движок и модель, распознаёт тестовую запись.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Кэш движка и модели
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/dsh-engine-smoke
+          key: engine-2.22.0-${{ matrix.os }}-v1
+      - name: Сквозная проверка движка
+        shell: bash
+        run: |
+          set -o pipefail
+          node tools/engine-smoke.mjs --work "$RUNNER_TEMP/dsh-engine-smoke" --keep 2>&1 | tee engine-smoke.log
+      - name: Отчёт в summary
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '### Проверка движка распознавания'
+            echo
+            echo '```'
+            if [ -f engine-smoke.log ]; then tail -40 engine-smoke.log; else echo 'лог не создан'; fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Открыть issue при сбое
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Движок распознавания не работает на одной из платформ'
+        run: |
+          {
+            echo "Проверка движка на ${{ matrix.os }} не прошла $(date -u +%Y-%m-%d)."
+            echo
+            echo '```'
+            if [ -f engine-smoke.log ]; then tail -40 engine-smoke.log; else echo 'лог не создан'; fi
+            echo '```'
+          } > issue.md
+          EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+          else
+            gh issue create --title "$TITLE" --body-file issue.md
+          fi
+
   smoke:
     # Вёрстка зависит от шрифтовых метрик системы: Linux уже находил обрезки,
     # которых нет на macOS, поэтому проверяем обе платформы.

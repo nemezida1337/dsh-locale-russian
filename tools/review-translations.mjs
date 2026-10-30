@@ -17,6 +17,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createArgs } from './lib/cli.mjs'
 import { createProvider, parseJsonArray } from './lib/translate-providers.mjs'
+import { readJson } from './lib/io.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const { option, flag } = createArgs()
@@ -32,15 +33,10 @@ const namespaceFilter = (option('namespaces', '') ?? '')
   .map((value) => value.trim())
   .filter((value) => value.length > 0)
 
-/** Reads a JSON file, or an empty object when it is absent. */
-function readJson(path) {
-  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : {}
-}
-
 /** Collects English → Russian pairs that are worth reviewing. */
 function loadPairs() {
-  const dictionary = readJson(resolve(root, 'dictionary/ru.json'))
-  const inventory = readJson(resolve(root, 'strings/inventory.json'))
+  const dictionary = readJson(resolve(root, 'dictionary/ru.json'), {})
+  const inventory = readJson(resolve(root, 'strings/inventory.json'), {})
   const pairs = []
   for (const [namespace, keys] of Object.entries(dictionary)) {
     if (namespaceFilter.length > 0 && !namespaceFilter.includes(namespace)) continue

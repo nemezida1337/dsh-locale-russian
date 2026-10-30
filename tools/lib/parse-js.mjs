@@ -320,6 +320,3 @@ export function resolveDeclaration(text, name, options = {}) {
 }
 
 /** Resolves an exported or module-scope dictionary object by name. */
-export function resolveExportedObject(text, name) {
-  return resolveDeclaration(text, name)
-}

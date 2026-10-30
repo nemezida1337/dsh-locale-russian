@@ -26,6 +26,7 @@ import { spawnSync } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createArgs } from './lib/cli.mjs'
+import { readJson } from './lib/io.mjs'
 import { createProvider, parseJsonArray } from './lib/translate-providers.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -46,12 +47,6 @@ const namespaceFilter = (option('namespaces', '') ?? '')
 
 /** Placeholders of a template, sorted; used to reject a lost parameter. */
 const placeholders = (text) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort().join(',')
-
-/** Reads a JSON file, or undefined when it does not exist. */
-function readJson(path) {
-  if (!existsSync(path)) return undefined
-  return JSON.parse(readFileSync(path, 'utf8'))
-}
 
 /** Loads untranslated items from both manifests. */
 function loadItems() {

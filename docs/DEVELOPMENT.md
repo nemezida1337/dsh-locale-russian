@@ -30,9 +30,12 @@ node tools/translate-batches.mjs  # черновой перевод дельты
 node tools/review-translations.mjs # вычитка перевода моделью-рецензентом и отчёт
 node tools/scaffold-locale.mjs    # генератор языкового пака из contrib/locale-template
 node tools/discussion-report.mjs  # отчёт по ответам в обсуждениях DSH
+node tools/check-docs.mjs         # согласованность документации с репозиторием (входит в npm test)
+node tools/engine-smoke.mjs       # сквозная проверка движка: скачивание, модель, распознавание записи
+node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-scaffold`, `test-discussion-report`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 
@@ -42,7 +45,7 @@ node tools/discussion-report.mjs  # отчёт по ответам в обсуж
 
 Клиентский бандл собирается из `tools/templates/client-bundle.js` с плейсхолдерами `__MODULE_ID__`, `__DIGEST__`, `__DICTIONARIES_JSON__`, `__PLUGIN_TEXT_JSON__`; хост-половина — из `tools/templates/host-plugin.js`. Оба шаблона проверяются `node --check`, а `tools/build-package.mjs` только подставляет значения и пишет `lib/`, `package.json` и `cordis.patch.yml`.
 
-Общие помощники лежат в `tools/lib`: `cdp.mjs` — запуск headless Chrome (свободный порт выбирается автоматически) и операции над страницей, `parse-js.mjs` — чтение словарей из бандлов и исходников, `paths.mjs` — сокращение машинных путей в отчётах, `cli.mjs` — разбор аргументов (`--name value` и `--name=value`).
+Общие помощники лежат в `tools/lib`: `cdp.mjs` — запуск headless Chrome (свободный порт выбирается автоматически) и операции над страницей, `parse-js.mjs` — чтение словарей из бандлов и исходников, `paths.mjs` — сокращение машинных путей в отчётах, `cli.mjs` — разбор аргументов (`--name value` и `--name=value`), `io.mjs` — чтение JSON-файлов, `translate-providers.mjs` — провайдеры `mock`/`command`/`openai`, общие для перевода и вычитки.
 
 ### Откуда берутся строки
 
@@ -98,16 +101,17 @@ npm run review -- --provider openai --model deepseek-chat --api-key-env DEEPSEEK
 
 ## Проверки и CI
 
-`npm test` — линтер переводов, согласованность импортов, сборка, проверка бандла и семь офлайн-наборов тестов инструментов.
+`npm test` — линтер переводов, согласованность импортов, сборка, проверка бандла, синтаксис `bin`-скрипта и девять офлайн-наборов тестов инструментов.
 
 `.github/workflows/ci.yml` содержит три job-а (два из них выполняются на Ubuntu и Windows), а `pages.yml`, `release.yml` и `discussions.yml` публикуют индекс и дашборд, выпускают версии и следят за обсуждениями:
 
 | Job | Когда | Что делает |
 |---|---|---|
 | `checks` | push, pull request | линтер, сборка пакета, проверка импортов, индекс маркета, проверка бандла, тесты инструментов |
-| `dsh-drift` | ежедневно по расписанию и вручную | ставит свежий `@deepseek-ai/dsh` из npm (Ubuntu и Windows) и предрелизы из тегов `next` и `alpha` (Ubuntu), снимает строки и падает при дельте; открывает issue |
+| `dsh-drift` | ежедневно по расписанию и вручную | ставит свежий `@deepseek-ai/dsh` из npm (Ubuntu и Windows) и предрелизы из тегов `next` и `alpha` (Ubuntu), снимает строки и падает при дельте; проверяет живой индекс маркета; открывает issue |
 | `smoke` | push, pull request | поднимает настоящий сервер `dsh web` с пакетом через строку патча (Ubuntu и Windows), проверяет boot-граф и прогоняет обход интерфейса |
 | `app-drift` | ежедневно по расписанию и вручную | скачивает сборку **приложения** из публичного фида обновлений, сверяет sha512, распаковывает `app.asar`, проверяет покрытие; кэширует `app.asar`, при дельте открывает issue |
+| `engine-smoke` | ежедневно по расписанию и вручную | на Ubuntu и Windows скачивает настоящий движок и модель, распознаёт тестовую запись и падает, если текст пустой или не похож на запись; кэширует движок и модель, при сбое открывает issue |
 | `market index` | push с изменениями `market/` | публикует индекс и дашборд на GitHub Pages |
 | `release` | тег `v*` | публикует пакет в npm через trusted publishing и создаёт GitHub-релиз |
 | `discussions` | понедельник | проверяет ответы в обсуждениях DSH и создаёт или обновляет issue |

@@ -127,7 +127,7 @@ export async function launchChrome({
 }
 
 /** One attached page with the operations the checks use. */
-export class Page {
+class Page {
   constructor(socket, sessionId) {
     this.socket = socket
     this.sessionId = sessionId

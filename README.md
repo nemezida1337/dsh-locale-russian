@@ -54,7 +54,11 @@ dsh plugin --profile web add dsh-locale-russian
 dsh plugin --profile web add dsh-locale-russian
 ```
 
-Команда ставит пакет из npm через pnpm, добавляет его в `dependencies` и `dsh.profile.bundles`, после чего строка `locale-ru` появляется в собранном дереве. Так же устанавливается из git или локального пути:
+Команда ставит пакет из npm через pnpm, добавляет его в `dependencies` и `dsh.profile.bundles`, после чего строка `locale-ru` появляется в собранном дереве.
+
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.6.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
+
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.6.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
 
 ```sh
 dsh plugin --profile web add github:nemezida1337/dsh-locale-russian
@@ -65,7 +69,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять, поэтому пакет подключают вручную — любым из двух способов.
 
-**Из npm (рекомендуется):** добавьте `"dsh-locale-russian": "^0.4.1"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Из npm (рекомендуется):** добавьте `"dsh-locale-russian": "^0.6.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -154,7 +158,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ## Совместимость
 
-- Проверено на DeepSeek Harness `0.1.5-rc.x` (CLI-сборка, клиентские пакеты `0.1.5-rc.2`), на CLI-сборке `0.2.1-rc.2`, на приложении `0.2.1-rc.3` (клиентские пакеты распакованы из `app.asar`) и на `0.2.2-alpha.2` из тега `alpha`. Пропусков нет.
+- `engines.dsh` в манифесте (`^0.1.5-rc.1 || ^0.2.1-rc.2 || ^0.2.2-alpha.2`) перечисляет проверенные сборки: `0.1.5-rc.x` (CLI-сборка, клиентские пакеты `0.1.5-rc.2`), CLI-сборка `0.2.1-rc.2`, приложение `0.2.1-rc.3` (клиентские пакеты распакованы из `app.asar`) и `0.2.2-alpha.2` из тега `alpha`. Пропусков нет.
 - Голосовой ввод проверен в живой композиции с бандлом голосового ввода и без него; тест хост-половины входит в `npm test`.
 - Пакет использует публичный контракт локали (`addLanguage`, `register`, `getSnapshot`) и два приватных метода рантайма: `translate` для склонений и `resolveText` для метаданных плагинов. Оба вызова защищены проверкой типа: если метод исчезнет, пакет продолжит работать — склонения перестанут выбираться, описания плагинов останутся английскими, строки интерфейса не пострадают.
 - Обсуждения в upstream: [хук склонений](https://github.com/deepseek-ai/deepseek-harness/discussions/10147) и [локализация оболочки](https://github.com/deepseek-ai/deepseek-harness/discussions/10148); тексты — в [contrib/upstream-issues.md](contrib/upstream-issues.md), витрина плагина — [discussions/10146](https://github.com/deepseek-ai/deepseek-harness/discussions/10146).

@@ -1,6 +1,6 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
   "type": "module",
   "main": "lib/index.js",
@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:scaffold && npm run test:discussions",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run check-docs && npm run test:install-bin && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:market-live && npm run test:scaffold && npm run test:discussions && npm run test:check-docs",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -68,7 +68,12 @@
     "test:discussions": "node tools/test-discussion-report.mjs",
     "review": "node tools/review-translations.mjs",
     "test:review": "node tools/test-review-translations.mjs",
-    "test:prewarm": "node tools/test-prewarm.mjs"
+    "test:prewarm": "node tools/test-prewarm.mjs",
+    "check-docs": "node tools/check-docs.mjs",
+    "test:check-docs": "node tools/test-check-docs.mjs",
+    "engine:smoke": "node tools/engine-smoke.mjs",
+    "market:live": "node tools/market-live.mjs",
+    "test:market-live": "node tools/test-market-live.mjs"
   },
   "license": "MIT",
   "engines": {
