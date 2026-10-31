@@ -11,11 +11,21 @@
 
 ## Быстрый старт
 
+Приложение DeepSeek Harness — обычный случай:
+
+```sh
+npx dsh-locale-russian-install --desktop
+```
+
+Перезапустите приложение и выберите **Настройки → Общие → Язык → Русский**. Всё: интерфейс на русском, склонения («1 файл», «2 файла», «5 файлов») работают из коробки.
+
+Сервер `dsh web`:
+
 ```sh
 dsh plugin --profile web add dsh-locale-russian
 ```
 
-Перезапустите приложение и выберите **Настройки → Общие → Язык → Русский**. Всё: интерфейс на русском, склонения («1 файл», «2 файла», «5 файлов») работают из коробки.
+Руками ничего запускать не обязательно: можно дать агенту ссылку на этот репозиторий — он поставит пакет сам. Подробности и частые вопросы — в [FAQ](https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/FAQ.md).
 
 Голосовой ввод — вторая половина пакета. Он требует штатный плагин «Голосовой ввод» и один раз скачанный движок распознавания:
 
@@ -58,9 +68,9 @@ dsh plugin --profile web add dsh-locale-russian
 
 Команда ставит пакет из npm через pnpm, добавляет его в `dependencies` и `dsh.profile.bundles`, после чего строка `locale-ru` появляется в собранном дереве.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.7.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.7.2`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.7.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
+Так же пакет ставится из git или локального пути:
 
 ```sh
 dsh plugin --profile web add github:nemezida1337/dsh-locale-russian
@@ -77,9 +87,9 @@ npx dsh-locale-russian-install --desktop
 
 Полезные режимы: `--dry-run` — показать изменения без записи, `--revert` — откатить установку, `--profile <путь>` — другой каталог DSH.
 
-**Без терминала:** включите «Свои индексы плагинов» на странице «Плагины», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из вкладки «Обзор».
+**Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.7.1"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.7.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -178,7 +188,7 @@ npx dsh-locale-russian-install --desktop
 
 ## Участие
 
-- Вопросы по установке, голосовому вводу и обновлению — [docs/FAQ.md](docs/FAQ.md) и [обсуждения репозитория](https://github.com/nemezida1337/dsh-locale-russian/discussions) (категории «Вопросы» и «Идеи»).
+- Вопросы по установке, голосовому вводу и обновлению — [FAQ](https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/FAQ.md) и [обсуждения репозитория](https://github.com/nemezida1337/dsh-locale-russian/discussions) (категории «Вопросы» и «Идеи»).
 - Нашли ошибку перевода — [issue по шаблону](https://github.com/nemezida1337/dsh-locale-russian/issues/new?template=translation-error.yml).
 - Предлагаете правку — [CONTRIBUTING.md](CONTRIBUTING.md): правила перевода, порядок выпуска и как добавить новый язык генератором `tools/scaffold-locale.mjs`.
 - Покрытие по namespace и источникам — [дашборд](https://nemezida1337.github.io/dsh-locale-russian/).

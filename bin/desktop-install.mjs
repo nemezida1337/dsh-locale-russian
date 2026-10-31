@@ -26,7 +26,7 @@ const BUNDLED_PNPM = 'runtime/primary-runtime/dependencies/pnpm/bin/pnpm.cjs'
  * @param profileDir - profile directory.
  * @returns the parsed manifest.
  */
-export function readManifest(profileDir) {
+function readManifest(profileDir) {
   const path = join(profileDir, 'package.json')
   if (!existsSync(path)) throw new Error(`в профиле нет package.json: ${path}`)
   let manifest
@@ -79,7 +79,7 @@ function writeAtomic(path, content) {
 }
 
 /** Copies the files this installer may change into a backup directory. */
-export function backupProfile(profileDir, { now = new Date() } = {}) {
+function backupProfile(profileDir, { now = new Date() } = {}) {
   const stamp = now.toISOString().replace(/[:.]/gu, '-')
   const backupDir = join(profileDir, `.dsh-locale-backup-${stamp}`)
   mkdirSync(backupDir, { recursive: true })
@@ -99,13 +99,17 @@ export function latestBackup(profileDir) {
   return dirs.length === 0 ? undefined : join(profileDir, dirs[dirs.length - 1])
 }
 
-/** Finds pnpm: the app-bundled copy first, then the one on PATH. */
-export function findPnpm({ appPath } = {}) {
-  const candidates = []
-  if (appPath !== undefined) candidates.push(join(appPath, BUNDLED_PNPM))
-  if (process.platform === 'darwin') {
-    candidates.push(join('/Applications/DeepSeek Harness.app', 'Contents', 'Resources', BUNDLED_PNPM))
-  }
+/**
+ * Finds pnpm: the app-bundled copy first, then the one on PATH.
+ * @param options - explicit app resources directory; when given, only it is checked.
+ * @returns the command to run, or undefined.
+ */
+function findPnpm({ appPath } = {}) {
+  const candidates = appPath !== undefined
+    ? [join(appPath, BUNDLED_PNPM)]
+    : process.platform === 'darwin'
+      ? [join('/Applications/DeepSeek Harness.app', 'Contents', 'Resources', BUNDLED_PNPM)]
+      : []
   for (const candidate of candidates) {
     if (existsSync(candidate)) return { command: process.execPath, args: [candidate] }
   }
@@ -188,7 +192,7 @@ export function verifyInstalled(profileDir, manifest) {
 }
 
 /** Restores the manifest and the patch file from a backup. */
-export function restoreBackup(profileDir, backupDir) {
+function restoreBackup(profileDir, backupDir) {
   if (backupDir === undefined) return
   for (const name of ['package.json', 'cordis.patch.yml']) {
     const source = join(backupDir, name)

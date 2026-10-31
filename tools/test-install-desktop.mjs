@@ -139,6 +139,47 @@ console.log('CLI')
   check('--help описывает режимы', help.stdout.includes('--desktop') && help.stdout.includes('--revert'))
 }
 
+console.log('манифест без dsh и dependencies')
+{
+  const { profileDir, appPath } = prepare()
+  writeFileSync(join(profileDir, 'package.json'), JSON.stringify({ name: 'dsh-profile-desktop' }, null, 2))
+  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const manifest = readProfile(profileDir)
+  check('dependencies созданы', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
+  check('dsh.profile создан', Array.isArray(manifest.dsh?.profile?.bundles) && manifest.dsh.profile.bundles.includes('dsh-locale-russian'))
+  check('установка подтверждена', result.verified.ok)
+}
+
+console.log('нет pnpm')
+{
+  const { profileDir } = prepare()
+  const pathBackup = process.env.PATH
+  process.env.PATH = join(workspace, 'empty-path')
+  let error
+  try {
+    installDesktop({ dshHome: workspace, version: '1.2.3', appPath: join(workspace, 'no-app'), log: silent })
+  } catch (caught) {
+    error = caught
+  } finally {
+    process.env.PATH = pathBackup
+  }
+  check('понятная ошибка про pnpm', error instanceof Error && error.message.includes('pnpm не найден'), error?.message)
+  check('профиль не изменён', JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')).dependencies['dsh-locale-russian'] === undefined)
+}
+
+console.log('откат без копий')
+{
+  const { profileDir } = prepare()
+  let error
+  try {
+    revertDesktop({ dshHome: workspace, appPath: join(workspace, 'fake-app'), log: silent })
+  } catch (caught) {
+    error = caught
+  }
+  check('сообщает, что откатывать нечего', error instanceof Error && error.message.includes('резервных копий нет'), error?.message)
+  check('профиль не тронут', existsSync(join(profileDir, 'package.json')))
+}
+
 rmSync(workspace, { recursive: true, force: true })
 if (failures.length > 0) {
   console.error(`провалено проверок: ${failures.length}`)

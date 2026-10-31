@@ -6,7 +6,8 @@
  * запускает все инструменты.
  *
  * Usage:
- *   node tools/check-imports.mjs [--dir tools]
+ *   node tools/check-imports.mjs            # tools/ и bin/
+ *   node tools/check-imports.mjs --dir tools
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, resolve, join } from 'node:path'
@@ -17,7 +18,11 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const { option } = createArgs()
 
-const directory = resolve(root, option('dir', 'tools'))
+// По умолчанию проверяем и инструменты, и поставляемые bin-скрипты.
+const explicit = option('dir')
+const directories = explicit === undefined
+  ? [resolve(root, 'tools'), resolve(root, 'bin')]
+  : [resolve(root, explicit)]
 const functions = [
   'readFileSync', 'writeFileSync', 'mkdirSync', 'rmSync', 'readdirSync',
   'statSync', 'existsSync', 'copyFileSync', 'unlinkSync', 'renameSync',
@@ -35,7 +40,8 @@ function collect(directory) {
 }
 
 const problems = []
-for (const file of collect(directory)) {
+const files = directories.flatMap((directory) => collect(directory))
+for (const file of files) {
   const source = readFileSync(file, 'utf8')
   const importLine = (source.match(/import \{([^}]*)\} from 'node:fs'/u) ?? [])[1] ?? ''
   const imported = importLine.split(',').map((name) => name.trim()).filter((name) => name.length > 0)

@@ -27,6 +27,7 @@ import {
   defaultAppPath,
   defaultDshHome,
   installDesktop,
+  latestBackup,
   revertDesktop,
 } from './desktop-install.mjs'
 
@@ -36,6 +37,20 @@ const flag = (name) => args.includes(name)
 const value = (name) => {
   const index = args.indexOf(name)
   return index === -1 ? undefined : args[index + 1]
+}
+
+// Неизвестный флаг — почти всегда опечатка: лучше сказать об этом сразу.
+const KNOWN = new Set(['--desktop', '--dry-run', '--revert', '--yes', '-y', '--help', '-h', '--profile'])
+for (const [index, arg] of args.entries()) {
+  if (!arg.startsWith('-')) continue
+  if (!KNOWN.has(arg)) {
+    console.error(`неизвестный флаг: ${arg}. Справка: --help`)
+    process.exit(2)
+  }
+  if (arg === '--profile' && (args[index + 1] === undefined || args[index + 1].startsWith('-'))) {
+    console.error('флагу --profile нужен путь к каталогу DSH')
+    process.exit(2)
+  }
 }
 
 if (flag('--help') || flag('-h')) {
@@ -56,7 +71,7 @@ if (!flag('--desktop')) {
     console.error('Положите бинарник в %USERPROFILE%\\.dsh\\bin\\gigastt.exe, модель скачает карточка плагина.')
     process.exit(1)
   }
-  console.log('Устанавливаю движок распознавания и модель GigaAM (~315 МБ, один раз)...')
+  console.log('Устанавливаю движок распознавания и модель GigaAM (~313 МБ, один раз)...')
   const result = spawnSync('sh', [script], { stdio: 'inherit' })
   if (result.error !== undefined) {
     console.error(`не удалось запустить установку: ${result.error.message}`)
@@ -82,6 +97,15 @@ async function confirm(question) {
 
 try {
   if (flag('--revert')) {
+    if (dryRun) {
+      const backup = latestBackup(resolve(dshHome, 'profiles', 'desktop'))
+      if (backup === undefined) {
+        console.error('резервных копий нет: откатывать нечего')
+        process.exit(1)
+      }
+      console.log(`Dry-run: профиль будет восстановлен из ${backup}`)
+      process.exit(0)
+    }
     console.log(`Откатываю установку ${PACKAGE_NAME} в профиле приложения…`)
     revertDesktop({ dshHome, appPath: defaultAppPath(), log: console.log })
     console.log('Готово. Перезапустите приложение DeepSeek Harness.')
