@@ -33,7 +33,7 @@ const problems = []
 const fail = (message) => problems.push(message)
 
 /** Documents that describe the current state (CHANGELOG is historical). */
-const CURRENT_DOCS = ['README.md', 'docs/DEVELOPMENT.md', 'docs/FAQ.md', 'CONTRIBUTING.md', 'market/README.md', 'GLOSSARY.md', 'STYLE.md', 'contrib/plugin-recipe.md']
+const CURRENT_DOCS = ['README.md', 'docs/DEVELOPMENT.md', 'docs/FAQ.md', 'docs/MAINTENANCE.md', 'CONTRIBUTING.md', 'market/README.md', 'GLOSSARY.md', 'STYLE.md', 'contrib/plugin-recipe.md']
 // Проверяем только существующие документы: тестовый репозиторий содержит не все.
 const text = Object.fromEntries(CURRENT_DOCS.filter((file) => existsSync(resolve(root, file))).map((file) => [file, read(file)]))
 

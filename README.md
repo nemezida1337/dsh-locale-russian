@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.7.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.7.3"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -193,7 +193,7 @@ npx dsh-locale-russian-install --desktop
 - Предлагаете правку — [CONTRIBUTING.md](CONTRIBUTING.md): правила перевода, порядок выпуска и как добавить новый язык генератором `tools/scaffold-locale.mjs`.
 - Покрытие по namespace и источникам — [дашборд](https://nemezida1337.github.io/dsh-locale-russian/).
 - Ответы в обсуждениях DeepSeek Harness проверяет еженедельный workflow и при новом комментарии открывает issue в этом репозитории.
-- Мейнтейнерам — [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): инструменты, пайплайн обновления, CI и выпуски.
+- Мейнтейнерам — [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (инструменты, CI, выпуски) и [docs/MAINTENANCE.md](https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/MAINTENANCE.md) (чек-лист обслуживания: новая версия DSH, движок, жалобы на перевод).
 
 ## Ссылки
 
