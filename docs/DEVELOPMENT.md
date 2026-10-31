@@ -28,6 +28,7 @@ node tools/check-app.mjs          # покрытие на сборке прил�
 node tools/build-dashboard.mjs    # дашборд покрытия для GitHub Pages
 node tools/build-history.mjs      # история покрытия по тегам (market/history.json)
 node tools/demo-gif.mjs           # GIF-демонстрация интерфейса для README (нужен запущенный сервер)
+node bin/dsh-locale-russian-install.mjs --desktop # установка в профиль приложения (bin, входит в пакет)
 node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)
 node tools/review-translations.mjs # вычитка перевода моделью-рецензентом и отчёт
 node tools/scaffold-locale.mjs    # генератор языкового пака из contrib/locale-template
@@ -38,7 +39,7 @@ node tools/engine-smoke.mjs       # сквозная проверка движк
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-check-docs`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 

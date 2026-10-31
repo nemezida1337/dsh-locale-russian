@@ -4,6 +4,8 @@
 
 [![checks](https://github.com/nemezida1337/dsh-locale-russian/actions/workflows/ci.yml/badge.svg)](https://github.com/nemezida1337/dsh-locale-russian/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/dsh-locale-russian.svg)](https://www.npmjs.com/package/dsh-locale-russian)
+[![npm downloads](https://img.shields.io/npm/dw/dsh-locale-russian.svg)](https://www.npmjs.com/package/dsh-locale-russian)
+[![stars](https://img.shields.io/github/stars/nemezida1337/dsh-locale-russian.svg?style=flat)](https://github.com/nemezida1337/dsh-locale-russian/stargazers)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![coverage dashboard](https://img.shields.io/badge/покрытие-дашборд-2b5cff)](https://nemezida1337.github.io/dsh-locale-russian/)
 
@@ -56,9 +58,9 @@ dsh plugin --profile web add dsh-locale-russian
 
 Команда ставит пакет из npm через pnpm, добавляет его в `dependencies` и `dsh.profile.bundles`, после чего строка `locale-ru` появляется в собранном дереве.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.6.2`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов: укажите версию явно (`dsh-locale-russian@0.7.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу.
 
-Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.6.2`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
+Если сразу после выпуска pnpm ставит предыдущую версию — так работает его защита от слишком свежих пакетов; укажите версию явно (`dsh-locale-russian@0.7.0`) или повторите позже. `npm` в такой ситуации ставит актуальную версию сразу. Так же устанавливается из git или локального пути:
 
 ```sh
 dsh plugin --profile web add github:nemezida1337/dsh-locale-russian
@@ -67,9 +69,17 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ### Приложение DeepSeek Harness (desktop)
 
-Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять, поэтому пакет подключают вручную — любым из двух способов.
+Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять. Пакет ставится одной командой: она находит профиль, делает резервную копию, добавляет зависимость и строку бандла (перед голосовым вводом, чтобы провайдер сразу стал выбором по умолчанию), ставит пакет встроенным pnpm приложения и проверяет результат.
 
-**Из npm (рекомендуется):** добавьте `"dsh-locale-russian": "^0.6.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+```sh
+npx dsh-locale-russian-install --desktop
+```
+
+Полезные режимы: `--dry-run` — показать изменения без записи, `--revert` — откатить установку, `--profile <путь>` — другой каталог DSH.
+
+**Без терминала:** включите «Свои индексы плагинов» на странице «Плагины», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из вкладки «Обзор».
+
+**Вручную:** добавьте `"dsh-locale-russian": "^0.7.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -83,7 +93,10 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ### Удаление
 
-Уберите строку из `cordis.patch.yml` (и запись зависимости из `package.json` профиля при установке через `dsh plugin`) и перезапустите приложение. Движок и модель голосового ввода остаются в `~/.dsh/bin` и `~/.gigastt` — их можно удалить вручную.
+- приложение: `npx dsh-locale-russian-install --desktop --revert` (или удалите пакет на странице «Плагины»);
+- web-профиль: `dsh plugin --profile web remove dsh-locale-russian`.
+
+Движок и модель голосового ввода остаются в `~/.dsh/bin` и `~/.gigastt` — их можно удалить вручную.
 
 ## Голосовой ввод
 
@@ -165,6 +178,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ## Участие
 
+- Вопросы по установке, голосовому вводу и обновлению — [docs/FAQ.md](docs/FAQ.md).
 - Нашли ошибку перевода — [issue по шаблону](https://github.com/nemezida1337/dsh-locale-russian/issues/new?template=translation-error.yml).
 - Предлагаете правку — [CONTRIBUTING.md](CONTRIBUTING.md): правила перевода, порядок выпуска и как добавить новый язык генератором `tools/scaffold-locale.mjs`.
 - Покрытие по namespace и источникам — [дашборд](https://nemezida1337.github.io/dsh-locale-russian/).

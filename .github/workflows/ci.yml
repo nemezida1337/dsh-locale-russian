@@ -59,6 +59,7 @@ jobs:
       - name: Установить свежий DSH
         run: npm install --no-save --no-package-lock @deepseek-ai/dsh@latest
       - name: Снять строки и проверить дельту
+        id: delta
         # Явный bash: на Windows PowerShell не понимает перенос строки через \.
         shell: bash
         run: |
@@ -98,6 +99,7 @@ jobs:
           done
 
       - name: Проверить живой индекс маркета
+        id: market
         if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
@@ -120,23 +122,46 @@ jobs:
             echo 'затем `npm run mark-translated && npm test` и выпустить версию по тегу.'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Открыть issue с дельтой
-        # Недельный прогон — это и есть слежение: результат должен быть виден
-        # в трекере, а не только в упавшем job-е.
-        if: failure() && matrix.os == 'ubuntu-latest'
+      - name: Открыть issue о дельте строк
+        # Заголовок соответствует фактически упавшему шагу: иначе issue про
+        # строки открывался и при сбое проверки живого индекса.
+        if: steps.delta.outcome == 'failure' && matrix.os == 'ubuntu-latest'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'Новая версия DSH: появились строки для перевода'
         run: |
           {
-            echo "Недельная проверка $(date -u +%Y-%m-%d) нашла расхождение с релизом DSH в npm."
+            echo "Проверка $(date -u +%Y-%m-%d) нашла расхождение строк с релизом DSH в npm."
             echo
             echo '```'
             tail -40 drift.log
             echo '```'
             echo
             echo 'Порядок действий: `npm run refresh` → перевести батчи → `npm run mark-translated` → `npm test` → `npm version patch && git push --follow-tags`.'
+          } > issue.md
+          EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file issue.md
+            echo "дополнен открытый issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --body-file issue.md
+          fi
+      - name: Открыть issue о живом индексе
+        if: steps.market.outcome == 'failure' && matrix.os == 'ubuntu-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: 'Живой индекс маркета не совпадает с репозиторием'
+        run: |
+          {
+            echo "Проверка $(date -u +%Y-%m-%d) не смогла подтвердить живой индекс маркета."
+            echo
+            echo '```'
+            tail -40 drift.log
+            echo '```'
+            echo
+            echo 'Проверьте: `npm run market:live` локально, деплой Pages и версию в `market/index.json`.'
           } > issue.md
           EXISTING=$(gh issue list --state open --search "$TITLE" --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
