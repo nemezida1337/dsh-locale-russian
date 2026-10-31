@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Вопросы и идеи
+    url: https://github.com/nemezida1337/dsh-locale-russian/discussions
+    about: Обсуждения репозитория: установка, голосовой ввод, предложения
   - name: Пакет в npm
     url: https://www.npmjs.com/package/dsh-locale-russian
     about: Версии, README и история выпусков

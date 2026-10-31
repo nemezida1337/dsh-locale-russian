@@ -72,6 +72,10 @@ dsh plugin --profile web add dsh-locale-russian
 
 ## Перевод
 
+**Где задать вопрос или предложить идею?**
+
+В [обсуждениях репозитория](https://github.com/nemezida1337/dsh-locale-russian/discussions): категория «Вопросы» для проблем с установкой и голосовым вводом, «Идеи» для предложений. Ошибки перевода удобнее оформлять issue по шаблону.
+
 **Как сообщить об ошибке перевода?**
 
 [Issue по шаблону «Ошибка перевода»](https://github.com/nemezida1337/dsh-locale-russian/issues/new?template=translation-error.yml): укажите экран, текущий текст и предлагаемый вариант. Правки принимаются и пул-реквестами — см. [CONTRIBUTING](../CONTRIBUTING.md).
