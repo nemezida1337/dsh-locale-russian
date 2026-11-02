@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.7.3"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.8.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -121,6 +121,10 @@ npx dsh-locale-russian-install --desktop
 Если русский распознаватель выбран по умолчанию, движок прогревается в фоне через несколько секунд после запуска: первая диктовка не ждёт загрузки модели.
 
 Если движок или модель удалить, та же кнопка восстановит их. Альтернатива для терминала — `npx dsh-locale-russian-install`. На платформах без готовой сборки возьмите [релиз gigastt](https://github.com/ekhodzitsky/gigastt/releases) вручную и укажите `binaryPath` в настройках плагина.
+
+### Диктовка в фоне
+
+Штатный голосовой ввод отменяет запись, когда окно теряет фокус: переключились на браузер — диктовка пропадала. Пакет это исправляет: запись продолжается, а состояние видно по трём признакам — бейдж «● Диктовка идёт в фоне» в окне приложения, точка «●» в заголовке окна и системное уведомление. Вернувшись в приложение, нажмите «Стоп» — текст распознается и вставится как обычно; если не возвращаться, запись остановится сама по лимиту длительности.
 
 ### Провайдер по умолчанию
 

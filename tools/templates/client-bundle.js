@@ -235,11 +235,175 @@ window.__ModuleLoader__.load({
 			}
 		}
 
+		/** Marker on the patched EventTarget prototype: the voice keep-alive is installed. */
+		const VOICE_KEEPALIVE_MARKER = "__dshLocaleRuVoiceKeepAlive";
+
+		/**
+		 * Keeps the stock voice input recording when the window loses focus.
+		 *
+		 * The stock client cancels the capture on `blur` and on a hidden page, so a
+		 * user who switches to another window loses the dictation. Only those two
+		 * listeners are suppressed (recognised by their source); the active
+		 * MediaRecorder is tracked, and a background indicator is shown: a dot in the
+		 * window title and a system notification. Everything is restored on dispose.
+		 * @returns disposer that restores the patched APIs.
+		 */
+		function installVoiceKeepAlive() {
+			if (typeof window === "undefined" || typeof document === "undefined") return () => {};
+			const prototype = window.EventTarget === undefined ? undefined : window.EventTarget.prototype;
+			if (prototype === undefined || typeof prototype.addEventListener !== "function") return () => {};
+			if (Object.prototype.hasOwnProperty.call(prototype, VOICE_KEEPALIVE_MARKER)) return () => {};
+
+			const originalAdd = prototype.addEventListener;
+			const originalRemove = prototype.removeEventListener;
+			const suppressed = new WeakMap();
+			const recorders = new Set();
+			let baseTitle;
+			let notification;
+			let badge;
+			let titleChanged = false;
+
+			/** True for the stock cancel-on-blur/visibility listener, recognised by its source. */
+			function isCancelListener(listener) {
+				if (typeof listener !== "function") return false;
+				let source;
+				try {
+					source = Function.prototype.toString.call(listener);
+				} catch (error) {
+					return false;
+				}
+				if (source.indexOf("cancel") === -1) return false;
+				return source.indexOf("recording") !== -1
+					|| source.indexOf("transcribing") !== -1
+					|| source.indexOf("document.hidden") !== -1;
+			}
+
+			/** True while a tracked recorder is capturing. */
+			function isRecording() {
+				let active = false;
+				recorders.forEach((recorder) => {
+					if (recorder.state === "recording") active = true;
+				});
+				return active;
+			}
+
+			/** Adds a small in-app badge: visible when the app window is in sight. */
+			function showBadge() {
+				if (badge !== undefined || typeof document.createElement !== "function" || document.body === undefined) return;
+				badge = document.createElement("div");
+				badge.textContent = "● Диктовка идёт в фоне";
+				badge.setAttribute("data-dsh-locale-ru-voice", "");
+				badge.style.cssText = "position:fixed;top:12px;right:12px;z-index:2147483647;padding:6px 10px;border-radius:999px;background:rgba(20,20,22,.92);color:#fff;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none";
+				document.body.appendChild(badge);
+			}
+
+			/** Removes the in-app badge. */
+			function hideBadge() {
+				if (badge === undefined) return;
+				if (typeof badge.remove === "function") badge.remove();
+				else if (badge.parentNode !== null && badge.parentNode !== undefined) badge.parentNode.removeChild(badge);
+				badge = undefined;
+			}
+
+			/** Shows the background indicator once. */
+			function showIndicator() {
+				if (!isRecording()) return;
+				showBadge();
+				if (!titleChanged) {
+					baseTitle = document.title;
+					titleChanged = true;
+					document.title = "● Диктовка — " + baseTitle;
+				}
+				if (notification !== undefined) return;
+				try {
+					if (typeof Notification === "undefined" || Notification.permission === "denied") return;
+					notification = new Notification("Диктовка продолжается", {
+						body: "Запись идёт в фоне. Вернитесь в DeepSeek Harness и нажмите «Стоп», чтобы вставить текст.",
+						silent: true,
+						tag: "dsh-locale-ru-voice",
+					});
+				} catch (error) {
+					notification = undefined;
+				}
+			}
+
+			/** Hides the indicator when nothing is recorded anymore. */
+			function hideIndicator() {
+				if (isRecording()) return;
+				if (titleChanged) {
+					titleChanged = false;
+					if (baseTitle !== undefined) document.title = baseTitle;
+				}
+				if (notification !== undefined) {
+					try {
+						notification.close();
+					} catch (error) {
+						// уведомление могло быть уже закрыто системой
+					}
+					notification = undefined;
+				}
+				hideBadge();
+			}
+
+			/** Tracks MediaRecorder instances so the plugin knows when dictation runs. */
+			function trackRecorders() {
+				if (typeof window.MediaRecorder !== "function") return () => {};
+				const Original = window.MediaRecorder;
+				const tracked = new Proxy(Original, {
+					construct(target, args) {
+						const recorder = Reflect.construct(target, args);
+						recorders.add(recorder);
+						recorder.addEventListener("stop", () => {
+							recorders.delete(recorder);
+							hideIndicator();
+						});
+						return recorder;
+					},
+				});
+				window.MediaRecorder = tracked;
+				return () => {
+					window.MediaRecorder = Original;
+				};
+			}
+
+			function patchedAdd(type, listener, options) {
+				if ((type === "blur" || type === "visibilitychange") && isCancelListener(listener)) {
+					const wrapped = function () {
+						showIndicator();
+					};
+					suppressed.set(listener, wrapped);
+					return originalAdd.call(this, type, wrapped, options);
+				}
+				return originalAdd.call(this, type, listener, options);
+			}
+
+			function patchedRemove(type, listener, options) {
+				const wrapped = suppressed.get(listener);
+				if (wrapped !== undefined) {
+					suppressed.delete(listener);
+					return originalRemove.call(this, type, wrapped, options);
+				}
+				return originalRemove.call(this, type, listener, options);
+			}
+
+			prototype.addEventListener = patchedAdd;
+			prototype.removeEventListener = patchedRemove;
+			Object.defineProperty(prototype, VOICE_KEEPALIVE_MARKER, { value: true, configurable: true });
+			const untrack = trackRecorders();
+			return () => {
+				untrack();
+				prototype.addEventListener = originalAdd;
+				prototype.removeEventListener = originalRemove;
+				delete prototype[VOICE_KEEPALIVE_MARKER];
+				hideIndicator();
+				recorders.clear();
+			};
+		}
+
 		function apply(ctx) {
-			// Работа откладывается на следующий тик, но эффект регистрируется сразу:
-			// так выгрузка плагина снимает таймер и все регистрации. На 0.2.2
-			// регистрация прямо во время активации роняла соседние плагины
-			// (theme и зависящие от него), поэтому ждём, пока загрузка успокоится.
+			// Патч диктовки ставится сразу: он должен успеть до монтирования
+			// интерфейса голосового ввода. Локаль регистрируем на следующем тике.
+			const restoreVoice = installVoiceKeepAlive();
 			ctx.effect(() => {
 				let dispose = () => {};
 				const timer = setTimeout(() => {
@@ -252,6 +416,7 @@ window.__ModuleLoader__.load({
 				return () => {
 					clearTimeout(timer);
 					dispose();
+					restoreVoice();
 				};
 			}, "__MODULE_ID__: registration");
 		}

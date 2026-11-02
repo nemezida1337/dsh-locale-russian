@@ -35,11 +35,12 @@ node tools/scaffold-locale.mjs    # генератор языкового пак
 node tools/discussion-report.mjs  # отчёт по ответам в обсуждениях DSH
 node tools/check-docs.mjs         # согласованность документации с репозиторием (входит в npm test)
 node tools/check-consistency.mjs  # один английский текст — один перевод (входит в npm test)
+node tools/check-voice-hook.mjs   # штатный код отмены диктовки не изменился (входит в npm test)
 node tools/engine-smoke.mjs       # сквозная проверка движка: скачивание, модель, распознавание записи
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-check-docs`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-voice-keepalive`, `test-check-voice-hook`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 

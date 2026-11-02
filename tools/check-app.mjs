@@ -100,6 +100,20 @@ function checkCoverage(asarPath, version) {
   }
 }
 
+/** Fails when the stock voice-input cancel code changed and our patch would miss it. */
+function checkVoiceHook(work) {
+  const packages = join(work, 'repo', '.app-packages')
+  if (!existsSync(packages)) return
+  const result = spawnSync(process.execPath, ['tools/check-voice-hook.mjs', '--packages', packages], {
+    cwd: join(work, 'repo'),
+    stdio: 'inherit',
+    encoding: 'utf8',
+  })
+  if (result.status !== 0) {
+    throw new Error('код отмены диктовки в приложении изменился: обновите installVoiceKeepAlive в клиентском бандле')
+  }
+}
+
 /** Entry point: feed, download, verify, unpack, check. */
 async function main() {
   mkdirSync(work, { recursive: true })
@@ -152,6 +166,7 @@ async function main() {
 
   console.log(`app.asar: ${asarPath}`)
   checkCoverage(asarPath, feed.version)
+  checkVoiceHook(work)
   // Копия репозитория нужна только на время проверки.
   rmSync(join(work, 'repo'), { recursive: true, force: true })
   if (!keep) rmSync(work, { recursive: true, force: true })
