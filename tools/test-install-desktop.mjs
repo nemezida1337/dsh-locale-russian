@@ -59,7 +59,7 @@ console.log('план изменений')
 {
   const { manifest, changes } = planInstall({ dependencies: {}, dsh: { profile: { bundles: ['base', voiceBundle] } } }, { version: '1.2.3' })
   check('зависимость добавлена', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
-  check('бандл вставлен перед голосовым вводом', manifest.dsh.profile.bundles.join(',') === `base,dsh-locale-russian,${voiceBundle}`)
+  check('бандл вставлен после голосового ввода', manifest.dsh.profile.bundles.join(',') === `base,${voiceBundle},dsh-locale-russian`)
   check('изменения описаны', changes.length === 2)
   const second = planInstall(manifest, { version: '1.2.3' })
   check('повторный план пуст', second.changes.length === 0)
@@ -81,7 +81,7 @@ console.log('установка')
   const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   const manifest = readProfile(profileDir)
   check('зависимость в манифесте', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
-  check('бандл перед голосовым вводом', manifest.dsh.profile.bundles.indexOf('dsh-locale-russian') < manifest.dsh.profile.bundles.indexOf(voiceBundle))
+  check('бандл после голосового ввода', manifest.dsh.profile.bundles.indexOf('dsh-locale-russian') > manifest.dsh.profile.bundles.indexOf(voiceBundle))
   check('пакет установлен', verifyInstalled(profileDir, manifest).ok)
   check('резервная копия создана', result.backupDir !== undefined && existsSync(join(result.backupDir, 'package.json')))
   const backupManifest = JSON.parse(readFileSync(join(result.backupDir, 'package.json'), 'utf8'))
@@ -89,6 +89,19 @@ console.log('установка')
   check('чужой плагин сохранён', manifest.dependencies['other-plugin'] === '1.0.0')
   const again = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   check('повторная установка идемпотентна', again.changes.length === 0)
+}
+
+console.log('перестановка из старого порядка')
+{
+  const { profileDir, appPath } = prepare()
+  const manifest = readProfile(profileDir)
+  manifest.dsh.profile.bundles = ['base', 'dsh-locale-russian', voiceBundle]
+  manifest.dependencies['dsh-locale-russian'] = '^1.2.3'
+  writeFileSync(join(profileDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const after = readProfile(profileDir)
+  check('бандл перемещён после голосового ввода', after.dsh.profile.bundles.indexOf('dsh-locale-russian') > after.dsh.profile.bundles.indexOf(voiceBundle))
+  check('перестановка отражена в изменениях', result.changes.some((change) => change.includes('перемещён')), JSON.stringify(result.changes))
 }
 
 console.log('сбой установки')

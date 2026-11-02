@@ -152,19 +152,26 @@ writeFileSync(resolve(root, 'lib/client.js'), clientBundle)
 
 // The bundle patch is generated: its single row must name the installed
 // package, so a rename in package.json cannot leave a stale specifier behind.
-const patchFile = `# Слой патча пакета-бандла: подключает строку языкового пакета и делает
-# локальный русский распознаватель выбором по умолчанию для штатного голосового
-# ввода. Файл генерируется tools/build-package.mjs — имя строки берётся из
+const patchFile = `# Слой патча пакета-бандла: подключает строку языкового пакета, делает
+# локальный русский распознаватель выбором по умолчанию и поднимает лимит
+# диктовки. Файл генерируется tools/build-package.mjs — имя строки берётся из
 # package.json.
 - insert:
     - id: locale-ru
       name: ${manifestName}
-# Строка speech-to-text вставляется бандлом голосового ввода. Патч конфигурации
-# применяется к ней, если этот слой идёт после бандла голосового ввода; при
-# обратном порядке выбор остаётся штатным, и провайдер выбирают в настройках.
+# Строки speech-to-text и api-speech-to-text вставляет бандл голосового ввода.
+# Патчи конфигурации применяются к ним, только если этот слой идёт ПОСЛЕ бандла
+# голосового ввода в dsh.profile.bundles: слои применяются по порядку.
 - id: speech-to-text
   config:
     defaultProvider: gigaam-local
+# Пять минут вместо штатных двух: движок распознаёт 300 секунд за ~15 секунд.
+# Лимит по размеру поднят вместе с длительностью — иначе запись отклонится по
+# байтам (300 с в формате 16 кГц/моно/16 бит — это ~9,2 МиБ).
+- id: api-speech-to-text
+  config:
+    maxDurationSeconds: 300
+    maxAudioBytes: 10485760
 `
 writeFileSync(resolve(root, 'cordis.patch.yml'), patchFile)
 // Хост-половина — отдельный шаблон: словари живут в браузерной половине, а хост

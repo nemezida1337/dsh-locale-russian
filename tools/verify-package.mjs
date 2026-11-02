@@ -137,7 +137,11 @@ const check = (condition, message) => {
 const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
 check(captured.id === manifest.name, `module id equals the package name (${captured.id} vs ${manifest.name})`)
 check(manifest.dsh?.bundle?.patch === './cordis.patch.yml', 'manifest declares the bundle patch')
-check(readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8').includes(`name: ${manifest.name}`), 'bundle patch names the package')
+const bundlePatch = readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8')
+check(bundlePatch.includes(`name: ${manifest.name}`), 'bundle patch names the package')
+check(bundlePatch.includes('defaultProvider: gigaam-local'), 'bundle patch selects the local recognizer')
+check(/maxDurationSeconds:\s*300/.test(bundlePatch), 'bundle patch raises the dictation limit to 5 minutes')
+check(/maxAudioBytes:\s*10485760/.test(bundlePatch), 'bundle patch raises the audio size limit with the duration')
 check(typeof plugin.apply === 'function', 'apply is exported')
 check(
   typeof manifest.engines?.dsh === 'string' && manifest.engines.dsh.includes('0.2.2-alpha'),

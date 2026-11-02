@@ -61,11 +61,21 @@ export function planInstall(manifest, { version }) {
   const bundles = Array.isArray(next.dsh.profile.bundles) ? [...next.dsh.profile.bundles] : []
   if (!bundles.includes(PACKAGE_NAME)) {
     const voiceIndex = bundles.indexOf(VOICE_BUNDLE)
-    // Наш слой патча задаёт провайдера по умолчанию: он должен применяться
-    // раньше слоя голосового ввода, иначе настройка не сработает.
+    // Наш слой патча задаёт провайдера по умолчанию и лимит диктовки, поэтому
+    // он должен применяться ПОСЛЕ слоя голосового ввода.
     if (voiceIndex === -1) bundles.push(PACKAGE_NAME)
-    else bundles.splice(voiceIndex, 0, PACKAGE_NAME)
-    changes.push(`bundles: ${PACKAGE_NAME} добавлен${voiceIndex === -1 ? ' в конец' : ` перед ${VOICE_BUNDLE}`}`)
+    else bundles.splice(voiceIndex + 1, 0, PACKAGE_NAME)
+    changes.push(`bundles: ${PACKAGE_NAME} добавлен${voiceIndex === -1 ? ' в конец' : ` после ${VOICE_BUNDLE}`}`)
+  } else {
+    // Уже установленный пакет мог оказаться раньше голосового ввода: тогда
+    // патчи конфигурации не применяются. Переставляем.
+    const voiceIndex = bundles.indexOf(VOICE_BUNDLE)
+    const ownIndex = bundles.indexOf(PACKAGE_NAME)
+    if (voiceIndex !== -1 && ownIndex < voiceIndex) {
+      bundles.splice(ownIndex, 1)
+      bundles.splice(bundles.indexOf(VOICE_BUNDLE) + 1, 0, PACKAGE_NAME)
+      changes.push(`bundles: ${PACKAGE_NAME} перемещён после ${VOICE_BUNDLE}, чтобы применились патчи конфигурации`)
+    }
   }
   next.dsh.profile.bundles = bundles
   return { manifest: next, changes }

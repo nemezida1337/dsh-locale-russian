@@ -79,7 +79,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ### Приложение DeepSeek Harness (desktop)
 
-Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять. Пакет ставится одной командой: она находит профиль, делает резервную копию, добавляет зависимость и строку бандла (перед голосовым вводом, чтобы провайдер сразу стал выбором по умолчанию), ставит пакет встроенным pnpm приложения и проверяет результат.
+Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять. Пакет ставится одной командой: она находит профиль, делает резервную копию, добавляет зависимость и строку бандла (после голосового ввода, чтобы применились патчи конфигурации — провайдер по умолчанию и лимит диктовки), ставит пакет встроенным pnpm приложения и проверяет результат.
 
 ```sh
 npx dsh-locale-russian-install --desktop
@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.8.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.9.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -121,6 +121,17 @@ npx dsh-locale-russian-install --desktop
 Если русский распознаватель выбран по умолчанию, движок прогревается в фоне через несколько секунд после запуска: первая диктовка не ждёт загрузки модели.
 
 Если движок или модель удалить, та же кнопка восстановит их. Альтернатива для терминала — `npx dsh-locale-russian-install`. На платформах без готовой сборки возьмите [релиз gigastt](https://github.com/ekhodzitsky/gigastt/releases) вручную и укажите `binaryPath` в настройках плагина.
+
+### Лимит диктовки
+
+Пакет поднимает штатный лимит записи с 2 до **5 минут** (и объём аудио с 4 до 10 МиБ — на 300 секунд в формате 16 кГц/моно нужно ~9,2 МиБ). Движок распознаёт такую запись примерно за 15 секунд. Изменить лимит можно в патче профиля — строка `api-speech-to-text`, причём менять нужно оба значения:
+
+```yaml
+- id: api-speech-to-text
+  config:
+    maxDurationSeconds: 600      # 10 минут
+    maxAudioBytes: 20971520      # 20 МиБ
+```
 
 ### Диктовка в фоне
 

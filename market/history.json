@@ -182,6 +182,13 @@
       "strings": 3929,
       "namespaces": 75,
       "pluginDescriptions": 555
+    },
+    {
+      "version": "0.9.0",
+      "date": "2026-11-02",
+      "strings": 3929,
+      "namespaces": 75,
+      "pluginDescriptions": 555
     }
   ]
 }
