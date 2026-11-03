@@ -28,7 +28,10 @@ import {
   addPersonalHotword,
   clearPersonalHotwords,
   readPersonalHotwords,
+  readReplacements,
   removePersonalHotword,
+  renderReplacements,
+  upsertReplacement,
 } from '../lib/hotwords.mjs'
 import {
   PACKAGE_NAME,
@@ -51,16 +54,22 @@ const value = (name) => {
 const KNOWN = new Set([
   '--desktop', '--dry-run', '--revert', '--yes', '-y', '--help', '-h', '--profile',
   '--hotwords-add', '--hotwords-add-file', '--hotwords-list', '--hotwords-remove',
-  '--hotwords-clear', '--hotwords-file',
+  '--hotwords-clear', '--hotwords-file', '--hotwords-export', '--hotwords-import',
 ])
-const NEEDS_VALUE = new Set(['--profile', '--hotwords-add', '--hotwords-add-file', '--hotwords-remove', '--hotwords-file'])
+const NEEDS_VALUE = new Set([
+  '--profile', '--hotwords-add', '--hotwords-add-file', '--hotwords-remove', '--hotwords-file',
+  '--hotwords-export', '--hotwords-import',
+])
 for (const [index, arg] of args.entries()) {
   if (!arg.startsWith('-')) continue
+  // Значение предыдущего флага (например, «-» для stdin) — не флаг.
+  const previous = index > 0 ? args[index - 1] : undefined
+  if (previous !== undefined && NEEDS_VALUE.has(previous)) continue
   if (!KNOWN.has(arg)) {
     console.error(`неизвестный флаг: ${arg}. Справка: --help`)
     process.exit(2)
   }
-  if (NEEDS_VALUE.has(arg) && (args[index + 1] === undefined || args[index + 1].startsWith('-'))) {
+  if (NEEDS_VALUE.has(arg) && (args[index + 1] === undefined || (args[index + 1].startsWith('-') && args[index + 1] !== '-'))) {
     console.error(`флагу ${arg} нужен аргумент`)
     process.exit(2)
   }
@@ -80,12 +89,16 @@ if (flag('--help') || flag('-h')) {
   console.log('  --hotwords-remove "слово"                     удалить слово')
   console.log('  --hotwords-clear                              очистить личный словарь')
   console.log('  --hotwords-file <путь>                        свой файл словаря')
+  console.log('  --hotwords-export <файл|->                    выгрузить словарь и замены в JSON')
+  console.log('  --hotwords-import <файл|->                    загрузить словарь и замены из JSON')
+  console.log('  (для --hotwords-add-file и --hotwords-import путь «-» читает stdin)')
   process.exit(0)
 }
 
 // Личный словарь: первичное заполнение и правка из терминала.
 const hotwordsMode = flag('--hotwords-add') || flag('--hotwords-add-file') || flag('--hotwords-list')
   || flag('--hotwords-remove') || flag('--hotwords-clear')
+  || flag('--hotwords-export') || flag('--hotwords-import')
 if (hotwordsMode) {
   const dshHome = resolve(value('--profile') ?? process.env.DSH_HOME ?? join(homedir(), '.dsh'))
   const file = resolve(value('--hotwords-file') ?? join(dshHome, 'speech-ru', 'hotwords.txt'))
@@ -100,11 +113,88 @@ if (hotwordsMode) {
   }
   if (flag('--hotwords-add-file')) {
     const source = value('--hotwords-add-file')
-    if (source === undefined || !existsSync(source)) {
+    if (source === '-') {
+      phrases.push(...readFileSync(0, 'utf8').split('\n'))
+    } else if (source === undefined || !existsSync(source)) {
       console.error(`файл не найден: ${source ?? '(не указан)'}`)
       process.exit(1)
+    } else {
+      phrases.push(...readFileSync(source, 'utf8').split('\n'))
     }
-    phrases.push(...readFileSync(source, 'utf8').split('\n'))
+  }
+  const replacementsFile = join(dirname(file), 'replacements.json')
+  const readReplacementsFile = () => {
+    try {
+      return readReplacements(readFileSync(replacementsFile, 'utf8'))
+    } catch {
+      return {}
+    }
+  }
+  const writeReplacementsFile = (replacements) => {
+    mkdirSync(dirname(replacementsFile), { recursive: true })
+    writeFileSync(replacementsFile, renderReplacements(replacements))
+  }
+  if (flag('--hotwords-export')) {
+    const target = value('--hotwords-export')
+    if (target === undefined) {
+      console.error('флагу --hotwords-export нужен путь или «-»')
+      process.exit(2)
+    }
+    const payload = JSON.stringify({
+      version: 1,
+      words: readPersonalHotwords(read()),
+      replacements: readReplacementsFile(),
+    }, null, 2)
+    if (target === '-') {
+      console.log(payload)
+    } else {
+      writeFileSync(target, `${payload}\n`)
+      console.log(`экспортировано: ${readPersonalHotwords(read()).length} слов и ${Object.keys(readReplacementsFile()).length} замен → ${target}`)
+    }
+    process.exit(0)
+  }
+  if (flag('--hotwords-import')) {
+    const source = value('--hotwords-import')
+    if (source === undefined) {
+      console.error('флагу --hotwords-import нужен путь или «-»')
+      process.exit(2)
+    }
+    let payload
+    try {
+      payload = JSON.parse(source === '-' ? readFileSync(0, 'utf8') : readFileSync(source, 'utf8'))
+    } catch (error) {
+      console.error(`не удалось прочитать JSON: ${error instanceof Error ? error.message : String(error)}`)
+      process.exit(1)
+    }
+    if (payload === null || typeof payload !== 'object') {
+      console.error('ожидался объект { words: string[], replacements: object }')
+      process.exit(1)
+    }
+    const words = Array.isArray(payload.words) ? payload.words : []
+    let text = read()
+    let added = 0
+    for (const word of words) {
+      const result = addPersonalHotword(text, word)
+      if (result.ok && result.duplicate !== true) {
+        text = result.text
+        added += 1
+      }
+    }
+    write(text)
+    let merged = 0
+    if (payload.replacements !== null && typeof payload.replacements === 'object') {
+      let replacements = readReplacementsFile()
+      for (const [heard, chosen] of Object.entries(payload.replacements)) {
+        const result = upsertReplacement(JSON.stringify({ replacements }), heard, chosen)
+        if (result.ok) {
+          replacements = readReplacements(result.text)
+          merged += 1
+        }
+      }
+      writeReplacementsFile(replacements)
+    }
+    console.log(`импортировано: слов ${added}, замен ${merged}; всего в словаре ${readPersonalHotwords(read()).length}`)
+    process.exit(0)
   }
   // Пустые строки — не «пропущенные фразы»: просто убираем их из ввода.
   const requested = phrases.map((phrase) => phrase.trim()).filter((phrase) => phrase !== '')

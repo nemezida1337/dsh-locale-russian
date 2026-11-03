@@ -73,6 +73,15 @@ class FakeElement {
   closest(selector) {
     return this.editable === true ? this : null
   }
+
+  contains(node) {
+    if (node === this) return true
+    for (const child of this.children) {
+      if (child === node) return true
+      if (typeof child.contains === 'function' && child.contains(node)) return true
+    }
+    return false
+  }
 }
 
 class FakeEventTarget {
@@ -227,6 +236,34 @@ console.log('слово из словаря можно убрать')
   check('запрос на /forget', forget !== undefined && forget.method === 'POST', JSON.stringify(requests))
   check('тело — слово', forget !== undefined && JSON.parse(forget.body) === 'GitHub', forget?.body)
   check('тост об удалении', documentStub.body.children.some((element) => element.textContent.includes('Удалено из словаря')))
+}
+
+console.log('панель словаря: список и удаление')
+{
+  const editable = new FakeElement('div')
+  editable.editable = true
+  await select('гитхаб', editable)
+  const listRow = rows().find((text) => text.startsWith('Словарь ('))
+  check('есть строка «Словарь (N)»', listRow !== undefined, JSON.stringify(rows()))
+  row(listRow).dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const words = (panel()?.children ?? []).filter((child) => (child.children ?? []).length === 2)
+  check('список слов открыт', words.length === 3, String(words.length))
+  const githubRow = words.find((child) => child.children[0].textContent === 'GitHub')
+  check('GitHub в списке', githubRow !== undefined)
+  requests.length = 0
+  githubRow.children[1].dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const forget = requests.find((request) => request.url.endsWith('/forget'))
+  check('удаление из списка шлёт /forget', forget !== undefined && JSON.parse(forget.body) === 'GitHub', JSON.stringify(requests))
+  check('тост об удалении из списка', documentStub.body.children.some((element) => String(element.textContent).includes('Убрано из словаря')))
+  check('список обновился', (panel()?.children ?? []).filter((child) => (child.children ?? []).length === 2).length === 2)
+}
+
+console.log('Escape закрывает панель')
+{
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  check('панель закрыта по Escape', panel() === undefined)
 }
 
 console.log('вне поля ввода поповера нет')

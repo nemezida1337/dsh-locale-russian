@@ -43,7 +43,7 @@
 - Файл: `~/.dsh/speech-ru/hotwords.txt`; личные фразы живут в помеченной секции `# === личный словарь (dsh-locale-russian) ===`. Формат и лимиты — `lib/hotwords.mjs` (общий для хост-половины и CLI).
 - Движок получает словарь **файлом при старте** (`--hotwords-file`), поэтому лимит HTTP-запроса в 64 фразы не действует; файл читается при запуске, изменение подхватывается перезапуском движка (~5 с на первой диктовке).
 - Кнопка «+ в словарь» в интерфейсе ходит на локальный endpoint хост-половины: порты `47118–47122` (первый свободный), `POST /hotwords`, CORS открыт для localhost. Если порты заняты, endpoint молча не поднимается — проверять по логу `dictionary endpoint`.
-- CLI: `--hotwords-add`, `--hotwords-add-file`, `--hotwords-list`, `--hotwords-remove`, `--hotwords-clear`, `--hotwords-file`.
+- CLI: `--hotwords-add`, `--hotwords-add-file` (путь «-» — stdin), `--hotwords-list`, `--hotwords-remove`, `--hotwords-clear`, `--hotwords-file`, `--hotwords-export`, `--hotwords-import` (JSON `{version, words, replacements}`, путь «-» — stdin/stdout).
 - Замены «как услышали → как надо» — `~/.dsh/speech-ru/replacements.json` (модуль `lib/hotwords.mjs`). Пары появляются, когда пользователь выбирает кандидата в поповере: клиент шлёт `POST /learn` с `{heard, chosen}`, хост пишет пару и добавляет выбранное слово в личный словарь.
 - Маршруты endpoint: `GET /health`, `GET /dictionary` (слова + замены для клиента), `POST /hotwords` (текст или JSON-строка), `POST /learn` (JSON `{heard, chosen}`), `POST /forget` (JSON-строка или текст — убрать слово из личного словаря).
 - Слова в личном словаре сравниваются без учёта регистра: «GitHub» и «github» — дубликат.

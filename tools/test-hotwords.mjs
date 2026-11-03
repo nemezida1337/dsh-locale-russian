@@ -82,6 +82,21 @@ console.log('CLI словаря')
   check('очистка из CLI', cleared.status === 0 && readPersonalHotwords(readFileSync(file, 'utf8')).length === 0)
   const missing = cli('--hotwords-add-file', join(workspace, 'нет.txt'))
   check('отсутствующий файл — ошибка', missing.status !== 0)
+  // stdin: путь «-» читает список из ввода.
+  const fromStdin = spawnSync(process.execPath, ['bin/dsh-locale-russian-install.mjs', '--hotwords-file', file, '--hotwords-add-file', '-'], { encoding: 'utf8', input: 'Kubernetes\nPodman\n' })
+  check('список из stdin', fromStdin.status === 0 && fromStdin.stdout.includes('добавлено: 2'), fromStdin.stdout + fromStdin.stderr)
+  const exported = cli('--hotwords-export', '-')
+  const payload = JSON.parse(exported.stdout)
+  check('экспорт в stdout', exported.status === 0 && Array.isArray(payload.words) && payload.words.includes('Kubernetes'), exported.stdout)
+  check('экспорт содержит замены', payload.replacements !== undefined && typeof payload.replacements === 'object')
+  const imported = spawnSync(process.execPath, ['bin/dsh-locale-russian-install.mjs', '--hotwords-file', file, '--hotwords-import', '-'], {
+    encoding: 'utf8',
+    input: JSON.stringify({ words: ['WebSocket'], replacements: { 'гитхаб': 'GitHub' } }),
+  })
+  check('импорт из stdin', imported.status === 0 && imported.stdout.includes('слов 1') && imported.stdout.includes('замен 1'), imported.stdout + imported.stderr)
+  check('слово из импорта в словаре', readFileSync(file, 'utf8').includes('WebSocket'))
+  const replacementsFile = join(workspace, 'replacements.json')
+  check('замена из импорта записана', readFileSync(replacementsFile, 'utf8').includes('"гитхаб": "GitHub"'), readFileSync(replacementsFile, 'utf8'))
 }
 
 console.log('endpoint хоста')

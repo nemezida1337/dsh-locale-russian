@@ -615,6 +615,69 @@ window.__ModuleLoader__.load({
 				return row;
 			}
 
+			/** Builds a dictionary row: the word and a remove button. */
+			function buildWordRow(word, dictionary, rect) {
+				const row = document.createElement("div");
+				row.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:12px;"
+					+ "padding:6px 10px;border-radius:8px;color:#f2f2f5;"
+					+ "font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+				const label = document.createElement("span");
+				label.textContent = word;
+				label.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+				const remove = document.createElement("span");
+				remove.setAttribute("role", "button");
+				remove.textContent = "×";
+				remove.style.cssText = "cursor:pointer;color:#8a8a95;padding:0 4px;font-size:15px;line-height:1";
+				remove.addEventListener("mousedown", (event) => {
+					event.preventDefault();
+				});
+				remove.addEventListener("click", async () => {
+					const result = await postDictionary("/forget", word);
+					if (result !== undefined && result.ok) {
+						dictionaryCache.at = 0;
+						dictionaryCache.words = dictionaryCache.words.filter((entry) => entry !== word);
+						showDictionaryList(rect, { ...dictionary, words: dictionary.words.filter((entry) => entry !== word) });
+						showToast(`Убрано из словаря: ${word}`, true);
+					} else {
+						showToast("Не удалось удалить", false);
+					}
+				});
+				row.appendChild(label);
+				row.appendChild(remove);
+				return row;
+			}
+
+			/** Shows the whole personal dictionary with remove buttons. */
+			function showDictionaryList(rect, dictionary) {
+				hidePanel();
+				panelPhrase = "__dictionary__";
+				panel = document.createElement("div");
+				panel.setAttribute("data-dsh-locale-ru-dictionary", "");
+				panel.style.cssText = "position:fixed;z-index:2147483647;min-width:180px;max-width:280px;"
+					+ "padding:6px;border-radius:12px;background:rgba(20,20,22,.97);"
+					+ "border:1px solid rgba(122,162,255,.35);box-shadow:0 6px 22px rgba(0,0,0,.45);"
+					+ "display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto";
+				panel.addEventListener("mousedown", (event) => {
+					event.preventDefault();
+				});
+				const words = dictionary.words ?? [];
+				const title = document.createElement("div");
+				title.textContent = `Словарь (${words.length})`;
+				title.style.cssText = "padding:2px 8px 4px;color:#8a8a95;font:500 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+				panel.appendChild(title);
+				if (words.length === 0) {
+					const empty = document.createElement("div");
+					empty.textContent = "Пока пусто — добавьте слово через выделение";
+					empty.style.cssText = "padding:6px 10px;color:#8a8a95;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+					panel.appendChild(empty);
+				}
+				for (const word of words.slice(0, 80)) panel.appendChild(buildWordRow(word, dictionary, rect));
+				const top = rect.top > 320 ? rect.top - 8 - Math.min(60 + words.length * 30, 320) : rect.bottom + 8;
+				panel.style.left = `${Math.max(8, Math.min(rect.left, (window.innerWidth ?? 1200) - 300))}px`;
+				panel.style.top = `${Math.max(8, top)}px`;
+				if (document.body !== undefined) document.body.appendChild(panel);
+			}
+
 			/** Shows the popover for the selection with the given candidates. */
 			function showPanel(rect, phrase, candidates, dictionary) {
 				current = phrase;
@@ -653,6 +716,12 @@ window.__ModuleLoader__.load({
 							}
 						}));
 					}
+				}
+				const words = dictionary.words ?? [];
+				if (words.length > 0) {
+					panel.appendChild(buildRow(`Словарь (${words.length})`, async () => {
+						showDictionaryList(rect, dictionary);
+					}));
 				}
 				const inDictionary = (dictionary.words ?? []).some((word) => String(word).toLowerCase() === phrase.toLowerCase());
 				if (inDictionary) {
@@ -714,8 +783,8 @@ window.__ModuleLoader__.load({
 					hidePanel();
 					return;
 				}
-				// Та же фраза — не пересобираем панель, иначе клик теряется.
-				if (panel !== undefined && panelPhrase === phrase) return;
+				// Та же фраза или открытый список словаря — не пересобираем панель.
+				if (panel !== undefined && (panelPhrase === phrase || panelPhrase === "__dictionary__")) return;
 				let rect;
 				try {
 					rect = selection.getRangeAt(0).getBoundingClientRect();
@@ -739,6 +808,13 @@ window.__ModuleLoader__.load({
 				})();
 			}
 
+			const onDocumentMouseDown = (event) => {
+				if (panel === undefined) return;
+				const target = event !== null && event !== undefined ? event.target : null;
+				if (target === null || target === undefined) return;
+				const inside = typeof panel.contains === "function" ? panel.contains(target) : false;
+				if (!inside) hidePanel();
+			};
 			const onKeyDown = (event) => {
 				if (event !== null && event !== undefined && (event.key === "Escape" || event.keyCode === 27)) hidePanel();
 			};
@@ -746,6 +822,7 @@ window.__ModuleLoader__.load({
 			document.addEventListener("mouseup", onSelectionChange);
 			document.addEventListener("keyup", onSelectionChange);
 			document.addEventListener("keydown", onKeyDown);
+			document.addEventListener("mousedown", onDocumentMouseDown);
 			window.addEventListener("scroll", hidePanel, true);
 			return () => {
 				removed = true;
@@ -754,6 +831,7 @@ window.__ModuleLoader__.load({
 				document.removeEventListener("mouseup", onSelectionChange);
 				document.removeEventListener("keyup", onSelectionChange);
 				document.removeEventListener("keydown", onKeyDown);
+				document.removeEventListener("mousedown", onDocumentMouseDown);
 				window.removeEventListener("scroll", hidePanel, true);
 				hidePanel();
 			};

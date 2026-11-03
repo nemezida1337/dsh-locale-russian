@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.14.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.15.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -142,11 +142,14 @@ npx dsh-locale-russian-install --desktop
 ```sh
 npx dsh-locale-russian-install --hotwords-add "configHotwords, GigaAM, dsh-locale-russian"
 npx dsh-locale-russian-install --hotwords-add-file terms.txt   # по одному слову в строке
+pbpaste | npx dsh-locale-russian-install --hotwords-add-file - # список из буфера (stdin)
 npx dsh-locale-russian-install --hotwords-list                 # посмотреть словарь
 npx dsh-locale-russian-install --hotwords-remove "GigaAM"
+npx dsh-locale-russian-install --hotwords-export terms.json    # выгрузить словарь и замены
+npx dsh-locale-russian-install --hotwords-import terms.json    # загрузить (например, от коллеги)
 ```
 
-**Пополнение прямо из распознанного текста:** выделите слово в поле ввода — рядом появится поповер с кандидатами из словаря (фонетическое сопоставление: «гитхаб» → `GitHub`) и пунктом «+ в словарь». Выбрали кандидата — слово в поле заменилось, а пара «как услышали → как надо» запомнилась. Нажали «+ в словарь» — фраза просто попала в словарь. Если выделенное слово уже есть в словаре, поповер предлагает «− убрать из словаря». Это явные действия, ничего не правится молча. Дубликаты слов сравниваются без учёта регистра: «GitHub» и «github» — одно слово.
+**Пополнение прямо из распознанного текста:** выделите слово в поле ввода — рядом появится поповер с кандидатами из словаря (фонетическое сопоставление: «гитхаб» → `GitHub`) и пунктом «+ в словарь». Выбрали кандидата — слово в поле заменилось, а пара «как услышали → как надо» запомнилась. Нажали «+ в словарь» — фраза просто попала в словарь. В поповере есть строка «Словарь (N)» — открывает весь список с кнопками «×» для удаления. Если выделенное слово уже есть в словаре, поповер предлагает «− убрать из словаря». Это явные действия, ничего не правится молча. Дубликаты слов сравниваются без учёта регистра: «GitHub» и «github» — одно слово.
 
 **Авто-обучение из правок:** править слово вручную не обязательно — если после диктовки вы исправили слово в поле, пара «как услышали → как надо» запоминается сама (ссылки, числа, код и переписанные целиком фразы не учатся). Внизу появится «Выучено: гитхаб → GitHub».
 
