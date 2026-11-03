@@ -192,8 +192,11 @@ console.log('диагностика сохраняет оба текста')
     debugTranscripts: true,
   })
   await serviceDebug.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
-  const debug = JSON.parse(readFileSync(join(workspace, 'last-transcripts.json'), 'utf8'))
-  check('диагностика: оба текста и слияние', debug.gigaam === 'Проверка гитхаб' && debug.whisper === 'Проверка GitHub' && debug.merged === 'Проверка GitHub', JSON.stringify(debug))
+  const debug = JSON.parse(readFileSync(join(workspace, 'transcripts.json'), 'utf8'))
+  check('диагностика: оба текста и слияние', Array.isArray(debug) && debug[0].gigaam === 'Проверка гитхаб' && debug[0].whisper === 'Проверка GitHub' && debug[0].merged === 'Проверка GitHub', JSON.stringify(debug))
+  await serviceDebug.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const history = JSON.parse(readFileSync(join(workspace, 'transcripts.json'), 'utf8'))
+  check('история накапливается', history.length === 2, String(history.length))
   for (const cleanup of debugCleanups.reverse()) await cleanup()
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT

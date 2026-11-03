@@ -942,14 +942,24 @@ export function apply(ctx, config = {}) {
         raw = merged
         if (config.debugTranscripts === true) {
           try {
-            writeFileSync(join(dirname(hotwordsFile), 'last-transcripts.json'), `${JSON.stringify({
+            // История последних диктовок: файл не перезаписывается целиком.
+            const historyFile = join(dirname(hotwordsFile), 'transcripts.json')
+            let history = []
+            try {
+              const parsed = JSON.parse(readFileSync(historyFile, 'utf8'))
+              if (Array.isArray(parsed)) history = parsed
+            } catch {
+              history = []
+            }
+            history.push({
               at: new Date().toISOString(),
               mode: config.merge === 'text' ? 'text' : 'words',
               gigaam: gigaamText,
               whisper: whisperText,
               merged: raw,
               hits: { gigaam: gigaamHits, whisper: whisperHits, merged: termHits(raw) },
-            }, null, 2)}\n`)
+            })
+            writeFileSync(historyFile, `${JSON.stringify(history.slice(-50), null, 2)}\n`)
           } catch (error) {
             log('cannot write transcript debug', error)
           }
