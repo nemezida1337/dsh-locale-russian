@@ -6,7 +6,7 @@
  * Usage:
  *   node tools/test-hotwords.mjs
  */
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -97,6 +97,33 @@ console.log('CLI словаря')
   check('слово из импорта в словаре', readFileSync(file, 'utf8').includes('WebSocket'))
   const replacementsFile = join(workspace, 'replacements.json')
   check('замена из импорта записана', readFileSync(replacementsFile, 'utf8').includes('"гитхаб": "GitHub"'), readFileSync(replacementsFile, 'utf8'))
+}
+
+console.log('словарь из проекта')
+{
+  const project = join(workspace, 'project')
+  mkdirSync(join(project, 'src'), { recursive: true })
+  mkdirSync(join(project, 'node_modules'), { recursive: true })
+  writeFileSync(join(project, 'src', 'audio-engine.ts'), 'export class GigaAmEngine { start(configHotwords: string[]) { return configHotwords.length } }\n')
+  writeFileSync(join(project, 'src', 'panel.tsx'), 'export const WorktreesPanel = () => null\nexport const useData = () => null\n')
+  writeFileSync(join(project, 'node_modules', 'ignored.js'), 'export class ShouldNotAppear {}\n')
+  writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'dsh-locale-russian' }))
+  const file = join(workspace, 'project-hotwords.txt')
+  const cli = (...args) => spawnSync(process.execPath, ['bin/dsh-locale-russian-install.mjs', '--hotwords-file', file, ...args], { encoding: 'utf8' })
+  const scan = cli('--hotwords-from', project)
+  check('сканирование добавляет термины', scan.status === 0 && scan.stdout.includes('добавлено'), scan.stdout + scan.stderr)
+  const words = readPersonalHotwords(readFileSync(file, 'utf8'))
+  check('термины из кода', words.includes('GigaAmEngine') && words.includes('configHotwords') && words.includes('WorktreesPanel'), JSON.stringify(words))
+  check('общие слова пропущены', !words.includes('useData') && !words.includes('Data'), JSON.stringify(words))
+  check('node_modules не сканируется', !words.some((word) => word.includes('ShouldNotAppear')), JSON.stringify(words))
+  const manifestFile = join(workspace, 'projects.json')
+  check('манифест проектов записан', existsSync(manifestFile) && readFileSync(manifestFile, 'utf8').includes('GigaAmEngine'))
+  const again = cli('--hotwords-from', project)
+  check('повторный запуск без дублей', again.status === 0 && readPersonalHotwords(readFileSync(file, 'utf8')).length === words.length, again.stdout)
+  const limited = cli('--hotwords-from', project, '--hotwords-limit', '1')
+  check('лимит работает', limited.status === 0 && readPersonalHotwords(readFileSync(file, 'utf8')).length === 1, limited.stdout)
+  const missing = cli('--hotwords-from', join(workspace, 'нет-папки'))
+  check('отсутствующая папка — ошибка', missing.status !== 0)
 }
 
 console.log('endpoint хоста')

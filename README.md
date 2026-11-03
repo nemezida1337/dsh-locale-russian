@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.15.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.16.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -147,7 +147,10 @@ npx dsh-locale-russian-install --hotwords-list                 # посмотр�
 npx dsh-locale-russian-install --hotwords-remove "GigaAM"
 npx dsh-locale-russian-install --hotwords-export terms.json    # выгрузить словарь и замены
 npx dsh-locale-russian-install --hotwords-import terms.json    # загрузить (например, от коллеги)
+npx dsh-locale-russian-install --hotwords-from .              # собрать термины из проекта
 ```
+
+**Из проекта:** `--hotwords-from <папка>` сканирует исходники (имена файлов, компонентов, camelCase/PascalCase-идентификаторы), ранжирует по частоте и берёт самые полезные — по умолчанию 150 (`--hotwords-limit`). Служебные слова, React-хуки и `node_modules` пропускаются. Повторный запуск заменяет слова прошлого сканирования (манифест `projects.json` рядом со словарём), поэтому сканирование можно повторять после рефакторинга. Найденное видно и удаляется в панели «Словарь (N)».
 
 **Пополнение прямо из распознанного текста:** выделите слово в поле ввода — рядом появится поповер с кандидатами из словаря (фонетическое сопоставление: «гитхаб» → `GitHub`) и пунктом «+ в словарь». Выбрали кандидата — слово в поле заменилось, а пара «как услышали → как надо» запомнилась. Нажали «+ в словарь» — фраза просто попала в словарь. В поповере есть строка «Словарь (N)» — открывает весь список с кнопками «×» для удаления. Если выделенное слово уже есть в словаре, поповер предлагает «− убрать из словаря». Это явные действия, ничего не правится молча. Дубликаты слов сравниваются без учёта регистра: «GitHub» и «github» — одно слово.
 

@@ -18,7 +18,7 @@
  *   npx dsh-locale-russian-install --desktop --revert
  */
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,6 +27,7 @@ import {
   MAX_PERSONAL_HOTWORDS,
   addPersonalHotword,
   clearPersonalHotwords,
+  forgetPersonalHotword,
   readPersonalHotwords,
   readReplacements,
   removePersonalHotword,
@@ -55,10 +56,11 @@ const KNOWN = new Set([
   '--desktop', '--dry-run', '--revert', '--yes', '-y', '--help', '-h', '--profile',
   '--hotwords-add', '--hotwords-add-file', '--hotwords-list', '--hotwords-remove',
   '--hotwords-clear', '--hotwords-file', '--hotwords-export', '--hotwords-import',
+  '--hotwords-from', '--hotwords-limit',
 ])
 const NEEDS_VALUE = new Set([
   '--profile', '--hotwords-add', '--hotwords-add-file', '--hotwords-remove', '--hotwords-file',
-  '--hotwords-export', '--hotwords-import',
+  '--hotwords-export', '--hotwords-import', '--hotwords-from', '--hotwords-limit',
 ])
 for (const [index, arg] of args.entries()) {
   if (!arg.startsWith('-')) continue
@@ -91,14 +93,160 @@ if (flag('--help') || flag('-h')) {
   console.log('  --hotwords-file <путь>                        свой файл словаря')
   console.log('  --hotwords-export <файл|->                    выгрузить словарь и замены в JSON')
   console.log('  --hotwords-import <файл|->                    загрузить словарь и замены из JSON')
+  console.log('  --hotwords-from <папка>                       собрать термины из проекта')
+  console.log('  --hotwords-limit <n>                          сколько слов брать из проекта (по умолчанию 150)')
   console.log('  (для --hotwords-add-file и --hotwords-import путь «-» читает stdin)')
   process.exit(0)
+}
+
+// ── Генерация словаря из проекта ─────────────────────────────────────────────
+
+/** Extensions worth scanning for identifiers. */
+const SCAN_EXTENSIONS = new Set([
+  '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.md', '.yml', '.yaml',
+  '.py', '.go', '.rs', '.java', '.kt', '.swift', '.vue', '.svelte', '.html',
+  '.css', '.scss', '.toml', '.ini', '.sh', '.sql',
+])
+/** Directories that never contain project terminology. */
+const SCAN_SKIP = new Set([
+  'node_modules', '.git', 'dist', 'build', 'out', '.next', '.nuxt', 'coverage',
+  '.cache', 'vendor', 'target', '.venv', 'venv', '__pycache__', '.idea', '.vscode',
+  '.pnpm-store', '.turbo',
+])
+/** Common code words that are not terminology. */
+const SCAN_STOPWORDS = new Set([
+  'the', 'and', 'for', 'with', 'from', 'this', 'that', 'true', 'false', 'null', 'undefined',
+  'function', 'return', 'import', 'export', 'const', 'let', 'var', 'class', 'interface', 'type',
+  'string', 'number', 'boolean', 'object', 'array', 'async', 'await', 'promise', 'error', 'data',
+  'value', 'name', 'key', 'index', 'test', 'main', 'app', 'src', 'lib', 'config', 'utils', 'helper',
+  'common', 'core', 'http', 'https', 'get', 'set', 'post', 'put', 'delete', 'use', 'new', 'create',
+  'update', 'remove', 'add', 'list', 'item', 'items', 'props', 'state', 'render', 'component', 'page',
+  'layout', 'button', 'input', 'form', 'modal', 'header', 'footer', 'sidebar', 'style', 'styles',
+  'theme', 'color', 'icon', 'image', 'file', 'files', 'path', 'url', 'request', 'response', 'server',
+  'client', 'user', 'users', 'auth', 'login', 'token', 'session', 'json', 'yaml', 'text', 'title',
+  'description', 'version', 'options', 'option', 'params', 'param', 'args', 'arg', 'result', 'results',
+  'event', 'events', 'handler', 'callback', 'hook', 'effect', 'ref', 'refs', 'model', 'models', 'view',
+  'views', 'router', 'route', 'routes', 'store', 'action', 'actions', 'reducer', 'selector', 'context',
+  'provider', 'service', 'services', 'manager', 'factory', 'builder', 'parser', 'engine', 'runner',
+  'worker', 'queue', 'cache', 'storage', 'settings', 'env', 'environment', 'package', 'packages',
+  'module', 'modules', 'default', 'index', 'spec', 'test', 'tests', 'readme', 'license', 'changelog',
+  'build', 'scripts', 'script', 'docs', 'doc', 'example', 'examples', 'demo', 'public', 'static',
+  'assets', 'images', 'fonts', 'icons', 'styles', 'types', 'typing', 'utils', 'shared', 'helpers',
+])
+/** Caps for one scan. */
+const SCAN_MAX_FILES = 4000
+const SCAN_MAX_BYTES = 512 * 1024
+/** How many words the scan contributes by default. */
+const SCAN_DEFAULT_LIMIT = 150
+
+/** Walks the directory and returns candidate file paths. */
+function collectProjectFiles(root) {
+  const files = []
+  const visit = (dir) => {
+    if (files.length >= SCAN_MAX_FILES) return
+    let entries
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      if (files.length >= SCAN_MAX_FILES) return
+      if (entry.name.startsWith('.') && entry.name !== '.env.example') continue
+      const full = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (SCAN_SKIP.has(entry.name)) continue
+        visit(full)
+        continue
+      }
+      if (!entry.isFile()) continue
+      const dot = entry.name.lastIndexOf('.')
+      const extension = dot === -1 ? '' : entry.name.slice(dot).toLowerCase()
+      if (!SCAN_EXTENSIONS.has(extension)) continue
+      try {
+        if (statSync(full).size > SCAN_MAX_BYTES) continue
+      } catch {
+        continue
+      }
+      files.push(full)
+    }
+  }
+  visit(root)
+  return files
+}
+
+/** True for identifiers that look like terminology (not plain lowercase words). */
+function looksLikeTerm(word) {
+  if (word.length < 3 || word.length > 40) return false
+  if (!/^[A-Za-z][A-Za-z0-9]*$/u.test(word)) return false
+  if (SCAN_STOPWORDS.has(word.toLowerCase())) return false
+  // React-хуки (useState, useData) — не терминология проекта.
+  if (/^use[A-Z]/u.test(word)) return false
+  // PascalCase, camelCase или АКРОНИМ; обычные строчные слова пропускаем.
+  return /^[A-Z]/.test(word) || /[a-z][A-Z]/u.test(word) || /^[A-Z]{2,}$/u.test(word)
+}
+
+/** Collects word frequencies from one file. */
+function collectFileWords(path, frequencies) {
+  let text
+  try {
+    text = readFileSync(path, 'utf8')
+  } catch {
+    return
+  }
+  for (const token of text.match(/[A-Za-z][A-Za-z0-9]{2,}/gu) ?? []) {
+    if (!looksLikeTerm(token)) continue
+    const key = token.toLowerCase()
+    const entry = frequencies.get(key) ?? { count: 0, casing: new Map() }
+    entry.count += 1
+    entry.casing.set(token, (entry.casing.get(token) ?? 0) + 1)
+    frequencies.set(key, entry)
+  }
+}
+
+/**
+ * Scans a project and ranks terminology candidates.
+ * @param root - project directory.
+ * @param limit - how many words to return.
+ * @returns ranked words.
+ */
+function scanProject(root, limit) {
+  const files = collectProjectFiles(root)
+  const frequencies = new Map()
+  for (const file of files) collectFileWords(file, frequencies)
+  const candidates = []
+  for (const [key, entry] of frequencies) {
+    // Самое частое написание для одной и той же основы.
+    let casing = key
+    let best = 0
+    for (const [form, count] of entry.casing) {
+      if (count > best) {
+        best = count
+        casing = form
+      }
+    }
+    const pascal = /^[A-Z]/.test(casing) ? 1 : 0
+    candidates.push({ word: casing, score: entry.count * (1 + pascal) + casing.length / 20 })
+  }
+  candidates.sort((left, right) => right.score - left.score)
+  const chosen = []
+  const chosenLower = new Set()
+  for (const candidate of candidates) {
+    if (chosen.length >= limit) break
+    const lower = candidate.word.toLowerCase()
+    if (chosenLower.has(lower)) continue
+    // Не добавляем подстроку уже выбранного более специфичного слова.
+    if (chosen.some((entry) => entry.toLowerCase().includes(lower))) continue
+    chosen.push(candidate.word)
+    chosenLower.add(lower)
+  }
+  return { words: chosen, files: files.length, scanned: candidates.length }
 }
 
 // Личный словарь: первичное заполнение и правка из терминала.
 const hotwordsMode = flag('--hotwords-add') || flag('--hotwords-add-file') || flag('--hotwords-list')
   || flag('--hotwords-remove') || flag('--hotwords-clear')
-  || flag('--hotwords-export') || flag('--hotwords-import')
+  || flag('--hotwords-export') || flag('--hotwords-import') || flag('--hotwords-from')
 if (hotwordsMode) {
   const dshHome = resolve(value('--profile') ?? process.env.DSH_HOME ?? join(homedir(), '.dsh'))
   const file = resolve(value('--hotwords-file') ?? join(dshHome, 'speech-ru', 'hotwords.txt'))
@@ -133,6 +281,45 @@ if (hotwordsMode) {
   const writeReplacementsFile = (replacements) => {
     mkdirSync(dirname(replacementsFile), { recursive: true })
     writeFileSync(replacementsFile, renderReplacements(replacements))
+  }
+  if (flag('--hotwords-from')) {
+    const source = value('--hotwords-from')
+    if (source === undefined || !existsSync(source) || !statSync(source).isDirectory()) {
+      console.error(`папка проекта не найдена: ${source ?? '(не указана)'}`)
+      process.exit(1)
+    }
+    const root = resolve(source)
+    const limit = Math.max(1, Math.min(400, Number(value('--hotwords-limit') ?? SCAN_DEFAULT_LIMIT) || SCAN_DEFAULT_LIMIT))
+    const { words, files, scanned } = scanProject(root, limit)
+    const manifestFile = join(dirname(file), 'projects.json')
+    let manifest = {}
+    try {
+      manifest = JSON.parse(readFileSync(manifestFile, 'utf8'))
+    } catch {
+      manifest = {}
+    }
+    // Повторный запуск заменяет слова, добавленные прошлым сканированием.
+    let text = read()
+    const previous = Array.isArray(manifest[root]) ? manifest[root] : []
+    for (const word of previous) {
+      const result = forgetPersonalHotword(text, word)
+      if (result.ok) text = result.text
+    }
+    let added = 0
+    for (const word of words) {
+      const result = addPersonalHotword(text, word)
+      if (result.ok && result.duplicate !== true) {
+        text = result.text
+        added += 1
+      }
+    }
+    write(text)
+    manifest[root] = words
+    mkdirSync(dirname(manifestFile), { recursive: true })
+    writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`)
+    console.log(`из проекта: файлов ${files}, кандидатов ${scanned}, добавлено ${added}, всего в словаре ${readPersonalHotwords(text).length}/${MAX_PERSONAL_HOTWORDS}`)
+    if (scanned > words.length) console.log(`  (взято ${words.length} самых полезных; изменить: --hotwords-limit <n>)`)
+    process.exit(0)
   }
   if (flag('--hotwords-export')) {
     const target = value('--hotwords-export')
