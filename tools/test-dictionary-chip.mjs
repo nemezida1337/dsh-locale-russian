@@ -260,6 +260,21 @@ console.log('панель словаря: список и удаление')
   check('список обновился', (panel()?.children ?? []).filter((child) => (child.children ?? []).length === 2).length === 2)
 }
 
+console.log('прокрутка внутри панели не закрывает её')
+{
+  const editable = new FakeElement('div')
+  editable.editable = true
+  await select('гитхаб', editable)
+  row(rows().find((text) => text.startsWith('Словарь ('))).dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('список открыт', panel() !== undefined)
+  const inside = panel().children[1]
+  windowStub.dispatch('scroll', { target: inside })
+  check('скролл внутри панели не закрывает', panel() !== undefined)
+  windowStub.dispatch('scroll', { target: documentStub.body })
+  check('скролл вне панели закрывает', panel() === undefined)
+}
+
 console.log('Escape закрывает панель')
 {
   documentStub.dispatch('keydown', { key: 'Escape' })
