@@ -1,0 +1,136 @@
+#!/usr/bin/env node
+/**
+ * Tests the engine modes of the speech provider: GigaAM only, Whisper only, and
+ * the hybrid merge that prefers the transcript covering more dictionary terms.
+ *
+ * Usage:
+ *   node tools/test-engine-modes.mjs
+ */
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+const failures = []
+const check = (label, condition, detail) => {
+  if (condition) {
+    console.log(`  ✓ ${label}`)
+  } else {
+    failures.push(label)
+    console.log(`  ✗ ${label}${detail === undefined ? '' : `: ${detail}`}`)
+  }
+}
+
+const here = import.meta.dirname
+const workspace = mkdtempSync(join(tmpdir(), 'dsh-engine-modes-'))
+const wav = readFileSync(join(here, '..', 'test', 'fixtures', 'ru-sample.wav'))
+const fakeGigastt = join(workspace, 'fake-gigastt.mjs')
+const fakeWhisper = join(workspace, 'fake-whisper.mjs')
+copyFileSync(join(here, '..', 'test', 'fixtures', 'fake-gigastt.mjs'), fakeGigastt)
+copyFileSync(join(here, '..', 'test', 'fixtures', 'fake-whisper-cli.mjs'), fakeWhisper)
+chmodSync(fakeGigastt, 0o755)
+chmodSync(fakeWhisper, 0o755)
+const modelDir = join(workspace, 'models')
+mkdirSync(modelDir, { recursive: true })
+const whisperModel = join(workspace, 'whisper-model.bin')
+writeFileSync(whisperModel, 'x')
+
+const { apply, internals } = await import('../lib/index.js')
+for (const name of internals.modelFiles) writeFileSync(join(modelDir, name), 'x')
+
+/** Applies the provider with the given engine mode and dictionary. */
+function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true }) {
+  const hotwordsFile = join(workspace, `hotwords-${engine}.txt`)
+  const header = '# Hotwords\n'
+  const section = words.length === 0
+    ? ''
+    : `\n# === личный словарь (dsh-locale-russian) ===\n${words.join('\n')}\n# === /личный словарь ===\n`
+  writeFileSync(hotwordsFile, `${header}${section}`)
+  const replacementsFile = join(workspace, `replacements-${engine}.json`)
+  writeFileSync(replacementsFile, JSON.stringify({ replacements }))
+  const service = {
+    register(provider) { this.provider = provider; return async () => {} },
+    snapshot() { return { selection: { providerId: 'gigaam-local' } } },
+    async *follow() {},
+  }
+  const cleanups = []
+  const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+    binaryPath: fakeGigastt,
+    modelDir,
+    hotwordsFile,
+    replacementsFile,
+    engine,
+    whisperBinaryPath: whisper ? fakeWhisper : join(workspace, 'нет-бинаря'),
+    whisperModelPath: whisperModel,
+    prewarm: false,
+    dictionaryPort: 0,
+    hotwordsWatchMs: 10,
+  })
+  return { service, cleanups }
+}
+
+console.log('режим whisper')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const { service, cleanups } = setup({ engine: 'whisper' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('текст от Whisper', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: термины берём у Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('выбран текст с термином', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: русский текст остаётся у GigaAM')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка GitHub и связи'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('выбран GigaAM', result.text === 'Проверка GitHub и связи', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: замены применяются после слияния')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи'
+  const { service, cleanups } = setup({ engine: 'hybrid', words: [], replacements: { 'гитхаб': 'GitHub' } })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('замена сработала', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('whisper не установлен — понятная ошибка')
+{
+  const { service, cleanups } = setup({ engine: 'whisper', whisper: false })
+  let error
+  try {
+    await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  } catch (caught) {
+    error = caught
+  }
+  check('ошибка про установку Whisper', error instanceof Error && error.message.includes('Whisper не установлен'), error?.message)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+}
+
+rmSync(workspace, { recursive: true, force: true })
+if (failures.length > 0) {
+  console.error(`провалено проверок: ${failures.length}`)
+  process.exit(1)
+}
+console.log('все проверки режимов движка пройдены')

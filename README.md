@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.19.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.20.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -121,6 +121,26 @@ npx dsh-locale-russian-install --desktop
 Если русский распознаватель выбран по умолчанию, движок прогревается в фоне через несколько секунд после запуска: первая диктовка не ждёт загрузки модели.
 
 Если движок или модель удалить, та же кнопка восстановит их. Альтернатива для терминала — `npx dsh-locale-russian-install`. На платформах без готовой сборки возьмите [релиз gigastt](https://github.com/ekhodzitsky/gigastt/releases) вручную и укажите `binaryPath` в настройках плагина.
+
+### Движки: GigaAM, Whisper и гибрид
+
+Пакет умеет работать на двух движках и комбинировать их:
+
+- **GigaAM v3** (по умолчанию) — лучший на русской речи: 6.57 % WER на аудиокнигах, 6.95 % на спонтанной речи.
+- **Whisper large-v3-turbo** — лучше на английских терминах: на фразах с латиницей 7.89 % против 10.27 % у GigaAM (по [открытому бенчмарку](https://github.com/vakovalskii/stt-ru-benchmark)).
+- **Гибрид** — запускает оба параллельно и берёт текст, который покрывает больше слов из личного словаря: английские термины приходят от Whisper, русская речь — от GigaAM.
+
+Включается в патче профиля:
+
+```yaml
+- id: locale-ru
+  config:
+    engine: hybrid          # gigaam | whisper | hybrid
+    whisperBinaryPath: /opt/homebrew/bin/whisper-cli
+    whisperModelPath: ~/.dsh/speech-ru/whisper/ggml-large-v3-turbo-q5_0.bin
+```
+
+Для Whisper нужны `whisper-cli` (например, `brew install whisper-cpp`) и модель `ggml-large-v3-turbo-q5_0.bin` (~574 МБ). Гибрид добавляет ~1–1.5 ГБ памяти и около секунды задержки.
 
 ### Лимит диктовки
 

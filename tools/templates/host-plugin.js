@@ -199,7 +199,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  *   binaryPath?: string, modelDir?: string, port?: number, debug?: boolean,
  *   hotwords?: string[], hotwordsFile?: string, hotwordsBoost?: number,
  *   hotwordsDefault?: boolean, dictionaryPort?: number, replacementsFile?: string,
- *   hotwordsWatchMs?: number,
+ *   hotwordsWatchMs?: number, engine?: 'gigaam' | 'whisper' | 'hybrid',
+ *   whisperBinaryPath?: string, whisperModelPath?: string, whisperLanguage?: string,
  * }} [config] - local paths and recognition tuning.
  */
 export function apply(ctx, config = {}) {
@@ -208,6 +209,11 @@ export function apply(ctx, config = {}) {
   const debug = config.debug === true
   const log = debug ? (...args) => console.log('[dsh-locale-russian]', ...args) : () => {}
   const hotwordsFile = config.hotwordsFile ?? DEFAULT_HOTWORDS_FILE
+  /** Engine mode: GigaAM only, Whisper only, or both with a merge. */
+  const engineMode = config.engine === 'whisper' || config.engine === 'hybrid' ? config.engine : 'gigaam'
+  const whisperBinaryPath = config.whisperBinaryPath ?? join(DSH_HOME, 'bin', 'whisper-cli')
+  const whisperModelPath = config.whisperModelPath ?? join(DSH_HOME, 'speech-ru', 'whisper', 'ggml-large-v3-turbo-q5_0.bin')
+  const whisperLanguage = config.whisperLanguage ?? 'ru'
   // Замены «как услышали → как надо» живут рядом со словарём.
   const replacementsFile = config.replacementsFile ?? join(dirname(hotwordsFile), 'replacements.json')
   const configHotwords = Array.isArray(config.hotwords) ? config.hotwords : []
@@ -669,6 +675,81 @@ export function apply(ctx, config = {}) {
     return Math.max(0, (audio.byteLength - 44) / 32_000)
   }
 
+  /** True when the Whisper binary and model are present. */
+  function hasWhisper() {
+    return existsSync(whisperBinaryPath) && existsSync(whisperModelPath)
+  }
+
+  /**
+   * Transcribes audio with whisper-cli: a separate multilingual engine that is
+   * stronger on English terms than GigaAM.
+   * @param audio - WAV bytes.
+   * @param signal - cancellation.
+   * @returns recognized text.
+   */
+  async function transcribeViaWhisper(audio, signal) {
+    const file = join(tmpdir(), `dsh-whisper-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.wav`)
+    writeFileSync(file, audio)
+    try {
+      return await new Promise((resolve, reject) => {
+        const child = spawn(whisperBinaryPath, [
+          '-m', whisperModelPath, '-f', file, '-l', whisperLanguage, '-nt', '-t', '8',
+        ], { stdio: ['ignore', 'pipe', 'pipe'] })
+        let stdout = ''
+        let stderr = ''
+        child.stdout.on('data', (chunk) => { stdout += chunk })
+        child.stderr.on('data', (chunk) => { stderr += chunk })
+        const onAbort = () => { child.kill('SIGTERM') }
+        signal?.addEventListener?.('abort', onAbort)
+        child.on('error', reject)
+        child.on('close', (code) => {
+          signal?.removeEventListener?.('abort', onAbort)
+          if (code !== 0) {
+            reject(new Error(`whisper-cli завершился (код ${code}): ${stderr.slice(-300)}`))
+            return
+          }
+          resolve(stdout.trim())
+        })
+      })
+    } finally {
+      try {
+        rmSync(file, { force: true })
+      } catch {
+        // временный файл уберёт система
+      }
+    }
+  }
+
+  /** Counts known dictionary terms and replacement targets in a text. */
+  function termHits(text) {
+    const haystack = String(text).toLowerCase()
+    if (haystack === '') return 0
+    const terms = [...readHotwords(), ...Object.values(readReplacementsFile())]
+    let hits = 0
+    for (const term of terms) {
+      if (typeof term !== 'string' || term.length < 2) continue
+      if (haystack.includes(term.toLowerCase())) hits += 1
+    }
+    return hits
+  }
+
+  /**
+   * Merges two transcripts: the one covering more dictionary terms wins, so
+   * English terms come from Whisper and Russian text from GigaAM.
+   * @param gigaamText - GigaAM transcript.
+   * @param whisperText - Whisper transcript.
+   * @returns the merged text.
+   */
+  function mergeTranscripts(gigaamText, whisperText) {
+    if (gigaamText === '') return whisperText
+    if (whisperText === '') return gigaamText
+    const gigaamHits = termHits(gigaamText)
+    const whisperHits = termHits(whisperText)
+    if (whisperHits > gigaamHits) return whisperText
+    // Равное покрытие: GigaAM сильнее на русской речи.
+    return gigaamText
+  }
+
   async function postTranscribe(audio, signal) {
     // Фразы из файла движок уже знает (переданы при старте). В запросе — только
     // дополнительный список из конфигурации, и только если файла нет.
@@ -694,32 +775,58 @@ export function apply(ctx, config = {}) {
     return await response.json()
   }
 
-  async function transcribe(input, signal) {
-    if (!hasModel()) {
-      throw new Error('Модель GigaAM не подготовлена. Откройте «Плагины → Голосовой ввод» и нажмите «Скачать и подготовить».')
-    }
+  /** Transcribes with the GigaAM engine (the default Russian engine). */
+  async function transcribeGigaam(input, signal) {
     await ensureServer()
     await reloadHotwordsIfChanged()
+    let payload
+    try {
+      payload = await postTranscribe(input.audio, signal)
+    } catch (error) {
+      if (signal.aborted || !connectionFailure(error)) throw error
+      log('engine connection failed, restarting')
+      await ensureServer()
+      payload = await postTranscribe(input.audio, signal)
+    }
+    return typeof payload.text === 'string' ? payload.text.trim() : ''
+  }
+
+  async function transcribe(input, signal) {
+    if (engineMode !== 'whisper' && !hasModel()) {
+      throw new Error('Модель GigaAM не подготовлена. Откройте «Плагины → Голосовой ввод» и нажмите «Скачать и подготовить».')
+    }
+    if (engineMode !== 'gigaam' && !hasWhisper()) {
+      throw new Error('Whisper не установлен: положите whisper-cli и модель в ~/.dsh/speech-ru/whisper или укажите пути в конфиге.')
+    }
     transcribing = true
     const started = performance.now()
     try {
-      let payload
-      try {
-        payload = await postTranscribe(input.audio, signal)
-      } catch (error) {
-        if (signal.aborted || !connectionFailure(error)) throw error
-        log('engine connection failed, restarting')
-        await ensureServer()
-        payload = await postTranscribe(input.audio, signal)
+      let raw
+      if (engineMode === 'whisper') {
+        raw = await transcribeViaWhisper(input.audio, signal)
+      } else if (engineMode === 'hybrid') {
+        const [gigaamText, whisperText] = await Promise.all([
+          transcribeGigaam(input, signal).catch((error) => {
+            log('gigaam failed in hybrid', error instanceof Error ? error.message : String(error))
+            return ''
+          }),
+          transcribeViaWhisper(input.audio, signal).catch((error) => {
+            log('whisper failed in hybrid', error instanceof Error ? error.message : String(error))
+            return ''
+          }),
+        ])
+        raw = mergeTranscripts(gigaamText, whisperText)
+        if (raw === '') throw new Error('Не удалось распознать: ни GigaAM, ни Whisper не ответили.')
+      } else {
+        raw = await transcribeGigaam(input, signal)
       }
-      const raw = typeof payload.text === 'string' ? payload.text.trim() : ''
       // Выученные замены применяем к расшифровке: «гитхап» → GitHub. Клиент
       // показывает уведомление о замене, поэтому это не молчаливая правка.
       const text = applyReplacements(raw, readReplacementsFile())
-      log('transcribed', raw.length, 'chars; replaced:', text === raw ? 0 : 'yes')
+      log('transcribed', raw.length, 'chars; mode:', engineMode, '; replaced:', text === raw ? 0 : 'yes')
       return {
         text,
-        audioSeconds: typeof payload.duration === 'number' ? payload.duration : wavSeconds(input.audio),
+        audioSeconds: wavSeconds(input.audio),
         inferenceSeconds: (performance.now() - started) / 1000,
       }
     } finally {
