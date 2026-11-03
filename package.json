@@ -1,6 +1,6 @@
 {
   "name": "dsh-locale-russian",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Russian localization for the DeepSeek Harness web client, with local Russian speech recognition for voice input",
   "type": "module",
   "main": "lib/index.js",
@@ -43,7 +43,7 @@
     "lint": "node tools/lint-translations.mjs",
     "build": "node tools/build-package.mjs",
     "verify": "node tools/verify-package.mjs",
-    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run check-docs && npm run check-consistency && npm run check:voice-hook && npm run history:check && npm run test:install-bin && npm run test:install-desktop && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:hotwords && npm run test:dictionary-chip && npm run test:dictation-caret && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:market-live && npm run test:scaffold && npm run test:discussions && npm run test:history && npm run test:consistency && npm run test:voice-keepalive && npm run test:check-voice-hook && npm run test:check-docs",
+    "test": "npm run lint && npm run check-imports && npm run build && npm run verify && npm run check-docs && npm run check-consistency && npm run check:voice-hook && npm run history:check && npm run test:install-bin && npm run test:install-desktop && npm run test:speech && npm run test:engine && npm run test:prewarm && npm run test:hotwords && npm run test:dictionary-chip && npm run test:dictation-caret && npm run test:auto-learn && npm run test:translate && npm run test:review && npm run test:dashboard && npm run test:check-app && npm run test:market-live && npm run test:scaffold && npm run test:discussions && npm run test:history && npm run test:consistency && npm run test:voice-keepalive && npm run test:check-voice-hook && npm run test:check-docs",
     "market": "node tools/build-market.mjs",
     "asar": "node tools/extract-asar.mjs",
     "refresh": "node tools/refresh.mjs",
@@ -86,7 +86,8 @@
     "test:check-voice-hook": "node tools/test-check-voice-hook.mjs",
     "test:hotwords": "node tools/test-hotwords.mjs",
     "test:dictionary-chip": "node tools/test-dictionary-chip.mjs",
-    "test:dictation-caret": "node tools/test-dictation-caret.mjs"
+    "test:dictation-caret": "node tools/test-dictation-caret.mjs",
+    "test:auto-learn": "node tools/test-auto-learn.mjs"
   },
   "license": "MIT",
   "engines": {

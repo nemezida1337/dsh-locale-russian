@@ -166,7 +166,7 @@ async function select(phrase, editable) {
     getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 120 }) }),
   }
   documentStub.dispatch('selectionchange')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 220))
 }
 
 console.log('кандидаты для выделенного слова')
@@ -178,6 +178,12 @@ console.log('кандидаты для выделенного слова')
   check('заголовок с выделенным словом', rows().some((text) => text.includes('гитхаб')), JSON.stringify(rows()))
   check('кандидат GitHub найден', row('GitHub') !== undefined, JSON.stringify(rows()))
   check('есть пункт «в словарь»', rows().some((text) => text.includes('в словарь')), JSON.stringify(rows()))
+  // Повторное событие с той же фразой не должно пересоздавать панель:
+  // иначе клик по кнопке теряется.
+  const before = panel()
+  documentStub.dispatch('selectionchange')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 220))
+  check('панель не пересоздаётся для той же фразы', panel() === before)
 }
 
 console.log('выбор кандидата заменяет и учит')
@@ -227,7 +233,7 @@ console.log('выгрузка')
     getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 10, left: 10, bottom: 20 }) }),
   }
   documentStub.dispatch('selectionchange')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 220))
   check('после выгрузки поповер не появляется', panel() === undefined)
 }
 

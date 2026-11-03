@@ -189,6 +189,11 @@ console.log('после остановки записи каретка уход�
   check('диапазон в конце поля', selectionState.ranges[0]?.element === editable && selectionState.ranges[0]?.collapseToEnd === true,
     JSON.stringify({ same: selectionState.ranges[0]?.element === editable, toEnd: selectionState.ranges[0]?.collapseToEnd }))
   check('уведомление о применённых заменах', documentStub.body.children.some((element) => String(element.textContent).includes('Словарь: заменено')), JSON.stringify(documentStub.body.children.map((element) => element.textContent)))
+  // Второе изменение не должно снова двигать каретку.
+  selectionState.ranges.length = 0
+  observerCallbacks[0]()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 20))
+  check('каретка двигается один раз на диктовку', selectionState.ranges.length === 0, String(selectionState.ranges.length))
 }
 
 console.log('без свежей диктовки каретка не двигается')
