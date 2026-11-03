@@ -845,6 +845,29 @@ export function apply(ctx, config = {}) {
     return out.join(' ')
   }
 
+  /** Counts Latin words that are not known terms — a sign of garbled output. */
+  function suspiciousLatinCount(text) {
+    const terms = new Set([...readHotwords(), ...Object.values(readReplacementsFile())].map((term) => term.toLowerCase()))
+    let count = 0
+    for (const token of String(text).split(/\s+/u)) {
+      const core = token.replace(/[^\p{L}\p{N}]+$/u, '')
+      if (core.length < 3 || !/[A-Za-z]/u.test(core)) continue
+      if (terms.has(core.toLowerCase())) continue
+      count += 1
+    }
+    return count
+  }
+
+  /**
+   * Scores a transcript: known terms minus garbled Latin words. Whisper usually
+   * wins on mixed speech, GigaAM on clean Russian.
+   * @param text - transcript.
+   * @returns the score (higher is better).
+   */
+  function transcriptScore(text) {
+    return termHits(text) - suspiciousLatinCount(text)
+  }
+
   /**
    * Merges two transcripts: the one covering more dictionary terms wins, so
    * English terms come from Whisper and Russian text from GigaAM.
@@ -930,12 +953,17 @@ export function apply(ctx, config = {}) {
         const dictionary = [...readHotwords(), ...Object.values(readReplacementsFile())]
         const gigaamHits = termHits(gigaamText)
         const whisperHits = termHits(whisperText)
-        const bestSingle = whisperHits > gigaamHits ? whisperText : gigaamText
+        const gigaamScore = transcriptScore(gigaamText)
+        const whisperScore = transcriptScore(whisperText)
+        const bestSingle = whisperScore > gigaamScore ? whisperText : gigaamText
         let merged = gigaamText
-        if (config.merge !== 'text') {
+        if (config.merge === 'words') {
           merged = mergeByWords(gigaamText, whisperText, dictionary)
-          // Страховка: если пословное слияние потеряло термины, берём лучший текст.
-          if (merged === '' || termHits(merged) < Math.max(gigaamHits, whisperHits)) merged = bestSingle
+          // Страховка: слияние не должно терять термины или раздувать текст
+          // дублями — тогда берём лучший целый текст.
+          const wordsIn = (value) => String(value).split(/\s+/u).filter(Boolean).length
+          const duplicated = wordsIn(merged) > Math.max(wordsIn(gigaamText), wordsIn(whisperText)) + 1
+          if (merged === '' || duplicated || termHits(merged) < Math.max(gigaamHits, whisperHits)) merged = bestSingle
         } else {
           merged = bestSingle
         }
@@ -958,6 +986,7 @@ export function apply(ctx, config = {}) {
               whisper: whisperText,
               merged: raw,
               hits: { gigaam: gigaamHits, whisper: whisperHits, merged: termHits(raw) },
+              scores: { gigaam: gigaamScore, whisper: whisperScore },
             })
             writeFileSync(historyFile, `${JSON.stringify(history.slice(-50), null, 2)}\n`)
           } catch (error) {

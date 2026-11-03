@@ -36,6 +36,7 @@ node tools/discussion-report.mjs  # отчёт по ответам в обсуж
 node tools/check-docs.mjs         # согласованность документации с репозиторием (входит в npm test)
 node tools/check-consistency.mjs  # один английский текст — один перевод (входит в npm test)
 node tools/check-voice-hook.mjs   # штатный код отмены диктовки не изменился (входит в npm test)
+node tools/dictation-harness.mjs --text "Проверка GitHub и OpenAI"  # стенд: TTS → движки → WER (macOS)
 node tools/engine-smoke.mjs       # сквозная проверка движка: скачивание, модель, распознавание записи
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```

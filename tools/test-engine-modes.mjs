@@ -38,7 +38,7 @@ const { apply, internals } = await import('../lib/index.js')
 for (const name of internals.modelFiles) writeFileSync(join(modelDir, name), 'x')
 
 /** Applies the provider with the given engine mode and dictionary. */
-function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true }) {
+function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, merge }) {
   const hotwordsFile = join(workspace, `hotwords-${engine}.txt`)
   const header = '# Hotwords\n'
   const section = words.length === 0
@@ -60,6 +60,7 @@ function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true }
     hotwordsFile,
     replacementsFile,
     engine,
+    ...(merge === undefined ? {} : { merge }),
     whisperBinaryPath: whisper ? fakeWhisper : join(workspace, 'нет-бинаря'),
     whisperModelPath: whisperModel,
     prewarm: false,
@@ -91,13 +92,38 @@ console.log('гибрид: термины берём у Whisper')
   delete process.env.FAKE_WHISPER_TRANSCRIPT
 }
 
+console.log('гибрид: умный выбор целого текста')
+{
+  process.env.FAKE_TRANSCRIPT = 'Привет. Сегодня обсудили gighab OpenAINSOIC и Worktrees. Deeplay прошёл.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Привет, сегодня обсудили GitHub, OpenAI, Slack и Worktrees. Деплой прошел.'
+  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub', 'OpenAI', 'Slack', 'Worktrees'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('искажённая латиница GigaAM проигрывает Whisper', result.text.startsWith('Привет, сегодня обсудили GitHub'), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('гибрид: пословное слияние')
 {
   process.env.FAKE_TRANSCRIPT = 'Проверка связи. Гитхап Пир Фордж Лайфер.'
   process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи. GitHub, Peer, Forge, LiveShare.'
-  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub', 'Peer', 'Forge', 'LiveShare'] })
+  const { service, cleanups } = setup({ engine: 'hybrid', merge: 'words', words: ['GitHub', 'Peer', 'Forge', 'LiveShare'] })
   const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('термины из Whisper, русское от GigaAM', result.text === 'Проверка связи. GitHub, Peer, Forge, LiveShare.', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: защита от дублей при пословном слиянии')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab OpenAINSOIC и Worktrees'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub, OpenAI и Worktrees'
+  const { service, cleanups } = setup({ engine: 'hybrid', merge: 'words', words: ['GitHub', 'OpenAI', 'Worktrees'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const duplicated = (result.text.match(/GitHub/gu) ?? []).length + (result.text.match(/gighab/gu) ?? []).length
+  check('нет дублей терминов', duplicated === 1, result.text)
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
   delete process.env.FAKE_WHISPER_TRANSCRIPT
@@ -107,7 +133,7 @@ console.log('гибрид: числа остаются у GigaAM')
 {
   process.env.FAKE_TRANSCRIPT = 'Проверка связи 1, 2, 3.'
   process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи, 123.'
-  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const { service, cleanups } = setup({ engine: 'hybrid', merge: 'words' })
   const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('числа GigaAM сохранены', result.text === 'Проверка связи 1, 2, 3.', result.text)
   for (const cleanup of cleanups.reverse()) await cleanup()
@@ -119,7 +145,7 @@ console.log('гибрид: термин, пропущенный GigaAM')
 {
   process.env.FAKE_TRANSCRIPT = 'Проверка связи.'
   process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи GitHub'
-  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const { service, cleanups } = setup({ engine: 'hybrid', merge: 'words' })
   const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('термин добавлен из Whisper', result.text.includes('GitHub'), result.text)
   for (const cleanup of cleanups.reverse()) await cleanup()
