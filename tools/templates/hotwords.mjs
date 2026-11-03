@@ -96,3 +96,64 @@ export function clearPersonalHotwords(text) {
   const { before } = splitPersonal(text)
   return { ok: true, text: render(before, []) }
 }
+
+/** Longest key or value accepted by the replacements map. */
+export const MAX_REPLACEMENT_LENGTH = 64
+
+/** Parses the replacements JSON, tolerating a missing or broken file. */
+export function readReplacements(text) {
+  try {
+    const parsed = JSON.parse(String(text ?? '{}'))
+    const entries = parsed !== null && typeof parsed === 'object' && parsed.replacements !== undefined ? parsed.replacements : {}
+    if (entries === null || typeof entries !== 'object') return {}
+    const result = {}
+    for (const [heard, chosen] of Object.entries(entries)) {
+      if (typeof heard !== 'string' || typeof chosen !== 'string') continue
+      const from = heard.trim()
+      const to = chosen.trim()
+      if (from === '' || to === '' || from.length > MAX_REPLACEMENT_LENGTH || to.length > MAX_REPLACEMENT_LENGTH) continue
+      result[from] = to
+    }
+    return result
+  } catch {
+    return {}
+  }
+}
+
+/** Renders the replacements JSON with stable ordering. */
+export function renderReplacements(replacements) {
+  const entries = Object.entries(replacements).sort(([left], [right]) => left.localeCompare(right, 'ru'))
+  return `${JSON.stringify({ replacements: Object.fromEntries(entries) }, null, 2)}\n`
+}
+
+/**
+ * Adds or updates a heard → chosen pair.
+ * @param text - replacements JSON.
+ * @param heard - phrase as it was recognized.
+ * @param chosen - phrase the user wants instead.
+ * @returns the result and the new JSON.
+ */
+export function upsertReplacement(text, heard, chosen) {
+  const from = normalizePhrase(heard)
+  const to = normalizePhrase(chosen)
+  if (from === '' || to === '' || from.length > MAX_REPLACEMENT_LENGTH || to.length > MAX_REPLACEMENT_LENGTH) {
+    return { ok: false, reason: 'bad-phrase' }
+  }
+  const replacements = readReplacements(text)
+  replacements[from] = to
+  return { ok: true, count: Object.keys(replacements).length, text: renderReplacements(replacements) }
+}
+
+/**
+ * Removes a heard phrase from the replacements map.
+ * @param text - replacements JSON.
+ * @param heard - phrase to remove.
+ * @returns the result and the new JSON.
+ */
+export function removeReplacement(text, heard) {
+  const from = normalizePhrase(heard)
+  const replacements = readReplacements(text)
+  if (replacements[from] === undefined) return { ok: false, reason: 'not-found', count: Object.keys(replacements).length }
+  delete replacements[from]
+  return { ok: true, count: Object.keys(replacements).length, text: renderReplacements(replacements) }
+}

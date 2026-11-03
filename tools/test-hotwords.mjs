@@ -88,6 +88,7 @@ console.log('endpoint хоста')
     binaryPath: join(workspace, 'no-engine'),
     modelDir: join(workspace, 'models'),
     hotwordsFile: file,
+    replacementsFile: join(workspace, 'endpoint-replacements.json'),
     dictionaryPort: port,
   })
   await new Promise((resolve) => setTimeout(resolve, 250))
@@ -100,6 +101,32 @@ console.log('endpoint хоста')
   check('дубликат через endpoint', again.ok === true && again.duplicate === true)
   const bad = await post('   ')
   check('пустая фраза через endpoint отклоняется', bad.ok === false && bad.reason === 'bad-phrase')
+  const jsonAdd = await fetch(`http://127.0.0.1:${port}/hotwords`, { method: 'POST', body: JSON.stringify('GigaAM') }).then((response) => response.json())
+  check('JSON-строка на /hotwords', jsonAdd.ok === true, JSON.stringify(jsonAdd))
+  const dictionary = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
+  check('словарь отдаёт слова', Array.isArray(dictionary.words) && dictionary.words.includes('GigaAM'), JSON.stringify(dictionary.words))
+  check('словарь отдаёт замены', dictionary.replacements !== undefined && typeof dictionary.replacements === 'object')
+  const learned = await fetch(`http://127.0.0.1:${port}/learn`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ heard: 'гитхаб', chosen: 'GitHub' }),
+  }).then((response) => response.json())
+  check('обучение пары', learned.ok === true && learned.replacements === 1, JSON.stringify(learned))
+  check('выбранное слово в словаре', readFileSync(file, 'utf8').includes('GitHub'))
+  const replacementsFile = join(workspace, 'endpoint-replacements.json')
+  check('пара записана в файл замен', readFileSync(replacementsFile, 'utf8').includes('"гитхаб": "GitHub"'), readFileSync(replacementsFile, 'utf8'))
+  const learnedAgain = await fetch(`http://127.0.0.1:${port}/learn`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ heard: 'гитхаб', chosen: 'GitHub' }),
+  }).then((response) => response.json())
+  check('повторное обучение не дублирует', learnedAgain.ok === true && learnedAgain.replacements === 1)
+  const learnedBad = await fetch(`http://127.0.0.1:${port}/learn`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: 'not json',
+  })
+  check('битый JSON отклоняется', learnedBad.status === 400)
   for (const cleanup of cleanups.reverse()) await cleanup()
   check('endpoint закрывается при выгрузке', await fetch(`http://127.0.0.1:${port}/health`).then(() => false, () => true))
 }

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Tests the "+ в словарь" chip of the client bundle: it appears only for a text
- * selection inside an editable field, sends the phrase to the host endpoint, and
- * disappears together with the plugin.
+ * Tests the dictionary popover of the client bundle: a selection inside the
+ * composer gets replacement candidates from the personal dictionary, picking
+ * one replaces the selection and teaches the pair, and "add to dictionary"
+ * still works when no candidate fits.
  *
  * Usage:
  *   node tools/test-dictionary-chip.mjs
@@ -74,7 +75,6 @@ class FakeElement {
   }
 }
 
-/** Minimal event target for window/document. */
 class FakeEventTarget {
   constructor() {
     this.listeners = new Map()
@@ -99,26 +99,39 @@ const documentStub = new FakeEventTarget()
 documentStub.title = 'DeepSeek Harness'
 documentStub.createElement = (tag) => new FakeElement(tag)
 documentStub.body = new FakeElement('body')
-let selection = { isCollapsed: true, rangeCount: 0, toString: () => '', anchorNode: null, getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 120 }) }) }
+documentStub.execCommand = (command, _show, value) => {
+  documentStub.execCalls.push({ command, value })
+  return true
+}
+documentStub.execCalls = []
+let selection = {
+  isCollapsed: true,
+  rangeCount: 0,
+  toString: () => '',
+  anchorNode: null,
+  getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 120 }) }),
+}
 documentStub.getSelection = () => selection
 const windowStub = new FakeEventTarget()
+windowStub.innerWidth = 1200
 windowStub.__ModuleLoader__ = { load(entry) { windowStub.entry = entry } }
 
 globalThis.window = windowStub
 globalThis.document = documentStub
 globalThis.EventTarget = FakeEventTarget
+globalThis.AbortSignal = { timeout: () => undefined }
 
 const requests = []
 globalThis.fetch = async (url, options = {}) => {
-  requests.push({ url, body: options.body })
+  requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  if (url.endsWith('/dictionary')) {
+    return { ok: true, json: async () => ({ words: ['GitHub', 'Lifeshare', 'GigaAM'], replacements: {} }) }
+  }
   return { ok: true, json: async () => ({ ok: true, count: 1 }) }
 }
-globalThis.AbortSignal = { timeout: () => undefined }
 
 await import(`${bundle}?v=${Date.now()}`)
 const plugin = windowStub.entry.factory(() => { throw new Error('no modules') })
-
-/** Minimal locale so the bundle activates. */
 const locale = {
   addLanguage() { return () => {} },
   register() { return () => {} },
@@ -139,69 +152,87 @@ plugin.apply({
 })
 await new Promise((resolvePromise) => setTimeout(resolvePromise, 0))
 
-const chip = () => documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-dictionary') !== null)
+const panel = () => documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-dictionary') !== null)
+const rows = () => (panel()?.children ?? []).map((child) => child.textContent)
+const row = (text) => (panel()?.children ?? []).find((child) => child.textContent === text)
 
-console.log('кнопка появляется при выделении в поле ввода')
-{
-  const editable = new FakeElement('div')
-  editable.editable = true
+/** Puts a selection into the editable and waits for the async popover. */
+async function select(phrase, editable) {
   selection = {
     isCollapsed: false,
     rangeCount: 1,
-    toString: () => 'configHotwords',
+    toString: () => phrase,
     anchorNode: editable,
     getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 120 }) }),
   }
   documentStub.dispatch('selectionchange')
-  check('кнопка создана', chip() !== undefined)
-  check('текст кнопки', chip()?.textContent === '+ в словарь', chip()?.textContent)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
 }
 
-console.log('клик отправляет фразу в хост')
+console.log('кандидаты для выделенного слова')
 {
-  chip().dispatch('click')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 50))
-  check('запрос ушёл', requests.length === 1 && requests[0].url.includes('/hotwords'), JSON.stringify(requests))
-  check('тело запроса — фраза', requests[0]?.body === 'configHotwords', requests[0]?.body)
-  check('кнопка скрылась после клика', chip() === undefined)
-  check('показан тост', documentStub.body.children.some((element) => element.textContent === 'Добавлено в словарь'))
+  const editable = new FakeElement('div')
+  editable.editable = true
+  await select('гитхаб', editable)
+  check('поповер показан', panel() !== undefined)
+  check('заголовок с выделенным словом', rows().some((text) => text.includes('гитхаб')), JSON.stringify(rows()))
+  check('кандидат GitHub найден', row('GitHub') !== undefined, JSON.stringify(rows()))
+  check('есть пункт «в словарь»', rows().some((text) => text.includes('в словарь')), JSON.stringify(rows()))
 }
 
-console.log('вне поля ввода и при пустом выделении кнопки нет')
+console.log('выбор кандидата заменяет и учит')
+{
+  requests.length = 0
+  documentStub.execCalls.length = 0
+  row('GitHub').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('замена через execCommand', documentStub.execCalls.some((call) => call.command === 'insertText' && call.value === 'GitHub'), JSON.stringify(documentStub.execCalls))
+  const learn = requests.find((request) => request.url.endsWith('/learn'))
+  check('пара отправлена на /learn', learn !== undefined && learn.method === 'POST', JSON.stringify(requests))
+  check('тело — heard и chosen', learn !== undefined && JSON.parse(learn.body).heard === 'гитхаб' && JSON.parse(learn.body).chosen === 'GitHub', learn?.body)
+  check('поповер скрыт', panel() === undefined)
+  check('тост о замене', documentStub.body.children.some((element) => element.textContent.includes('Заменено')))
+}
+
+console.log('без кандидатов — только добавление в словарь')
+{
+  const editable = new FakeElement('div')
+  editable.editable = true
+  await select('Проверка', editable)
+  check('поповер с добавлением', panel() !== undefined && rows().some((text) => text.includes('в словарь')), JSON.stringify(rows()))
+  requests.length = 0
+  row('＋ «Проверка» в словарь').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const add = requests.find((request) => request.url.endsWith('/hotwords'))
+  check('фраза отправлена на /hotwords', add !== undefined && add.method === 'POST', JSON.stringify(requests))
+  check('в JSON-строке', add !== undefined && JSON.parse(add.body) === 'Проверка', add?.body)
+}
+
+console.log('вне поля ввода поповера нет')
 {
   const plain = new FakeElement('div')
-  selection = {
-    isCollapsed: false,
-    rangeCount: 1,
-    toString: () => 'configHotwords',
-    anchorNode: plain,
-    getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 100, left: 100, bottom: 120 }) }),
-  }
-  documentStub.dispatch('selectionchange')
-  check('вне contenteditable кнопки нет', chip() === undefined)
-  selection = { isCollapsed: true, rangeCount: 0, toString: () => '', anchorNode: null, getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 0, left: 0, bottom: 0 }) }) }
-  documentStub.dispatch('selectionchange')
-  check('пустое выделение — кнопки нет', chip() === undefined)
+  await select('гитхаб', plain)
+  check('вне contenteditable поповера нет', panel() === undefined)
 }
 
 console.log('выгрузка')
 {
   for (const cleanup of cleanups.reverse()) cleanup()
-  check('кнопка удалена', chip() === undefined)
-  const before = requests.length
+  check('поповер удалён', panel() === undefined)
   selection = {
     isCollapsed: false,
     rangeCount: 1,
-    toString: () => 'GigaAM',
+    toString: () => 'гитхаб',
     anchorNode: Object.assign(new FakeElement('div'), { editable: true }),
     getRangeAt: () => ({ getBoundingClientRect: () => ({ top: 10, left: 10, bottom: 20 }) }),
   }
   documentStub.dispatch('selectionchange')
-  check('после выгрузки кнопка не появляется', chip() === undefined && requests.length === before)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('после выгрузки поповер не появляется', panel() === undefined)
 }
 
 if (failures.length > 0) {
   console.error(`провалено проверок: ${failures.length}`)
   process.exit(1)
 }
-console.log('все проверки кнопки «+ в словарь» пройдены')
+console.log('все проверки поповера словаря пройдены')
