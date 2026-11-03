@@ -57,10 +57,12 @@ const KNOWN = new Set([
   '--hotwords-add', '--hotwords-add-file', '--hotwords-list', '--hotwords-remove',
   '--hotwords-clear', '--hotwords-file', '--hotwords-export', '--hotwords-import',
   '--hotwords-from', '--hotwords-limit',
+  '--engine', '--merge', '--no-whisper', '--whisper-model', '--debug-transcripts',
 ])
 const NEEDS_VALUE = new Set([
   '--profile', '--hotwords-add', '--hotwords-add-file', '--hotwords-remove', '--hotwords-file',
   '--hotwords-export', '--hotwords-import', '--hotwords-from', '--hotwords-limit',
+  '--engine', '--merge', '--whisper-model',
 ])
 for (const [index, arg] of args.entries()) {
   if (!arg.startsWith('-')) continue
@@ -94,6 +96,12 @@ if (flag('--help') || flag('-h')) {
   console.log('  --hotwords-export <файл|->                    выгрузить словарь и замены в JSON')
   console.log('  --hotwords-import <файл|->                    загрузить словарь и замены из JSON')
   console.log('  --hotwords-from <папка>                       собрать термины из проекта')
+  console.log('')
+  console.log('Движок распознавания (для --desktop):')
+  console.log('  --engine <gigaam|whisper|hybrid>              движок (по умолчанию hybrid, если Whisper есть)')
+  console.log('  --merge <auto|sentences|text|words>           стратегия слияния (по умолчанию auto)')
+  console.log('  --no-whisper                                  не ставить Whisper, остаться на GigaAM')
+  console.log('  --whisper-model <путь>                        свой путь к модели Whisper')
   console.log('  --hotwords-limit <n>                          сколько слов брать из проекта (по умолчанию 150)')
   console.log('  (для --hotwords-add-file и --hotwords-import путь «-» читает stdin)')
   process.exit(0)
@@ -512,19 +520,26 @@ try {
     console.log('Отменено.')
     process.exit(0)
   }
-  const result = installDesktop({
+  const engine = value('--engine')
+  const merge = value('--merge')
+  const result = await installDesktop({
     dshHome,
     version,
     dryRun,
     appPath: defaultAppPath(),
     log: console.log,
+    engine,
+    merge,
+    whisper: !flag('--no-whisper'),
+    whisperModelPath: value('--whisper-model'),
+    debugTranscripts: flag('--debug-transcripts') === true,
   })
-  if (result.changes.length === 0) {
-    console.log(`Пакет уже установлен: ${PACKAGE_NAME}${result.verified.ok ? ` ${result.verified.version}` : ''}.`)
+  if (result.dryRun === true) {
+    console.log('Dry-run: файлы не изменены. Запустите без --dry-run, чтобы применить.')
     process.exit(0)
   }
-  if (dryRun) {
-    console.log('Dry-run: файлы не изменены. Запустите без --dry-run, чтобы применить.')
+  if (result.alreadyInstalled === true) {
+    console.log(`Пакет уже установлен: ${PACKAGE_NAME}${result.verified.ok ? ` ${result.verified.version}` : ''}; движок настроен (${result.engine}).`)
     process.exit(0)
   }
   console.log(`Готово: установлен ${PACKAGE_NAME}${result.verified.version === undefined ? '' : ` ${result.verified.version}`}.`)

@@ -37,11 +37,14 @@ node tools/check-docs.mjs         # согласованность докуме�
 node tools/check-consistency.mjs  # один английский текст — один перевод (входит в npm test)
 node tools/check-voice-hook.mjs   # штатный код отмены диктовки не изменился (входит в npm test)
 node tools/dictation-harness.mjs --text "Проверка GitHub и OpenAI"  # стенд: TTS → движки → WER (macOS)
+node tools/local-install.mjs                  # локальная сборка в профиль (тест без релиза)
+node tools/local-install.mjs --revert         # вернуть предыдущую копию
+node tools/vendor-whisper.mjs                 # собрать vendor/whisper/<arch> из Homebrew (для релиза)
 node tools/engine-smoke.mjs       # сквозная проверка движка: скачивание, модель, распознавание записи
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-hotwords`, `test-engine-modes`, `test-dictionary-chip`, `test-dictation-caret`, `test-auto-learn`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-voice-keepalive`, `test-check-voice-hook`, `test-check-docs`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-hotwords`, `test-engine-modes`, `test-dictionary-chip`, `test-dictation-caret`, `test-auto-learn`, `test-highlight`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-voice-keepalive`, `test-check-voice-hook`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 

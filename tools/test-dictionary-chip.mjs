@@ -35,6 +35,18 @@ class FakeElement {
     this.listeners = new Map()
     this.parentNode = null
     this.textContent = ''
+    this.value = ''
+  }
+
+  focus() {}
+
+  removeChild(child) {
+    this.children = this.children.filter((entry) => entry !== child)
+    child.parentNode = null
+  }
+
+  get firstChild() {
+    return this.children[0] ?? null
   }
 
   setAttribute(name, value) {
@@ -131,10 +143,25 @@ globalThis.EventTarget = FakeEventTarget
 globalThis.AbortSignal = { timeout: () => undefined }
 
 const requests = []
+const clipboardWrites = []
+Object.defineProperty(globalThis, 'navigator', {
+  value: { clipboard: {
+    readText: async () => 'Kubernetes\nPodman',
+    writeText: async (text) => { clipboardWrites.push(text) },
+  } },
+  configurable: true,
+})
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  if (url.endsWith('/suggestions')) {
+    return { ok: true, json: async () => ({ suggestions: [{ heard: 'ngine', chosen: 'engine', score: 0.83, count: 2 }] }) }
+  }
+  if (url.endsWith('/engine')) {
+    if ((options.method ?? 'GET') === 'POST') return { ok: true, json: async () => ({ ok: true, restartRequired: true }) }
+    return { ok: true, json: async () => ({ engine: 'gigaam', merge: 'auto', whisper: true }) }
+  }
   if (url.endsWith('/dictionary')) {
-    return { ok: true, json: async () => ({ words: ['GitHub', 'Lifeshare', 'GigaAM'], replacements: {} }) }
+    return { ok: true, json: async () => ({ words: ['GitHub', 'Lifeshare', 'GigaAM'], replacements: { 'гитхаб': 'GitHub' } }) }
   }
   return { ok: true, json: async () => ({ ok: true, count: 1 }) }
 }
@@ -238,47 +265,155 @@ console.log('слово из словаря можно убрать')
   check('тост об удалении', documentStub.body.children.some((element) => element.textContent.includes('Удалено из словаря')))
 }
 
-console.log('панель словаря: список и удаление')
-{
-  const editable = new FakeElement('div')
-  editable.editable = true
-  await select('гитхаб', editable)
-  const listRow = rows().find((text) => text.startsWith('Словарь ('))
-  check('есть строка «Словарь (N)»', listRow !== undefined, JSON.stringify(rows()))
-  row(listRow).dispatch('click')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
-  const words = (panel()?.children ?? []).filter((child) => (child.children ?? []).length === 2)
-  check('список слов открыт', words.length === 3, String(words.length))
-  const githubRow = words.find((child) => child.children[0].textContent === 'GitHub')
-  check('GitHub в списке', githubRow !== undefined)
-  requests.length = 0
-  githubRow.children[1].dispatch('click')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
-  const forget = requests.find((request) => request.url.endsWith('/forget'))
-  check('удаление из списка шлёт /forget', forget !== undefined && JSON.parse(forget.body) === 'GitHub', JSON.stringify(requests))
-  check('тост об удалении из списка', documentStub.body.children.some((element) => String(element.textContent).includes('Убрано из словаря')))
-  check('список обновился', (panel()?.children ?? []).filter((child) => (child.children ?? []).length === 2).length === 2)
+const modalPanel = () => {
+  for (const child of documentStub.body.children) {
+    const panel = (child.children ?? []).find((entry) => entry.getAttribute('data-dsh-locale-ru-modal') !== null)
+    if (panel !== undefined) return panel
+  }
+  return undefined
 }
-
-console.log('прокрутка внутри панели не закрывает её')
-{
-  const editable = new FakeElement('div')
-  editable.editable = true
-  await select('гитхаб', editable)
-  row(rows().find((text) => text.startsWith('Словарь ('))).dispatch('click')
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
-  check('список открыт', panel() !== undefined)
-  const inside = panel().children[1]
-  windowStub.dispatch('scroll', { target: inside })
-  check('скролл внутри панели не закрывает', panel() !== undefined)
-  windowStub.dispatch('scroll', { target: documentStub.body })
-  check('скролл вне панели закрывает', panel() === undefined)
+const collectText = (element, out = []) => {
+  if (element === undefined) return out
+  if (typeof element.textContent === 'string' && element.textContent !== '') out.push(element.textContent)
+  for (const child of element.children ?? []) collectText(child, out)
+  return out
 }
-
-console.log('Escape закрывает панель')
-{
+const modalTexts = () => collectText(modalPanel())
+const modalInputs = () => {
+  const inputs = []
+  const walk = (element) => {
+    if (element === undefined) return
+    if (element.tagName === 'INPUT') inputs.push(element)
+    for (const child of element.children ?? []) walk(child)
+  }
+  walk(modalPanel())
+  return inputs
+}
+const findRow = (label) => {
+  const walk = (element) => {
+    if (element === undefined) return undefined
+    if ((element.children?.[0]?.textContent ?? '') === label) return element
+    for (const child of element.children ?? []) {
+      const found = walk(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  return walk(modalPanel())
+}
+const findByText = (text) => {
+  const walk = (element) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === text) return element
+    for (const child of element.children ?? []) {
+      const found = walk(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  return walk(modalPanel())
+}
+const openModal = async () => {
+  documentStub.dispatch('keydown', { key: 'd', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 150))
+}
+const closeModal = () => {
   documentStub.dispatch('keydown', { key: 'Escape' })
-  check('панель закрыта по Escape', panel() === undefined)
+}
+
+console.log('модальное окно словаря')
+{
+  await openModal()
+  check('окно открыто по Cmd+Shift+D', modalPanel() !== undefined)
+  check('заголовок', modalTexts().some((text) => text.includes('Словарь распознавания')), JSON.stringify(modalTexts()))
+  const inputs = modalInputs()
+  check('поля добавления и поиска', inputs.length >= 2, String(inputs.length))
+  check('секции слова и замен', modalTexts().some((text) => text.startsWith('Слова')) && modalTexts().some((text) => text.startsWith('Замены')), JSON.stringify(modalTexts()))
+}
+
+console.log('секция движка в модалке')
+{
+  const texts = modalTexts()
+  check('секция «Движок»', texts.some((text) => text.includes('Движок')), JSON.stringify(texts))
+  check('кнопки движков', texts.includes('GigaAM') && texts.includes('Гибрид'), JSON.stringify(texts))
+  requests.length = 0
+  findByText('Гибрид').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const saved = requests.find((request) => request.url.endsWith('/engine') && request.method === 'POST')
+  check('выбор движка отправлен', saved !== undefined && JSON.parse(saved.body).engine === 'hybrid', JSON.stringify(requests))
+}
+
+console.log('предложения терминов и агент')
+{
+  const texts = modalTexts()
+  check('секция «Предложения»', texts.some((text) => text.includes('Предложения')), JSON.stringify(texts))
+  check('пара ngine → engine', texts.some((text) => text.includes('ngine → engine')), JSON.stringify(texts))
+  requests.length = 0
+  findByText('Запомнить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const learned = requests.find((request) => request.url.endsWith('/learn') && request.method === 'POST')
+  check('предложение запомнено', learned !== undefined && JSON.parse(learned.body).heard === 'ngine' && JSON.parse(learned.body).chosen === 'engine', JSON.stringify(requests))
+  clipboardWrites.length = 0
+  findByText('Попросить агента дообучить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 50))
+  check('запрос агенту скопирован', clipboardWrites.length === 1 && clipboardWrites[0].includes('transcripts.json'), JSON.stringify(clipboardWrites))
+}
+
+console.log('добавление слова через поле')
+{
+  const inputs = modalInputs()
+  const addInput = inputs[0]
+  addInput.value = 'Kubernetes, Podman'
+  requests.length = 0
+  findByText('Добавить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
+  const added = requests.filter((request) => request.url.endsWith('/hotwords'))
+  check('два слова добавлены', added.length === 2 && JSON.parse(added[0].body) === 'Kubernetes' && JSON.parse(added[1].body) === 'Podman', JSON.stringify(requests))
+}
+
+console.log('поиск по словарю')
+{
+  const inputs = modalInputs()
+  const searchInput = inputs[1]
+  searchInput.value = 'Giga'
+  searchInput.dispatch('input')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 20))
+  const texts = modalTexts()
+  check('фильтр работает', texts.some((text) => text.includes('GigaAM')) && !texts.some((text) => text.includes('Lifeshare')), JSON.stringify(texts))
+  searchInput.value = ''
+  searchInput.dispatch('input')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 20))
+}
+
+console.log('удаление слова и пары из модалки')
+{
+  requests.length = 0
+  const wordRow = findRow('GitHub')
+  const removeButton = wordRow.children[1]
+  removeButton.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('удаление слова', requests.some((request) => request.url.endsWith('/forget')), JSON.stringify(requests))
+  requests.length = 0
+  const pairRow = findRow('гитхаб → GitHub')
+  check('строка замены найдена', pairRow !== undefined, JSON.stringify(modalTexts()))
+  pairRow.children[1].dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('удаление пары', requests.some((request) => request.url.endsWith('/forget-pair')), JSON.stringify(requests))
+}
+
+console.log('буфер обмена в модалке')
+{
+  requests.length = 0
+  findByText('＋ из буфера обмена').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
+  const added = requests.filter((request) => request.url.endsWith('/hotwords'))
+  check('слова из буфера', added.length === 2, JSON.stringify(requests))
+}
+
+console.log('Escape закрывает модалку')
+{
+  closeModal()
+  check('модалка закрыта', modalPanel() === undefined)
 }
 
 console.log('вне поля ввода поповера нет')

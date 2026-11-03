@@ -9,6 +9,7 @@
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { createServer } from 'node:net'
 
 const failures = []
 const check = (label, condition, detail) => {
@@ -38,7 +39,7 @@ const { apply, internals } = await import('../lib/index.js')
 for (const name of internals.modelFiles) writeFileSync(join(modelDir, name), 'x')
 
 /** Applies the provider with the given engine mode and dictionary. */
-function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, merge }) {
+function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, merge, port = 0 }) {
   const hotwordsFile = join(workspace, `hotwords-${engine}.txt`)
   const header = '# Hotwords\n'
   const section = words.length === 0
@@ -64,7 +65,7 @@ function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, 
     whisperBinaryPath: whisper ? fakeWhisper : join(workspace, 'нет-бинаря'),
     whisperModelPath: whisperModel,
     prewarm: false,
-    dictionaryPort: 0,
+    dictionaryPort: port,
     hotwordsWatchMs: 10,
   })
   return { service, cleanups }
@@ -87,6 +88,34 @@ console.log('гибрид: термины берём у Whisper')
   const { service, cleanups } = setup({ engine: 'hybrid' })
   const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('выбран текст с термином', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('whisper получает словарный prompt')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const argsFile = join(workspace, 'whisper-args.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const { service, cleanups } = setup({ engine: 'whisper', words: ['GitHub', 'OpenAI'] })
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const args = JSON.parse(readFileSync(argsFile, 'utf8').trim().split('\n')[0])
+  check('есть --prompt', args.includes('--prompt'), JSON.stringify(args))
+  const promptIndex = args.indexOf('--prompt')
+  check('prompt содержит термины', promptIndex >= 0 && String(args[promptIndex + 1]).includes('GitHub') && String(args[promptIndex + 1]).includes('OpenAI'), args[promptIndex + 1])
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
+}
+
+console.log('гибрид: по умолчанию — русское от GigaAM, термин от Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Сегодня хорошая погода. Я открыл Гитхаб.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Сегодня хорошая погода. Я открыл GitHub.'
+  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('русское предложение от GigaAM, термин от Whisper', result.text === 'Сегодня хорошая погода. Я открыл GitHub.', result.text)
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
   delete process.env.FAKE_WHISPER_TRANSCRIPT
@@ -227,6 +256,22 @@ console.log('диагностика сохраняет оба текста')
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
   delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('last-transcription отдаёт применённые замены')
+{
+  const freePort = await new Promise((resolve) => {
+    const probe = createServer()
+    probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+  })
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  const { service, cleanups } = setup({ engine: 'gigaam', replacements: { 'гитхаб': 'GitHub' }, port: freePort })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('замена применилась', result.text === 'Проверка GitHub', result.text)
+  const info = await fetch(`http://127.0.0.1:${freePort}/last-transcription`).then((response) => response.json())
+  check('endpoint вернул применённые замены', Array.isArray(info?.applied) && info.applied.some((pair) => pair.heard === 'гитхаб' && pair.chosen === 'GitHub'), JSON.stringify(info))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
 }
 
 console.log('whisper не установлен — понятная ошибка')

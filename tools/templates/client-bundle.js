@@ -323,6 +323,7 @@ window.__ModuleLoader__.load({
 		/** Marks the moment a dictation recording ended; the insertion follows. */
 		function markDictationEnded() {
 			dictationEndedAt = Date.now();
+			clearDictationHighlights();
 			caretFixPending = true;
 			dictationInsertion = null;
 			dictationBeforeText = lastComposer === null ? null : String(lastComposer.innerText ?? "");
@@ -674,6 +675,152 @@ window.__ModuleLoader__.load({
 			}
 		}
 
+		/** Overlay highlights of the last dictation. */
+		let dictationHighlights = [];
+		/** Applied replacements of the last dictation: chosen → heard. */
+		let lastAppliedReplacements = {};
+		/** Hook set by the popover: opens it for the current selection. */
+		let openSelectionPopover = () => {};
+
+		/** Clears highlight overlays. */
+		function clearDictationHighlights() {
+			for (const element of dictationHighlights) {
+				if (typeof element.remove === "function") element.remove();
+				else if (element.parentNode) element.parentNode.removeChild(element);
+			}
+			dictationHighlights = [];
+		}
+
+		/** Collects text nodes of the editable. */
+		function textNodesOf(root, out = []) {
+			for (const node of root.childNodes ?? []) {
+				if (node.nodeType === 3) out.push(node);
+				else if (node.nodeType === 1) textNodesOf(node, out);
+			}
+			return out;
+		}
+
+		/** Finds the range of a whole-word occurrence in the editable. */
+		function findWordRange(editable, word, occurrence = 0) {
+			const needle = String(word).toLowerCase();
+			if (needle === "") return undefined;
+			let seen = 0;
+			for (const node of textNodesOf(editable)) {
+				const data = String(node.data ?? "");
+				const lower = data.toLowerCase();
+				let from = 0;
+				while (from <= lower.length - needle.length) {
+					const index = lower.indexOf(needle, from);
+					if (index === -1) break;
+					const before = index === 0 ? " " : data[index - 1];
+					const after = index + needle.length >= data.length ? " " : data[index + needle.length];
+					const boundary = (character) => /[^\p{L}\p{N}]/u.test(character);
+					if (boundary(before) && boundary(after)) {
+						if (seen === occurrence) {
+							try {
+								const range = document.createRange();
+								range.setStart(node, index);
+								range.setEnd(node, index + needle.length);
+								return range;
+							} catch (error) {
+								return undefined;
+							}
+						}
+						seen += 1;
+					}
+					from = index + needle.length;
+				}
+			}
+			return undefined;
+		}
+
+		/** Draws a highlight overlay over a range; a click selects the word. */
+		function drawHighlight(range, kind) {
+			let rect;
+			try {
+				rect = range.getBoundingClientRect();
+			} catch (error) {
+				return;
+			}
+			if (!rect || rect.width === 0) return;
+			const element = document.createElement("div");
+			element.setAttribute("data-dsh-locale-ru-highlight", kind);
+			element.style.cssText = "position:fixed;z-index:2147483645;pointer-events:auto;cursor:pointer;"
+				+ "background:" + (kind === "replaced" ? "rgba(122,162,255,.22)" : "rgba(240,190,60,.25)") + ";"
+				+ "border-bottom:2px dashed " + (kind === "replaced" ? "rgba(122,162,255,.9)" : "rgba(240,190,60,.95)") + ";"
+				+ "border-radius:3px";
+			element.style.left = `${rect.left - 1}px`;
+			element.style.top = `${rect.top - 1}px`;
+			element.style.width = `${rect.width + 2}px`;
+			element.style.height = `${rect.height + 2}px`;
+			element.addEventListener("click", () => {
+				try {
+					const selection = document.getSelection();
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} catch (error) {
+					// выделение не удалось — просто убираем подсветку
+				}
+				clearDictationHighlights();
+				openSelectionPopover();
+			});
+			if (document.body !== undefined) document.body.appendChild(element);
+			dictationHighlights.push(element);
+		}
+
+		/** Fetches info about the last transcription from the host. */
+		async function fetchLastTranscription() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/last-transcription`, { signal: AbortSignal.timeout(1200) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// порт не слушается — пробуем следующий
+				}
+			}
+			return undefined;
+		}
+
+		/** Highlights applied replacements and suggests terms for suspicious words. */
+		async function highlightDictationResult(editable) {
+			clearDictationHighlights();
+			if (editable === null || editable === undefined) return;
+			const info = await fetchLastTranscription();
+			const applied = Array.isArray(info?.applied) ? info.applied : [];
+			lastAppliedReplacements = {};
+			for (const pair of applied) {
+				const chosen = String(pair.chosen ?? "");
+				if (chosen === "") continue;
+				lastAppliedReplacements[chosen.toLowerCase()] = String(pair.heard ?? "");
+				const range = findWordRange(editable, chosen);
+				if (range !== undefined) drawHighlight(range, "replaced");
+			}
+			// Подсказки: кириллические слова, похожие на термины словаря.
+			const dictionary = await fetchDictionary();
+			const seen = new Set();
+			for (const node of textNodesOf(editable)) {
+				const data = String(node.data ?? "");
+				for (const match of data.matchAll(/[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё-]{3,}/gu)) {
+					const token = match[0];
+					const lower = token.toLowerCase();
+					if (seen.has(lower)) continue;
+					// Уже подсвечено как заменённое — второй подсветки не нужно.
+					if (lastAppliedReplacements[lower] !== undefined) continue;
+					// Латинские искажения («gighab») похожи слабее — порог ниже.
+					const threshold = /[A-Za-z]/u.test(token) ? 0.65 : 0.72;
+					const candidates = pickCandidates(token, dictionary, 3).filter((candidate) => candidate.kind === "word"
+						&& candidate.score >= threshold
+						&& candidate.term.toLowerCase() !== lower);
+					if (candidates.length === 0) continue;
+					seen.add(lower);
+					const range = findWordRange(editable, token);
+					if (range !== undefined) drawHighlight(range, "suggestion");
+				}
+			}
+			if (dictationHighlights.length > 0) setTimeout(() => clearDictationHighlights(), 15000);
+		}
+
 		/**
 		 * Shows a popover next to a text selection in the composer: candidate
 		 * replacements from the personal dictionary plus "add to dictionary".
@@ -716,70 +863,337 @@ window.__ModuleLoader__.load({
 				return row;
 			}
 
-			/** Builds a dictionary row: the word and a remove button. */
-			function buildWordRow(word, dictionary, rect) {
-				const row = document.createElement("div");
-				row.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:12px;"
-					+ "padding:6px 10px;border-radius:8px;color:#f2f2f5;"
-					+ "font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-				const label = document.createElement("span");
-				label.textContent = word;
-				label.style.cssText = "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
-				const remove = document.createElement("span");
+		/** Modal state: words, replacements and the current query. */
+		let dictionaryModal;
+
+		/** Creates a styled element. */
+		function modalElement(tag, cssText, textContent) {
+			const element = document.createElement(tag);
+			if (cssText !== undefined) element.style.cssText = cssText;
+			if (textContent !== undefined) element.textContent = textContent;
+			return element;
+		}
+
+		/** Closes the dictionary modal. */
+		function closeDictionaryModal() {
+			if (dictionaryModal === undefined) return;
+			const { backdrop } = dictionaryModal;
+			if (typeof backdrop.remove === "function") backdrop.remove();
+			else if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+			dictionaryModal = undefined;
+		}
+
+		/** Adds comma/newline separated words to the dictionary. */
+		async function addWordsToList(raw) {
+			const wordsToAdd = String(raw ?? "")
+				.split(/[\n,;]+/u)
+				.map((word) => word.trim())
+				.filter((word) => word !== "")
+				.slice(0, 50);
+			if (wordsToAdd.length === 0) {
+				showToast("Введите слово", false);
+				return 0;
+			}
+			let added = 0;
+			for (const word of wordsToAdd) {
+				const result = await postDictionary("/hotwords", word);
+				if (result !== undefined && result.ok) added += 1;
+			}
+			dictionaryCache.at = 0;
+			if (dictionaryModal !== undefined) {
+				dictionaryModal.dictionary = await fetchDictionary();
+				renderDictionaryModal();
+			}
+			showToast(added > 0 ? `Добавлено: ${added}` : "Не удалось добавить", added > 0);
+			return added;
+		}
+
+		/** Fetches the engine settings from the host. */
+		async function fetchEngineInfo() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/engine`, { signal: AbortSignal.timeout(1200) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Saves the engine choice through the host. */
+		async function saveEngineChoice(engine, merge) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/engine`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ engine, merge }),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Fetches term suggestions from the host (garbled terms from transcripts). */
+		async function fetchSuggestions() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/suggestions`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					const payload = await response.json();
+					return Array.isArray(payload?.suggestions) ? payload.suggestions : [];
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return [];
+		}
+
+		/** Asks the agent to review transcripts and extend the dictionary. */
+		function requestAgentCoaching() {
+			const prompt = "Проверь последние диктовки в ~/.dsh/speech-ru/transcripts.json: "
+				+ "сравни GigaAM и Whisper, найди искажённые термины и добавь нужные слова и замены в словарь. "
+				+ "Проверь, что замены не слишком широкие, и прогони тесты.";
+			try {
+				void navigator.clipboard.writeText(prompt);
+				showToast("Запрос скопирован — вставьте в чат с агентом", true);
+			} catch (error) {
+				showToast("Не удалось скопировать запрос", false);
+			}
+		}
+
+		/** Renders the modal content: search, add row, words and replacements. */
+		function renderDictionaryModal() {
+			if (dictionaryModal === undefined) return;
+			const { body, addInput, searchInput, dictionary } = dictionaryModal;
+			const query = String(searchInput.value ?? "").trim().toLowerCase();
+			const words = (dictionary.words ?? []).filter((word) => query === "" || word.toLowerCase().includes(query));
+			const pairs = Object.entries(dictionary.replacements ?? {}).filter(([heard, chosen]) => query === "" || `${heard} ${chosen}`.toLowerCase().includes(query));
+			while (body.firstChild !== undefined && body.firstChild !== null) body.removeChild(body.firstChild);
+
+			const section = (title, count) => {
+				body.appendChild(modalElement("div", "padding:10px 4px 4px;color:#8a8a95;font:600 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.04em", `${title} (${count})`));
+			};
+			const row = (label, onRemove) => {
+				const line = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 10px;border-radius:8px;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+				const text = modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", label);
+				const remove = modalElement("span", "cursor:pointer;color:#8a8a95;padding:0 4px;font-size:15px;line-height:1", "×");
 				remove.setAttribute("role", "button");
-				remove.textContent = "×";
-				remove.style.cssText = "cursor:pointer;color:#8a8a95;padding:0 4px;font-size:15px;line-height:1";
-				remove.addEventListener("mousedown", (event) => {
-					event.preventDefault();
-				});
-				remove.addEventListener("click", async () => {
+				remove.addEventListener("click", onRemove);
+				line.appendChild(text);
+				line.appendChild(remove);
+				return line;
+			};
+
+			// Движок и стратегия: настройка гибрида «для продвинутых».
+			const engineInfo = dictionaryModal.engineInfo;
+			if (engineInfo !== undefined) {
+				section("Движок", 0);
+				const engineRow = modalElement("div", "display:flex;gap:6px;padding:2px 4px 4px;flex-wrap:wrap");
+				const engineButtons = [
+					{ id: "gigaam", label: "GigaAM" },
+					{ id: "whisper", label: "Whisper" },
+					{ id: "hybrid", label: "Гибрид" },
+				];
+				for (const engine of engineButtons) {
+					const active = engineInfo.engine === engine.id;
+					const button = modalElement("div", "cursor:pointer;padding:6px 12px;border-radius:8px;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+						+ "background:" + (active ? "rgba(40,60,110,.95)" : "rgba(60,60,66,.9)") + ";color:#fff", engine.label);
+					button.setAttribute("role", "button");
+					button.addEventListener("click", async () => {
+						const result = await saveEngineChoice(engine.id, engineInfo.merge);
+						if (result !== undefined && result.ok) {
+							dictionaryModal.engineInfo = { ...engineInfo, engine: engine.id };
+							renderDictionaryModal();
+							showToast(`Движок: ${engine.id} — перезапустите приложение`, true);
+						} else {
+							showToast("Не удалось сохранить движок", false);
+						}
+					});
+					engineRow.appendChild(button);
+				}
+				body.appendChild(engineRow);
+				const strategyRow = modalElement("div", "display:flex;gap:6px;padding:0 4px 6px;flex-wrap:wrap");
+				for (const merge of ["auto", "sentences", "text", "words"]) {
+					const active = (engineInfo.merge ?? "auto") === merge;
+					const button = modalElement("div", "cursor:pointer;padding:5px 10px;border-radius:8px;font:500 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+						+ "background:" + (active ? "rgba(122,162,255,.25)" : "rgba(60,60,66,.7)") + ";color:#f2f2f5", merge);
+					button.setAttribute("role", "button");
+					button.addEventListener("click", async () => {
+						const result = await saveEngineChoice(engineInfo.engine, merge);
+						if (result !== undefined && result.ok) {
+							dictionaryModal.engineInfo = { ...engineInfo, merge };
+							renderDictionaryModal();
+							showToast(`Стратегия: ${merge} — перезапустите приложение`, true);
+						} else {
+							showToast("Не удалось сохранить стратегию", false);
+						}
+					});
+					strategyRow.appendChild(button);
+				}
+				body.appendChild(strategyRow);
+				body.appendChild(modalElement("div", "padding:0 8px 6px;color:#8a8a95;font:500 11px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Применится после перезапуска приложения"));
+			}
+			// Предложения из последних диктовок: искажённые термины.
+			const suggestions = dictionaryModal.suggestions ?? [];
+			if (suggestions.length > 0) {
+				section("Предложения", suggestions.length);
+				for (const suggestion of suggestions.slice(0, 10)) {
+					const line = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:8px;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+					line.appendChild(modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", `${suggestion.heard} → ${suggestion.chosen}`));
+					const remember = modalElement("span", "cursor:pointer;color:#9fe6b4;padding:0 4px;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Запомнить");
+					remember.setAttribute("role", "button");
+					remember.addEventListener("click", async () => {
+						const result = await postDictionary("/learn", { heard: suggestion.heard, chosen: suggestion.chosen });
+						if (result !== undefined && result.ok) {
+							dictionaryCache.at = 0;
+							dictionaryModal.dictionary = await fetchDictionary();
+							dictionaryModal.suggestions = await fetchSuggestions();
+							renderDictionaryModal();
+							showToast(`Запомнено: ${suggestion.heard} → ${suggestion.chosen}`, true);
+						} else {
+							showToast("Не удалось запомнить", false);
+						}
+					});
+					line.appendChild(remember);
+					body.appendChild(line);
+				}
+			}
+			section("Слова", words.length);
+			if (words.length === 0) body.appendChild(modalElement("div", "padding:6px 10px;color:#8a8a95;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", query === "" ? "Пока пусто — добавьте слово сверху" : "Ничего не найдено"));
+			for (const word of words.slice(0, 200)) {
+				body.appendChild(row(word, async () => {
 					const result = await postDictionary("/forget", word);
 					if (result !== undefined && result.ok) {
 						dictionaryCache.at = 0;
-						dictionaryCache.words = dictionaryCache.words.filter((entry) => entry !== word);
-						showDictionaryList(rect, { ...dictionary, words: dictionary.words.filter((entry) => entry !== word) });
-						showToast(`Убрано из словаря: ${word}`, true);
+						dictionaryModal.dictionary = await fetchDictionary();
+						renderDictionaryModal();
+						showToast(`Убрано: ${word}`, true);
 					} else {
 						showToast("Не удалось удалить", false);
 					}
-				});
-				row.appendChild(label);
-				row.appendChild(remove);
-				return row;
+				}));
 			}
-
-			/** Shows the whole personal dictionary with remove buttons. */
-			function showDictionaryList(rect, dictionary) {
-				hidePanel();
-				panelPhrase = "__dictionary__";
-				panel = document.createElement("div");
-				panel.setAttribute("data-dsh-locale-ru-dictionary", "");
-				panel.style.cssText = "position:fixed;z-index:2147483647;min-width:180px;max-width:280px;"
-					+ "padding:6px;border-radius:12px;background:rgba(20,20,22,.97);"
-					+ "border:1px solid rgba(122,162,255,.35);box-shadow:0 6px 22px rgba(0,0,0,.45);"
-					+ "display:flex;flex-direction:column;gap:2px;max-height:320px;overflow:auto";
-				panel.addEventListener("mousedown", (event) => {
-					event.preventDefault();
-				});
-				const words = dictionary.words ?? [];
-				const title = document.createElement("div");
-				title.textContent = `Словарь (${words.length})`;
-				title.style.cssText = "padding:2px 8px 4px;color:#8a8a95;font:500 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-				panel.appendChild(title);
-				if (words.length === 0) {
-					const empty = document.createElement("div");
-					empty.textContent = "Пока пусто — добавьте слово через выделение";
-					empty.style.cssText = "padding:6px 10px;color:#8a8a95;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-					panel.appendChild(empty);
+			if (pairs.length > 0) {
+				section("Замены", pairs.length);
+				for (const [heard, chosen] of pairs.slice(0, 200)) {
+					body.appendChild(row(`${heard} → ${chosen}`, async () => {
+						const result = await postDictionary("/forget-pair", { heard });
+						if (result !== undefined && result.ok) {
+							dictionaryCache.at = 0;
+							dictionaryModal.dictionary = await fetchDictionary();
+							renderDictionaryModal();
+							showToast(`Убрана замена: ${heard}`, true);
+						} else {
+							showToast("Не удалось удалить замену", false);
+						}
+					}));
 				}
-				for (const word of words.slice(0, 80)) panel.appendChild(buildWordRow(word, dictionary, rect));
-				const top = rect.top > 320 ? rect.top - 8 - Math.min(60 + words.length * 30, 320) : rect.bottom + 8;
-				panel.style.left = `${Math.max(8, Math.min(rect.left, (window.innerWidth ?? 1200) - 300))}px`;
-				panel.style.top = `${Math.max(8, top)}px`;
-				if (document.body !== undefined) document.body.appendChild(panel);
 			}
+			if (addInput.value === undefined) addInput.value = "";
+		}
 
-			/** Shows the popover for the selection with the given candidates. */
+		/** Opens the dictionary modal: search, add field and both lists. */
+		async function openDictionaryModal() {
+			if (dictionaryModal !== undefined) return;
+			const [dictionary, engineInfo, suggestions] = await Promise.all([fetchDictionary(), fetchEngineInfo(), fetchSuggestions()]);
+			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
+			const panel = modalElement("div", "width:min(520px,92vw);max-height:76vh;display:flex;flex-direction:column;"
+				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
+				+ "box-shadow:0 18px 60px rgba(0,0,0,.55);overflow:hidden");
+			panel.setAttribute("data-dsh-locale-ru-modal", "");
+			panel.addEventListener("mousedown", (event) => event.stopPropagation());
+			backdrop.addEventListener("mousedown", (event) => {
+				if (event.target === backdrop) closeDictionaryModal();
+			});
+
+			const header = modalElement("div", "display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px");
+			header.appendChild(modalElement("div", "color:#f2f2f5;font:600 15px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Словарь распознавания"));
+			const close = modalElement("div", "cursor:pointer;color:#8a8a95;font-size:18px;line-height:1;padding:2px 6px", "×");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => closeDictionaryModal());
+			header.appendChild(close);
+			panel.appendChild(header);
+
+			const addRow = modalElement("div", "display:flex;gap:8px;padding:0 16px 8px");
+			const addInput = modalElement("input", "flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid rgba(122,162,255,.3);"
+				+ "background:rgba(10,10,12,.9);color:#f2f2f5;font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none");
+			addInput.setAttribute("placeholder", "Слово или фраза (можно несколько через запятую)");
+			const addButton = modalElement("div", "cursor:pointer;padding:8px 14px;border-radius:9px;background:rgba(28,92,58,.95);color:#fff;"
+				+ "font:600 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Добавить");
+			addButton.setAttribute("role", "button");
+			addButton.addEventListener("click", async () => {
+				const value = addInput.value;
+				addInput.value = "";
+				await addWordsToList(value);
+			});
+			addInput.addEventListener("keydown", async (event) => {
+				if (event.key !== "Enter") return;
+				event.preventDefault?.();
+				const value = addInput.value;
+				addInput.value = "";
+				await addWordsToList(value);
+			});
+			addRow.appendChild(addInput);
+			addRow.appendChild(addButton);
+			panel.appendChild(addRow);
+
+			const searchInput = modalElement("input", "margin:0 16px 6px;padding:7px 10px;border-radius:9px;border:1px solid rgba(122,162,255,.18);"
+				+ "background:rgba(10,10,12,.7);color:#f2f2f5;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none");
+			searchInput.setAttribute("placeholder", "Поиск по словарю и заменам");
+			searchInput.addEventListener("input", () => renderDictionaryModal());
+			panel.appendChild(searchInput);
+
+			const body = modalElement("div", "flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px");
+			body.addEventListener("wheel", (event) => event.stopPropagation(), { passive: true });
+			panel.appendChild(body);
+
+			const footer = modalElement("div", "display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06)");
+			const agentButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(80,60,110,.9);color:#f2f2f5;"
+				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Попросить агента дообучить");
+			agentButton.setAttribute("role", "button");
+			agentButton.addEventListener("click", () => requestAgentCoaching());
+			const clipboardButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(60,60,66,.9);color:#f2f2f5;"
+				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "＋ из буфера обмена");
+			clipboardButton.setAttribute("role", "button");
+			clipboardButton.addEventListener("click", async () => {
+				try {
+					const text = await navigator.clipboard.readText();
+					await addWordsToList(text);
+				} catch (error) {
+					showToast("Нет доступа к буферу обмена", false);
+				}
+			});
+			const doneButton = modalElement("div", "cursor:pointer;padding:7px 14px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;"
+				+ "font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Готово");
+			doneButton.setAttribute("role", "button");
+			doneButton.addEventListener("click", () => closeDictionaryModal());
+			footer.appendChild(agentButton);
+			footer.appendChild(clipboardButton);
+			footer.appendChild(doneButton);
+			panel.appendChild(footer);
+
+			backdrop.appendChild(panel);
+			if (document.body !== undefined) document.body.appendChild(backdrop);
+			dictionaryModal = { backdrop, panel, body, addInput, searchInput, dictionary, engineInfo, suggestions };
+			renderDictionaryModal();
+			addInput.focus?.();
+		}
+
+		/** Toggles the dictionary modal. */
+		function toggleDictionaryModal() {
+			if (dictionaryModal !== undefined) closeDictionaryModal();
+			else void openDictionaryModal();
+		}
+
+					/** Shows the popover for the selection with the given candidates. */
 			function showPanel(rect, phrase, candidates, dictionary) {
 				current = phrase;
 				panelPhrase = phrase;
@@ -818,10 +1232,21 @@ window.__ModuleLoader__.load({
 						}));
 					}
 				}
+				const appliedHeard = lastAppliedReplacements[phrase.toLowerCase()];
+				if (appliedHeard !== undefined && appliedHeard !== "") {
+					panel.appendChild(buildRow(`Вернуть: ${appliedHeard}`, async () => {
+						if (!replaceSelection(appliedHeard)) {
+							showToast("Не удалось вернуть слово", false);
+							return;
+						}
+						showToast(`Возвращено: ${appliedHeard}`, true);
+					}));
+				}
 				const words = dictionary.words ?? [];
 				if (words.length > 0) {
 					panel.appendChild(buildRow(`Словарь (${words.length})`, async () => {
-						showDictionaryList(rect, dictionary);
+						hidePanel();
+						void openDictionaryModal();
 					}));
 				}
 				const inDictionary = (dictionary.words ?? []).some((word) => String(word).toLowerCase() === phrase.toLowerCase());
@@ -848,6 +1273,24 @@ window.__ModuleLoader__.load({
 					}));
 				}
 				if (document.body !== undefined) document.body.appendChild(panel);
+				// Не перекрываем выделенный текст: если поповер залез на него, поднимаем выше.
+				try {
+					const panelRect = panel.getBoundingClientRect?.();
+					if (panelRect !== undefined && panelRect !== null && panelRect.width > 0) {
+						const overlaps = !(panelRect.bottom <= rect.top || panelRect.top >= rect.bottom
+							|| panelRect.right <= rect.left || panelRect.left >= rect.right);
+						if (overlaps) {
+							const above = rect.top - panelRect.height - 10;
+							panel.style.top = `${Math.max(8, above)}px`;
+							const adjusted = panel.getBoundingClientRect?.();
+							if (adjusted !== undefined && adjusted !== null && adjusted.top < 8) {
+								panel.style.top = `${Math.min((window.innerHeight ?? 800) - panelRect.height - 8, rect.bottom + 10)}px`;
+							}
+						}
+					}
+				} catch (error) {
+					// измерение недоступно — оставляем как есть
+				}
 			}
 
 			/** Handles a selection change with a short debounce. */
@@ -916,6 +1359,14 @@ window.__ModuleLoader__.load({
 					&& typeof panel.contains === "function" && panel.contains(target)) return;
 				hidePanel();
 			};
+			const onHotkey = (event) => {
+				if (event === null || event === undefined) return;
+				if (!(event.metaKey || event.ctrlKey) || !event.shiftKey) return;
+				if (String(event.key ?? "").toLowerCase() !== "d") return;
+				if (typeof event.preventDefault === "function") event.preventDefault();
+				if (!removed) toggleDictionaryModal();
+			};
+			document.addEventListener("keydown", onHotkey);
 			const onDocumentMouseDown = (event) => {
 				if (panel === undefined) return;
 				const target = event !== null && event !== undefined ? event.target : null;
@@ -923,8 +1374,18 @@ window.__ModuleLoader__.load({
 				const inside = typeof panel.contains === "function" ? panel.contains(target) : false;
 				if (!inside) hidePanel();
 			};
+			openSelectionPopover = () => {
+				handleSelection();
+			};
 			const onKeyDown = (event) => {
-				if (event !== null && event !== undefined && (event.key === "Escape" || event.keyCode === 27)) hidePanel();
+				if (event === null || event === undefined) return;
+				if (event.key !== "Escape" && event.keyCode !== 27) return;
+				if (dictionaryModal !== undefined) {
+					closeDictionaryModal();
+					return;
+				}
+				clearDictationHighlights();
+				hidePanel();
 			};
 			document.addEventListener("selectionchange", onSelectionChange);
 			document.addEventListener("mouseup", onSelectionChange);
@@ -939,7 +1400,9 @@ window.__ModuleLoader__.load({
 				document.removeEventListener("mouseup", onSelectionChange);
 				document.removeEventListener("keyup", onSelectionChange);
 				document.removeEventListener("keydown", onKeyDown);
+				document.removeEventListener("keydown", onHotkey);
 				document.removeEventListener("mousedown", onDocumentMouseDown);
+				closeDictionaryModal();
 				window.removeEventListener("scroll", onScroll, true);
 				hidePanel();
 			};
@@ -1007,8 +1470,18 @@ window.__ModuleLoader__.load({
 								dictationBeforeText = after;
 							}
 						}
+						// Одноразовая подсказка: текст вставляется по курсору.
+						try {
+							if (typeof localStorage !== "undefined" && localStorage.getItem("dsh-locale-ru-insert-hint") !== "1") {
+								localStorage.setItem("dsh-locale-ru-insert-hint", "1");
+								showToast("Диктовка вставляется туда, где стоит курсор", true);
+							}
+						} catch (error) {
+							// localStorage может быть недоступен
+						}
 					}
 					void notifyReplacements(target);
+					void highlightDictationResult(target);
 					scheduleLearn(target);
 				}, 0);
 			});

@@ -11,7 +11,17 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { installDesktop, latestBackup, planInstall, revertDesktop, verifyInstalled } from '../bin/desktop-install.mjs'
+import {
+  ensureWhisperModel,
+  installDesktop,
+  installWhisper,
+  latestBackup,
+  planInstall,
+  removeProfileConfig,
+  revertDesktop,
+  verifyInstalled,
+  writeProfileConfig,
+} from '../bin/desktop-install.mjs'
 
 const failures = []
 const check = (label, condition, detail) => {
@@ -73,7 +83,7 @@ console.log('dry-run')
 {
   const { profileDir, appPath } = prepare()
   const before = readFileSync(join(profileDir, 'package.json'), 'utf8')
-  const result = installDesktop({ dshHome: workspace, version: '1.2.3', dryRun: true, appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', dryRun: true, appPath, log: silent, whisper: false })
   check('изменения запланированы', result.changes.length === 2)
   check('файл не изменён', readFileSync(join(profileDir, 'package.json'), 'utf8') === before)
   check('резервная копия не создана', readdirSync(profileDir).every((name) => !name.startsWith('.dsh-locale-backup-')))
@@ -82,7 +92,7 @@ console.log('dry-run')
 console.log('установка')
 {
   const { profileDir, appPath } = prepare()
-  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   const manifest = readProfile(profileDir)
   check('зависимость в манифесте', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
   check('бандл после голосового ввода', manifest.dsh.profile.bundles.indexOf('dsh-locale-russian') > manifest.dsh.profile.bundles.indexOf(voiceBundle))
@@ -91,7 +101,7 @@ console.log('установка')
   const backupManifest = JSON.parse(readFileSync(join(result.backupDir, 'package.json'), 'utf8'))
   check('в копии прежний манифест', backupManifest.dependencies['dsh-locale-russian'] === undefined)
   check('чужой плагин сохранён', manifest.dependencies['other-plugin'] === '1.0.0')
-  const again = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const again = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   check('повторная установка идемпотентна', again.changes.length === 0)
 }
 
@@ -102,7 +112,7 @@ console.log('перестановка из старого порядка')
   manifest.dsh.profile.bundles = ['base', 'dsh-locale-russian', voiceBundle]
   manifest.dependencies['dsh-locale-russian'] = '^1.2.3'
   writeFileSync(join(profileDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
-  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   const after = readProfile(profileDir)
   check('бандл перемещён после голосового ввода', after.dsh.profile.bundles.indexOf('dsh-locale-russian') > after.dsh.profile.bundles.indexOf(voiceBundle))
   check('перестановка отражена в изменениях', result.changes.some((change) => change.includes('перемещён')), JSON.stringify(result.changes))
@@ -114,7 +124,7 @@ console.log('сбой установки')
   const before = readFileSync(join(profileDir, 'package.json'), 'utf8')
   let error
   try {
-    installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [] })
+    await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [], whisper: false })
   } catch (caught) {
     error = caught
   }
@@ -126,7 +136,7 @@ console.log('сбой установки')
 console.log('повтор после сбоя pnpm')
 {
   const { profileDir, appPath } = prepare({ pnpmFailsOnce: true })
-  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [10] })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [10], whisper: false })
   check('установка прошла после повтора', result.verified.ok === true, JSON.stringify(result.verified))
   check('пакет установлен', existsSync(join(profileDir, 'node_modules', 'dsh-locale-russian', 'package.json')))
 }
@@ -135,11 +145,81 @@ console.log('откат')
 {
   const { profileDir, appPath } = prepare()
   const original = readFileSync(join(profileDir, 'package.json'), 'utf8')
-  installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false })
   check('после установки манифест другой', readFileSync(join(profileDir, 'package.json'), 'utf8') !== original)
   revertDesktop({ dshHome: workspace, appPath, log: silent })
   check('манифест вернулся к исходному', readFileSync(join(profileDir, 'package.json'), 'utf8') === original)
   check('резервная копия удалена', latestBackup(profileDir) === undefined)
+}
+
+console.log('конфиг движка в профиле')
+{
+  const { profileDir } = prepare()
+  const changed = writeProfileConfig(profileDir, {
+    engine: 'hybrid',
+    merge: 'auto',
+    whisperBinaryPath: '/opt/homebrew/bin/whisper-cli',
+    whisperModelPath: '/tmp/model.bin',
+  })
+  check('конфиг записан', changed === true)
+  const patch = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+  check('движок hybrid в патче', patch.includes('engine: hybrid') && patch.includes('merge: auto'), patch)
+  check('пути Whisper в патче', patch.includes('whisper-cli') && patch.includes('/tmp/model.bin'))
+  const again = writeProfileConfig(profileDir, {
+    engine: 'hybrid',
+    merge: 'auto',
+    whisperBinaryPath: '/opt/homebrew/bin/whisper-cli',
+    whisperModelPath: '/tmp/model.bin',
+  })
+  check('повторная запись не дублирует', again === false && (patch.match(/engine: hybrid/gu) ?? []).length === 1, patch)
+  const removed = removeProfileConfig(profileDir)
+  const after = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+  check('конфиг удалён', removed === true && !after.includes('engine: hybrid'), after)
+}
+
+console.log('модель Whisper: скачивание')
+{
+  const { profileDir } = prepare()
+  const modelPath = join(workspace, 'whisper-model.bin')
+  const fakeFetch = async () => ({
+    ok: true,
+    headers: { get: () => '10' },
+    body: (async function* () { yield Buffer.from('0123456789') })(),
+  })
+  const downloaded = await ensureWhisperModel({ dshHome: workspace, modelPath, minBytes: 5, fetchImpl: fakeFetch })
+  check('модель скачана', downloaded.downloaded === true && readFileSync(modelPath, 'utf8') === '0123456789')
+  const cached = await ensureWhisperModel({ dshHome: workspace, modelPath, minBytes: 5 })
+  check('повторно не скачивается', cached.downloaded === false)
+  const dry = await ensureWhisperModel({ dshHome: workspace, modelPath: join(workspace, 'new-model.bin'), minBytes: 5, dryRun: true })
+  check('dry-run не скачивает', dry.dryRun === true && !existsSync(join(workspace, 'new-model.bin')))
+  void profileDir
+}
+
+console.log('вложенный Whisper: копируется без Homebrew')
+{
+  prepare()
+  const vendorRoot = join(workspace, 'vendor-whisper')
+  const arch = 'arm64'
+  mkdirSync(join(vendorRoot, arch), { recursive: true })
+  writeFileSync(join(vendorRoot, arch, 'whisper-cli'), '#!/bin/sh\necho fake\n')
+  writeFileSync(join(vendorRoot, arch, 'libfake.dylib'), 'fake')
+  const modelPath = join(workspace, 'vendor-model.bin')
+  writeFileSync(modelPath, 'model')
+  const result = await installWhisper({ dshHome: workspace, vendorRoot, arch, modelPath, minBytes: 1, log: silent })
+  const target = join(workspace, 'speech-ru', 'whisper', 'bin', 'whisper-cli')
+  check('prebuilt скопирован', result.binary === target && existsSync(target))
+  check('модель на месте', result.modelPath === modelPath && existsSync(modelPath))
+  const fallback = await installWhisper({ dshHome: workspace, vendorRoot: join(workspace, 'нет-vendor'), installBinary: false, searchSystem: false, modelPath, minBytes: 1, log: silent })
+  check('без vendor и brew — binary нет', fallback.binary === undefined)
+}
+
+console.log('installDesktop пишет конфиг движка')
+{
+  const { profileDir, appPath } = prepare()
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false, engine: 'gigaam', merge: 'auto' })
+  check('движок gigaam в результате', result.engine === 'gigaam', JSON.stringify(result.engine))
+  const patch = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+  check('конфиг записан установщиком', patch.includes('engine: gigaam') && patch.includes('merge: auto'), patch)
 }
 
 console.log('нет профиля')
@@ -147,7 +227,7 @@ console.log('нет профиля')
   rmSync(workspace, { recursive: true, force: true })
   let error
   try {
-    installDesktop({ dshHome: workspace, version: '1.2.3', log: silent })
+    await installDesktop({ dshHome: workspace, version: '1.2.3', log: silent, whisper: false })
   } catch (caught) {
     error = caught
   }
@@ -168,7 +248,7 @@ console.log('манифест без dsh и dependencies')
 {
   const { profileDir, appPath } = prepare()
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({ name: 'dsh-profile-desktop' }, null, 2))
-  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
   const manifest = readProfile(profileDir)
   check('dependencies созданы', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
   check('dsh.profile создан', Array.isArray(manifest.dsh?.profile?.bundles) && manifest.dsh.profile.bundles.includes('dsh-locale-russian'))
@@ -182,7 +262,7 @@ console.log('нет pnpm')
   process.env.PATH = join(workspace, 'empty-path')
   let error
   try {
-    installDesktop({ dshHome: workspace, version: '1.2.3', appPath: join(workspace, 'no-app'), log: silent })
+    await installDesktop({ dshHome: workspace, version: '1.2.3', appPath: join(workspace, 'no-app'), log: silent, whisper: false })
   } catch (caught) {
     error = caught
   } finally {

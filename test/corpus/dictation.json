@@ -1,0 +1,15 @@
+{
+  "description": "Смешанные фразы для замера слияния движков: русская речь, английские термины, бренды, числа, пунктуация.",
+  "phrases": [
+    { "id": "mixed-terms", "text": "Привет! Сегодня мы обсудили GitHub, OpenAI, Anthropic, Slack и Worktrees." },
+    { "id": "russian-clean", "text": "Сегодня хорошая погода, мы гуляли в парке и пили чай." },
+    { "id": "numbers", "text": "Проверка связи 1, 2, 3. Встреча в 15:30, код 4872." },
+    { "id": "brands", "text": "Купил BMW и Toyota, написал в Telegram и Messenger." },
+    { "id": "deploy", "text": "Деплой прошёл успешно, токен утёк, а LLM отвечает медленно." },
+    { "id": "commands", "text": "Открой настройки, проверь плагины и профиль, потом перезапусти приложение." },
+    { "id": "english-heavy", "text": "OpenAI, Anthropic, DeepSeek и Alibaba выпустили новые LLM." },
+    { "id": "punctuation", "text": "Как дела? Всё хорошо, спасибо! Работаем дальше." },
+    { "id": "long-mixed", "text": "Вчера мы обсудили GitHub Actions, потом перешли на Slack, а вечером смотрели доклад про LLM и RAG." },
+    { "id": "file-paths", "text": "Открой файл package.json и папку src, потом запусти npm install." }
+  ]
+}

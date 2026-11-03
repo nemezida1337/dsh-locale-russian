@@ -142,6 +142,9 @@ console.log('endpoint хоста')
     const probe = createServer()
     probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
   })
+  process.env.DSH_HOME = workspace
+  mkdirSync(join(workspace, 'profiles', 'desktop'), { recursive: true })
+  writeFileSync(join(workspace, 'profiles', 'desktop', 'cordis.patch.yml'), '- id: test\n')
   const service = { register() { return async () => {} }, snapshot() { return { selection: { providerId: 'gigaam-local' } } }, async *follow() {} }
   const cleanups = []
   const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
@@ -186,6 +189,26 @@ console.log('endpoint хоста')
   check('слово забыто через endpoint', forget.ok === true && !readFileSync(file, 'utf8').includes('\nGitHub\n'), JSON.stringify(forget))
   const forgetMissing = await fetch(`http://127.0.0.1:${port}/forget`, { method: 'POST', body: JSON.stringify('НетТакого') })
   check('забывание отсутствующего — 400', forgetMissing.status === 400)
+  const forgetPair = await fetch(`http://127.0.0.1:${port}/forget-pair`, { method: 'POST', body: JSON.stringify({ heard: 'гитхаб' }) }).then((response) => response.json())
+  check('пара забыта через endpoint', forgetPair.ok === true && !readFileSync(replacementsFile, 'utf8').includes('"гитхаб"'), JSON.stringify(forgetPair))
+  const forgetPairMissing = await fetch(`http://127.0.0.1:${port}/forget-pair`, { method: 'POST', body: JSON.stringify({ heard: 'нет' }) })
+  check('забывание отсутствующей пары — 400', forgetPairMissing.status === 400)
+  writeFileSync(join(workspace, 'transcripts.json'), JSON.stringify([{ at: Date.now(), merged: 'говорю NGINE и Sentences Default' }]))
+  await post('engine')
+  const suggestions = await fetch(`http://127.0.0.1:${port}/suggestions`).then((response) => response.json())
+  check('предложение искажённого термина', Array.isArray(suggestions.suggestions) && suggestions.suggestions.some((entry) => entry.heard === 'ngine' && entry.chosen === 'engine'), JSON.stringify(suggestions))
+  const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
+  check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'auto', JSON.stringify(engineGet))
+  const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ engine: 'hybrid', merge: 'sentences' }),
+  }).then((response) => response.json())
+  check('engine: сохранение выбора', enginePost.ok === true && enginePost.restartRequired === true, JSON.stringify(enginePost))
+  const patchFile = join(workspace, 'profiles', 'desktop', 'cordis.patch.yml')
+  check('engine: конфиг записан', readFileSync(patchFile, 'utf8').includes('engine: hybrid') && readFileSync(patchFile, 'utf8').includes('merge: sentences'), readFileSync(patchFile, 'utf8'))
+  const engineBad = await fetch(`http://127.0.0.1:${port}/engine`, { method: 'POST', body: JSON.stringify({ engine: 'nope' }) })
+  check('engine: неверный движок — 400', engineBad.status === 400)
   const learnedBad = await fetch(`http://127.0.0.1:${port}/learn`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -193,6 +216,7 @@ console.log('endpoint хоста')
   })
   check('битый JSON отклоняется', learnedBad.status === 400)
   for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.DSH_HOME
   check('endpoint закрывается при выгрузке', await fetch(`http://127.0.0.1:${port}/health`).then(() => false, () => true))
 }
 

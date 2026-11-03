@@ -11,8 +11,9 @@
  * `--dry-run`/`--revert` are available.
  */
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 /** Name of the package this installer belongs to. */
 export const PACKAGE_NAME = 'dsh-locale-russian'
@@ -144,18 +145,203 @@ function runPnpm(pnpm, profileDir, { dryRun }) {
   return { status: result.status ?? 1, stdout: result.stdout ?? '', stderr: result.stderr ?? '' }
 }
 
+/** Whisper model used by the hybrid engine. */
+export const WHISPER_MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin'
+/** Default model location inside the DSH home. */
+export const whisperModelPath = (dshHome) => join(dshHome, 'speech-ru', 'whisper', 'ggml-large-v3-turbo-q5_0.bin')
+
+/** Finds the whisper-cli binary: explicit env, Homebrew prefixes, then PATH. */
+export function findWhisperBinary({ env = process.env } = {}) {
+  if (typeof env.WHISPER_CLI === 'string' && env.WHISPER_CLI.length > 0 && existsSync(env.WHISPER_CLI)) return env.WHISPER_CLI
+  for (const candidate of ['/opt/homebrew/bin/whisper-cli', '/usr/local/bin/whisper-cli']) {
+    if (existsSync(candidate)) return candidate
+  }
+  const found = spawnSync('which', ['whisper-cli'], { encoding: 'utf8' })
+  if (found.status === 0 && found.stdout.trim().length > 0) return found.stdout.trim()
+  return undefined
+}
+
+/**
+ * Downloads a file with progress logging, writing atomically through a temp file.
+ * @param url - source URL.
+ * @param target - destination path.
+ * @param options - log, minimum accepted size.
+ * @returns the written path.
+ */
+export async function downloadFile(url, target, { log = console.log, minBytes = 0, fetchImpl = fetch } = {}) {
+  const response = await fetchImpl(url)
+  if (!response.ok) throw new Error(`HTTP ${response.status} при скачивании ${url}`)
+  const total = Number(response.headers.get('content-length') ?? 0)
+  mkdirSync(dirname(target), { recursive: true })
+  const temp = `${target}.download-${process.pid}`
+  const chunks = []
+  let received = 0
+  let lastPercent = -10
+  if (response.body !== undefined && typeof response.body[Symbol.asyncIterator] === 'function') {
+    for await (const chunk of response.body) {
+      chunks.push(Buffer.from(chunk))
+      received += chunk.length
+      if (total > 0) {
+        const percent = Math.floor((received / total) * 100)
+        if (percent >= lastPercent + 10) {
+          lastPercent = percent
+          log(`  модель: ${percent}% (${(received / 1048576).toFixed(0)} из ${(total / 1048576).toFixed(0)} МБ)`)
+        }
+      }
+    }
+  } else {
+    chunks.push(Buffer.from(await response.arrayBuffer()))
+    received = chunks[0].length
+  }
+  const data = Buffer.concat(chunks)
+  if (data.length < minBytes) throw new Error(`скачано слишком мало: ${data.length} байт`)
+  writeFileSync(temp, data)
+  renameSync(temp, target)
+  return target
+}
+
+/**
+ * Ensures the Whisper model is present, downloading it when missing.
+ * @param options - dshHome, log, dryRun, modelPath, minBytes, fetchImpl.
+ * @returns the model path and whether it was downloaded.
+ */
+export async function ensureWhisperModel({ dshHome, log = console.log, dryRun = false, modelPath, minBytes = 100 * 1024 * 1024, fetchImpl = fetch } = {}) {
+  const target = modelPath ?? whisperModelPath(dshHome)
+  if (existsSync(target)) {
+    const size = statSync(target).size
+    if (size >= minBytes) return { path: target, downloaded: false }
+  }
+  if (dryRun) {
+    log(`  модель Whisper: будет скачана → ${target}`)
+    return { path: target, downloaded: true, dryRun: true }
+  }
+  log(`  скачиваю модель Whisper (~574 МБ) → ${target}`)
+  await downloadFile(WHISPER_MODEL_URL, target, { log, minBytes, fetchImpl })
+  return { path: target, downloaded: true }
+}
+
+/**
+ * Installs Whisper: the binary (via Homebrew when missing) and the model.
+ * @param options - dshHome, log, dryRun, installBinary, modelPath.
+ * @returns the binary and model paths.
+ */
+export async function installWhisper({ dshHome, log = console.log, dryRun = false, installBinary = true, modelPath, minBytes = 100 * 1024 * 1024, vendorRoot = VENDOR_WHISPER_ROOT, arch = process.arch, searchSystem = true } = {}) {
+  let binary
+  // Сначала вложенный prebuilt: не требует Homebrew и интернета.
+  const vendorDir = join(vendorRoot, arch)
+  const vendorBinary = join(vendorDir, 'whisper-cli')
+  if (existsSync(vendorBinary)) {
+    const targetDir = join(dshHome, 'speech-ru', 'whisper', 'bin')
+    if (!dryRun) {
+      rmSync(targetDir, { recursive: true, force: true })
+      mkdirSync(targetDir, { recursive: true })
+      cpSync(vendorDir, targetDir, { recursive: true })
+      for (const name of readdirSync(targetDir)) chmodSync(join(targetDir, name), 0o755)
+    }
+    binary = join(targetDir, 'whisper-cli')
+    log(`  whisper-cli: вложенный prebuilt (${arch})`)
+  } else if (searchSystem) {
+    binary = findWhisperBinary()
+  }
+  if (binary === undefined && installBinary && !dryRun) {
+    const brew = spawnSync('brew', ['--version'], { encoding: 'utf8' })
+    if (brew.status === 0) {
+      log('  whisper-cli не найден — ставлю через Homebrew (brew install whisper-cpp)')
+      const result = spawnSync('brew', ['install', 'whisper-cpp'], { stdio: 'inherit' })
+      if (result.status !== 0) log('  Homebrew не смог поставить whisper-cpp — работаем на GigaAM')
+      binary = findWhisperBinary()
+    } else {
+      log('  whisper-cli не найден и Homebrew нет — работаем на GigaAM')
+    }
+  }
+  const model = await ensureWhisperModel({ dshHome, log, dryRun, modelPath, minBytes })
+  return { binary, modelPath: model.path }
+}
+
+/** Root of the vendored whisper-cli bundles shipped with the package. */
+const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
+const VENDOR_WHISPER_ROOT = join(PACKAGE_ROOT, 'vendor', 'whisper')
+
+/** Marker of the dictionary engine block in the profile patch. */
+const ENGINE_BLOCK_MARKER = '# Гибрид GigaAM + Whisper'
+
+/** Removes the engine configuration block from the patch lines. */
+function removeEngineBlock(lines) {
+  const result = []
+  let skipping = false
+  for (const line of lines) {
+    if (line.startsWith('- id: locale-ru')) {
+      // Убираем и комментарий-маркер прямо перед строкой.
+      while (result.length > 0 && (result[result.length - 1].trim() === '' || result[result.length - 1].startsWith(ENGINE_BLOCK_MARKER))) {
+        result.pop()
+      }
+      skipping = true
+      continue
+    }
+    if (skipping) {
+      if (line.startsWith('  ') || line.trim() === '') continue
+      skipping = false
+    }
+    result.push(line)
+  }
+  return result
+}
+
+/**
+ * Writes the engine configuration into the profile patch, replacing the old one.
+ * @param profileDir - profile directory.
+ * @param options - engine, merge, whisper paths.
+ * @returns whether the file changed.
+ */
+export function writeProfileConfig(profileDir, { engine = 'hybrid', merge, whisperBinaryPath, whisperModelPath: modelPath, debugTranscripts } = {}) {
+  const path = join(profileDir, 'cordis.patch.yml')
+  if (!existsSync(path)) throw new Error(`в профиле нет cordis.patch.yml: ${path}`)
+  const lines = readFileSync(path, 'utf8').split('\n')
+  const cleaned = removeEngineBlock(lines)
+  const block = [ENGINE_BLOCK_MARKER + ': английские термины от Whisper, русская речь от GigaAM.']
+  block.push('- id: locale-ru')
+  block.push('  config:')
+  block.push(`    engine: ${engine}`)
+  if (merge !== undefined) block.push(`    merge: ${merge}`)
+  if (debugTranscripts === true) block.push('    debugTranscripts: true')
+  if (whisperBinaryPath !== undefined) block.push(`    whisperBinaryPath: ${whisperBinaryPath}`)
+  if (modelPath !== undefined) block.push(`    whisperModelPath: ${modelPath}`)
+  const next = `${cleaned.join('\n').replace(/\n+$/u, '')}\n\n${block.join('\n')}\n`
+  const previous = readFileSync(path, 'utf8')
+  if (previous === next) return false
+  writeFileSync(path, next)
+  return true
+}
+
+/** Removes the engine configuration from the profile patch. */
+export function removeProfileConfig(profileDir) {
+  const path = join(profileDir, 'cordis.patch.yml')
+  if (!existsSync(path)) return false
+  const previous = readFileSync(path, 'utf8')
+  const next = `${removeEngineBlock(previous.split('\n')).join('\n').replace(/\n+$/u, '')}\n`
+  if (next === previous) return false
+  writeFileSync(path, next)
+  return true
+}
+
 /**
  * Installs the package into the desktop profile.
  * @param options - profile location, version, pnpm, dry-run and logging.
  * @returns the result with changes, backup and verification.
  */
-export function installDesktop({
+export async function installDesktop({
   dshHome,
   version,
   dryRun = false,
   appPath,
   log = console.log,
   retryDelays = [15000, 30000, 45000],
+  engine,
+  merge,
+  whisper = true,
+  whisperModelPath: modelPath,
+  debugTranscripts,
+  fetchImpl,
 }) {
   const profileDir = join(dshHome, 'profiles', 'desktop')
   if (!existsSync(profileDir)) {
@@ -163,15 +349,26 @@ export function installDesktop({
   }
   const manifest = readManifest(profileDir)
   const { manifest: next, changes } = planInstall(manifest, { version })
-  if (changes.length === 0) {
-    return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: verifyInstalled(profileDir, manifest) }
-  }
   for (const change of changes) log(`  ${change}`)
+  if (dryRun) {
+    if (changes.length === 0) log(`  пакет уже установлен: ${PACKAGE_NAME}`)
+    const whisperPlan = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: true, modelPath, fetchImpl })
+    const plannedEngine = engine ?? (whisperPlan.binary !== undefined ? 'hybrid' : 'gigaam')
+    log(`  движок: ${plannedEngine}`)
+    return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: false, dryRun: true, engine: plannedEngine, whisper: whisperPlan }
+  }
+  if (changes.length === 0) {
+    // Пакет уже стоит: всё равно настраиваем движок и докачиваем Whisper.
+    const whisperResult = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: false, modelPath, fetchImpl })
+    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'hybrid' : 'gigaam')
+    writeProfileConfig(profileDir, { engine: chosenEngine, merge, debugTranscripts, whisperBinaryPath: whisperResult.binary, whisperModelPath: whisperResult.modelPath })
+    log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
+    return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: verifyInstalled(profileDir, manifest), engine: chosenEngine, whisper: whisperResult, alreadyInstalled: true }
+  }
   const pnpm = findPnpm({ appPath })
   if (pnpm === undefined && !dryRun) {
     throw new Error('pnpm не найден: установите pnpm или запустите приложение DeepSeek Harness, чтобы использовался встроенный')
   }
-  if (dryRun) return { profileDir, changes, backupDir: undefined, pnpm, verified: false }
 
   const backupDir = backupProfile(profileDir)
   log(`  резервная копия: ${backupDir}`)
@@ -192,7 +389,21 @@ export function installDesktop({
     }
     const verified = verifyInstalled(profileDir, next)
     if (!verified.ok) throw new Error(verified.reason)
-    return { profileDir, changes, backupDir, pnpm, verified }
+    // Whisper и конфигурация движка: нормальная установка одним действием.
+    let whisperResult = { binary: undefined, modelPath: undefined }
+    if (whisper !== false) {
+      whisperResult = await installWhisper({ dshHome, log, dryRun, modelPath, fetchImpl })
+    }
+    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'hybrid' : 'gigaam')
+    writeProfileConfig(profileDir, {
+      engine: chosenEngine,
+      merge,
+      debugTranscripts,
+      whisperBinaryPath: whisperResult.binary,
+      whisperModelPath: whisperResult.modelPath,
+    })
+    log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
+    return { profileDir, changes, backupDir, pnpm, verified, engine: chosenEngine, whisper: whisperResult }
   } catch (error) {
     restoreBackup(profileDir, backupDir)
     throw new Error(`${error instanceof Error ? error.message : String(error)}. Изменения отменены, профиль восстановлен из резервной копии.`)

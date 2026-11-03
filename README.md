@@ -79,7 +79,13 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 
 ### Приложение DeepSeek Harness (desktop)
 
-Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять. Пакет ставится одной командой: она находит профиль, делает резервную копию, добавляет зависимость и строку бандла (после голосового ввода, чтобы применились патчи конфигурации — провайдер по умолчанию и лимит диктовки), ставит пакет встроенным pnpm приложения и проверяет результат.
+Профиль `desktop` принадлежит Electron-приложению, и CLI отказывается им управлять. Пакет ставится одной командой: она находит профиль, делает резервную копию, добавляет зависимость и строку бандла, ставит пакет встроенным pnpm приложения, проверяет результат, **ставит Whisper из встроенного prebuilt** (Homebrew не нужен) и докачивает модель ~574 МБ и **настраивает гибридный движок** в профиле. Одно действие — рабочий гибрид:
+
+```sh
+npx dsh-locale-russian-install --desktop
+```
+
+Флаги: `--engine gigaam|whisper|hybrid` (по умолчанию hybrid, если Whisper доступен), `--merge auto|sentences|text|words`, `--no-whisper` (остаться на GigaAM), `--whisper-model <путь>`.
 
 ```sh
 npx dsh-locale-russian-install --desktop
@@ -89,7 +95,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.22.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.23.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -128,7 +134,7 @@ npx dsh-locale-russian-install --desktop
 
 - **GigaAM v3** (по умолчанию) — лучший на русской речи: 6.57 % WER на аудиокнигах, 6.95 % на спонтанной речи.
 - **Whisper large-v3-turbo** — лучше на английских терминах: на фразах с латиницей 7.89 % против 10.27 % у GigaAM (по [открытому бенчмарку](https://github.com/vakovalskii/stt-ru-benchmark)).
-- **Гибрид** — запускает оба параллельно и выбирает текст с лучшей оценкой: число слов словаря минус искажённая латиница (GigaAM иногда пишет «gighab» вместо GitHub). По умолчанию берётся целый лучший текст; `merge: words` включает пословное слияние (экспериментально — на смешанной речи оно проигрывает).
+- **Гибрид (sentences, по умолчанию)** — запускает оба параллельно и сливает посентенционно: для каждого предложения берётся вариант с лучшей оценкой (термины из словаря минус искажённая латиница). Оба движка получают словарь: GigaAM через hotwords, Whisper через `--prompt`. На корпусе из 10 смешанных фраз: GigaAM 27.7% WER, Whisper 11.3%, **гибрид — 8.6%** при 97% точности терминов. Другие стратегии: `merge: sentences|text|auto|words` (пословное — экспериментальное).
 
 Включается в патче профиля:
 
@@ -156,6 +162,8 @@ npx dsh-locale-russian-install --desktop
 ### Личный словарь
 
 Движок не знает ваших терминов — он может услышать «конфиг хотводс» вместо `configHotwords`. Для этого есть личный словарь: он хранится отдельной секцией в `~/.dsh/speech-ru/hotwords.txt` и подмешивается к распознаванию.
+
+**Подробные гайды:** [docs/DICTIONARY.md](docs/DICTIONARY.md) — словарь (добавление, подсветка, авто-обучение, CLI); [docs/REPLACEMENTS.md](docs/REPLACEMENTS.md) — замены; [docs/COACHING.md](docs/COACHING.md) — тюнинг через разговор с агентом.
 
 **Первичное заполнение** — из терминала, списком или файлом:
 
