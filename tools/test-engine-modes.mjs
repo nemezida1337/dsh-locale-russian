@@ -91,6 +91,42 @@ console.log('гибрид: термины берём у Whisper')
   delete process.env.FAKE_WHISPER_TRANSCRIPT
 }
 
+console.log('гибрид: пословное слияние')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка связи. Гитхап Пир Фордж Лайфер.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи. GitHub, Peer, Forge, LiveShare.'
+  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub', 'Peer', 'Forge', 'LiveShare'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('термины из Whisper, русское от GigaAM', result.text === 'Проверка связи. GitHub, Peer, Forge, LiveShare.', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: числа остаются у GigaAM')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка связи 1, 2, 3.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи, 123.'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('числа GigaAM сохранены', result.text === 'Проверка связи 1, 2, 3.', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('гибрид: термин, пропущенный GigaAM')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка связи.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи GitHub'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('термин добавлен из Whisper', result.text.includes('GitHub'), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('гибрид: русский текст остаётся у GigaAM')
 {
   process.env.FAKE_TRANSCRIPT = 'Проверка GitHub и связи'
