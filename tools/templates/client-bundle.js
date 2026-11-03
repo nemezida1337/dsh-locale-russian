@@ -292,7 +292,14 @@ window.__ModuleLoader__.load({
 			const dictionary = await fetchDictionary();
 			const pairs = Object.entries(dictionary.replacements ?? {});
 			if (pairs.length === 0) return;
-			const text = String(editable.innerText ?? "").toLowerCase();
+			let text = String(editable.innerText ?? "").toLowerCase();
+			// Если известна вставка — проверяем только её, а не весь черновик.
+			if (dictationInsertion !== null) {
+				const current = String(editable.innerText ?? "");
+				if (current.startsWith(dictationInsertion.prefix) && current.endsWith(dictationInsertion.suffix)) {
+					text = current.slice(dictationInsertion.prefix.length, current.length - dictationInsertion.suffix.length).toLowerCase();
+				}
+			}
 			const applied = pairs.filter(([, chosen]) => chosen !== "" && text.includes(String(chosen).toLowerCase()));
 			if (applied.length === 0) return;
 			replacementNoticeAt = Date.now();
@@ -347,6 +354,37 @@ window.__ModuleLoader__.load({
 		/** Text that should never be learned: links, paths, code, numbers. */
 		const LEARN_NOISE = /(https?:\/\/|www\.|[\/\\_@#$%^&*()\[\]{}<>|`~]|\d)/iu;
 
+		/** Russian function words: a correction between them is grammar, not terminology. */
+		const RUSSIAN_STOPWORDS = new Set([
+			"и", "в", "во", "не", "что", "он", "на", "я", "с", "со", "как", "а", "то", "все",
+			"она", "так", "его", "но", "да", "ты", "к", "у", "же", "вы", "за", "бы", "по",
+			"только", "ее", "мне", "было", "вот", "от", "меня", "еще", "нет", "о", "из",
+			"ему", "теперь", "когда", "даже", "ну", "вдруг", "ли", "если", "уже", "или",
+			"ни", "быть", "был", "него", "до", "вас", "нибудь", "опять", "уж", "вам", "ведь",
+			"там", "потом", "себя", "ничего", "ей", "может", "они", "тут", "где", "есть",
+			"надо", "ней", "для", "мы", "тебя", "их", "чем", "была", "сам", "чтоб", "без",
+			"будто", "чего", "раз", "тоже", "себе", "под", "будет", "ж", "тогда", "кто",
+			"этот", "того", "потому", "этого", "какой", "совсем", "ним", "здесь", "этом",
+			"один", "почти", "мой", "тем", "чтобы", "нее", "сейчас", "были", "куда", "зачем",
+			"всех", "никогда", "можно", "при", "наконец", "два", "об", "другой", "хоть",
+			"после", "над", "больше", "тот", "через", "эти", "нас", "про", "всего", "них",
+			"какая", "много", "разве", "три", "эту", "моя", "впрочем", "хорошо", "свою",
+			"этой", "перед", "иногда", "лучше", "чуть", "том", "нельзя", "такой", "им",
+			"более", "всегда", "конечно", "всю", "между",
+		]);
+
+		/** True for a pair that looks like a real misrecognition correction. */
+		function learnablePair(heard, chosen) {
+			const left = heard.toLowerCase();
+			const right = chosen.toLowerCase();
+			if (RUSSIAN_STOPWORDS.has(left) || RUSSIAN_STOPWORDS.has(right)) return false;
+			// Склонение/окончание («сделал» → «сделала») — грамматика, не термин.
+			if (right.startsWith(left) || left.startsWith(right)) return false;
+			// Совсем другое слово — это смысловая правка, её не учим.
+			if (similarity(heard, chosen) < 0.45) return false;
+			return true;
+		}
+
 		/**
 		 * Pairs changed words between the inserted and the edited text. Only
 		 * same-length word lists are compared, so a rewrite of the whole phrase
@@ -367,6 +405,7 @@ window.__ModuleLoader__.load({
 					if (heard === chosen) continue;
 					if (heard.length < 2 || chosen.length < 2 || heard.length > 64 || chosen.length > 64) continue;
 					if (LEARN_NOISE.test(heard) || LEARN_NOISE.test(chosen)) continue;
+					if (!learnablePair(heard, chosen)) continue;
 					pairs.push({ heard, chosen });
 				}
 				return pairs;
@@ -375,7 +414,7 @@ window.__ModuleLoader__.load({
 			if (left.length === 2 && right.length === 1) {
 				const heard = `${trimWord(left[0])} ${trimWord(left[1])}`;
 				const chosen = trimWord(right[0]);
-				if (heard.length > 2 && chosen.length > 1 && similarity(heard, chosen) >= 0.6 && !LEARN_NOISE.test(chosen)) {
+				if (heard.length > 2 && chosen.length > 1 && similarity(heard, chosen) >= 0.6 && !LEARN_NOISE.test(chosen) && learnablePair(heard, chosen)) {
 					pairs.push({ heard, chosen });
 				}
 				return pairs;
@@ -383,7 +422,7 @@ window.__ModuleLoader__.load({
 			if (left.length === 1 && right.length === 2) {
 				const heard = trimWord(left[0]);
 				const chosen = `${trimWord(right[0])} ${trimWord(right[1])}`;
-				if (heard.length > 1 && chosen.length > 2 && similarity(heard, chosen) >= 0.6 && !LEARN_NOISE.test(heard)) {
+				if (heard.length > 1 && chosen.length > 2 && similarity(heard, chosen) >= 0.6 && !LEARN_NOISE.test(heard) && learnablePair(heard, chosen)) {
 					pairs.push({ heard, chosen });
 				}
 				return pairs;

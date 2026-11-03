@@ -198,6 +198,20 @@ console.log('склейка двух слов в одно учится')
   check('пара «гит хаб → GitHub»', learn.length === 1 && JSON.parse(learn[0].body).heard === 'гит хаб' && JSON.parse(learn[0].body).chosen === 'GitHub', JSON.stringify(learn.map((request) => request.body)))
 }
 
+console.log('грамматика и смысловые правки не учатся')
+{
+  requests.length = 0
+  await dictate('Проверка ', 'Проверка сделал')
+  await edit('Проверка сделала')
+  check('склонение не учится', learnRequests().length === 0, JSON.stringify(learnRequests()))
+  await dictate('Проверка ', 'Проверка и слово')
+  await edit('Проверка а слово')
+  check('служебные слова не учатся', learnRequests().length === 0, JSON.stringify(learnRequests()))
+  await dictate('Проверка ', 'Проверка кот')
+  await edit('Проверка пёс')
+  check('другое слово не учится', learnRequests().length === 0, JSON.stringify(learnRequests()))
+}
+
 console.log('ссылки и числа не учатся')
 {
   requests.length = 0
