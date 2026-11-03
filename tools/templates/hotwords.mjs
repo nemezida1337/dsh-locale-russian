@@ -162,10 +162,14 @@ export function removeReplacement(text, heard) {
   return { ok: true, count: Object.keys(replacements).length, text: renderReplacements(replacements) }
 }
 
+/** Russian case endings that may follow a heard form («гитхабе», «Опенаи»). */
+const RU_ENDINGS = '(?:ами|ями|ах|ях|ам|ям|ов|ев|ой|ей|ом|ем|ия|ию|ии|ий|а|я|у|ю|е|о|ы|и)?'
+
 /**
  * Applies heard → chosen replacements to a transcript. Matching is
  * case-insensitive and respects word boundaries, so "гитхаб" inside
- * "гитхабер" is not replaced.
+ * "гитхабер" is not replaced. Cyrillic heard forms also match their Russian
+ * case forms: «гитхабе» and «Опенаи» become GitHub and OpenAI.
  * @param text - recognized text.
  * @param replacements - heard → chosen map.
  * @returns the corrected text.
@@ -178,7 +182,9 @@ export function applyReplacements(text, replacements) {
     .sort(([left], [right]) => right.length - left.length)
   for (const [heard, chosen] of entries) {
     const escaped = heard.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, 'giu')
+    // Кириллические формы склоняются: «гитхаб» → «гитхабе», «Опена» → «Опенаи».
+    const endings = /[а-яё]/iu.test(heard) ? RU_ENDINGS : ''
+    const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}${endings}(?=$|[^\\p{L}\\p{N}])`, 'giu')
     result = result.replace(pattern, (match, prefix) => `${prefix}${chosen}`)
   }
   return result

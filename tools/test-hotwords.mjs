@@ -62,6 +62,9 @@ console.log('модуль словаря')
   check('границы слова соблюдаются', applyReplacements('гитхабер не тронут', map) === 'гитхабер не тронут')
   check('без замен текст не меняется', applyReplacements('Проверка связи', map) === 'Проверка связи')
   check('длинная замена применяется первой', applyReplacements('гитхаб и гит', { 'гит': 'GIT', 'гитхаб': 'GitHub' }) === 'GitHub и GIT')
+  check('русские окончания', applyReplacements('на гитхабе и без гитхаба', map) === 'на GitHub и без GitHub')
+  check('окончание после гласной', applyReplacements('Опенаи заблокировали', { 'Опена': 'OpenAI' }) === 'OpenAI заблокировали')
+  check('«гитхабер» не тронут', applyReplacements('гитхабер не тронут', map) === 'гитхабер не тронут')
 }
 
 console.log('CLI словаря')
