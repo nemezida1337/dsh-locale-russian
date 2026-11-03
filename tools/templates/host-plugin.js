@@ -24,6 +24,7 @@ import {
   PERSONAL_MARKER,
   addPersonalHotword as addPersonalPhrase,
   readPersonalHotwords,
+  applyReplacements,
   readReplacements,
   renderReplacements,
   upsertReplacement,
@@ -646,8 +647,11 @@ export function apply(ctx, config = {}) {
       await ensureServer()
       payload = await postTranscribe(input.audio, signal)
     }
-    const text = typeof payload.text === 'string' ? payload.text.trim() : ''
-    log('transcribed', text.length, 'chars')
+    const raw = typeof payload.text === 'string' ? payload.text.trim() : ''
+    // Выученные замены применяем к расшифровке: «гитхап» → GitHub. Клиент
+    // показывает уведомление о замене, поэтому это не молчаливая правка.
+    const text = applyReplacements(raw, readReplacementsFile())
+    log('transcribed', raw.length, 'chars; replaced:', text === raw ? 0 : 'yes')
     return {
       text,
       audioSeconds: typeof payload.duration === 'number' ? payload.duration : wavSeconds(input.audio),

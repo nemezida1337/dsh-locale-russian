@@ -245,6 +245,61 @@ window.__ModuleLoader__.load({
 		 * nothing is corrected silently.
 		 * @returns disposer that removes the chip and its listeners.
 		 */
+		/** Shared toast element and its timer. */
+		let sharedToast;
+		let sharedToastTimer;
+
+		/** Shows a short confirmation at the bottom of the window. */
+		function showToast(text, ok) {
+			if (typeof document === "undefined" || typeof document.createElement !== "function" || document.body === undefined) return;
+			if (sharedToast !== undefined) {
+				if (typeof sharedToast.remove === "function") sharedToast.remove();
+				sharedToast = undefined;
+			}
+			sharedToast = document.createElement("div");
+			sharedToast.textContent = text;
+			sharedToast.style.cssText = "position:fixed;z-index:2147483647;padding:6px 12px;border-radius:999px;"
+				+ "background:" + (ok ? "rgba(28,92,58,.96)" : "rgba(92,28,28,.96)") + ";color:#fff;"
+				+ "font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+				+ "box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none;transition:opacity .2s";
+			sharedToast.style.left = "50%";
+			sharedToast.style.transform = "translateX(-50%)";
+			sharedToast.style.bottom = "84px";
+			document.body.appendChild(sharedToast);
+			clearTimeout(sharedToastTimer);
+			sharedToastTimer = setTimeout(() => {
+				if (sharedToast !== undefined) {
+					sharedToast.style.opacity = "0";
+					setTimeout(() => {
+						if (sharedToast !== undefined && typeof sharedToast.remove === "function") sharedToast.remove();
+						sharedToast = undefined;
+					}, 220);
+				}
+			}, 1800);
+		}
+
+		/** When the last replacement notice was shown, to avoid repeats. */
+		let replacementNoticeAt = 0;
+
+		/**
+		 * Shows a notice when the dictation text contains learned replacements:
+		 * the host applied them, and the user must see what changed.
+		 * @param editable - the composer element.
+		 */
+		async function notifyReplacements(editable) {
+			if (editable === null || editable === undefined) return;
+			if (Date.now() - replacementNoticeAt < 5000) return;
+			const dictionary = await fetchDictionary();
+			const pairs = Object.entries(dictionary.replacements ?? {});
+			if (pairs.length === 0) return;
+			const text = String(editable.innerText ?? "").toLowerCase();
+			const applied = pairs.filter(([, chosen]) => chosen !== "" && text.includes(String(chosen).toLowerCase()));
+			if (applied.length === 0) return;
+			replacementNoticeAt = Date.now();
+			const detail = applied.slice(0, 2).map(([heard, chosen]) => `${heard} → ${chosen}`).join(", ");
+			showToast(`Словарь: заменено ${applied.length}${applied.length === 1 ? "" : ""}: ${detail}`, true);
+		}
+
 		/** Cyrillic → Latin map for phonetic matching of dictated terms. */
 		const TRANSLIT = {
 			"а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e",
@@ -395,8 +450,6 @@ window.__ModuleLoader__.load({
 			if (typeof document === "undefined" || typeof document.addEventListener !== "function") return () => {};
 			if (typeof document.createElement !== "function") return () => {};
 			let panel;
-			let toast;
-			let toastTimer;
 			let current = "";
 			let removed = false;
 
@@ -406,35 +459,6 @@ window.__ModuleLoader__.load({
 				if (typeof panel.remove === "function") panel.remove();
 				else if (panel.parentNode) panel.parentNode.removeChild(panel);
 				panel = undefined;
-			}
-
-			/** Shows a short confirmation below the selection. */
-			function showToast(text, ok) {
-				if (toast !== undefined) {
-					if (typeof toast.remove === "function") toast.remove();
-					toast = undefined;
-				}
-				if (typeof document.createElement !== "function" || document.body === undefined) return;
-				toast = document.createElement("div");
-				toast.textContent = text;
-				toast.style.cssText = "position:fixed;z-index:2147483647;padding:6px 12px;border-radius:999px;"
-					+ "background:" + (ok ? "rgba(28,92,58,.96)" : "rgba(92,28,28,.96)") + ";color:#fff;"
-					+ "font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
-					+ "box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none;transition:opacity .2s";
-				toast.style.left = "50%";
-				toast.style.transform = "translateX(-50%)";
-				toast.style.bottom = "84px";
-				document.body.appendChild(toast);
-				clearTimeout(toastTimer);
-				toastTimer = setTimeout(() => {
-					if (toast !== undefined) {
-						toast.style.opacity = "0";
-						setTimeout(() => {
-							if (toast !== undefined && typeof toast.remove === "function") toast.remove();
-							toast = undefined;
-						}, 220);
-					}
-				}, 1800);
 			}
 
 			/** Builds one clickable row of the popover. */
@@ -562,10 +586,7 @@ window.__ModuleLoader__.load({
 				document.removeEventListener("mouseup", onSelectionChange);
 				document.removeEventListener("keyup", onSelectionChange);
 				window.removeEventListener("scroll", hidePanel, true);
-				clearTimeout(toastTimer);
 				hidePanel();
-				if (toast !== undefined && typeof toast.remove === "function") toast.remove();
-				toast = undefined;
 			};
 		}
 
@@ -615,9 +636,12 @@ window.__ModuleLoader__.load({
 					: null;
 				const target = editable === null ? lastEditable : editable;
 				if (target === null) return;
-				// Каретку двигаем после того, как вставка применилась.
+				// Каретку двигаем после того, как вставка применилась, и показываем
+				// уведомление, если хост применил выученные замены.
 				setTimeout(() => {
-					if (!removed) moveToEnd(target);
+					if (removed) return;
+					moveToEnd(target);
+					void notifyReplacements(target);
 				}, 0);
 			});
 			const observeTarget = document.body !== undefined && document.body !== null ? document.body : document.documentElement;

@@ -141,7 +141,12 @@ globalThis.MediaRecorder = FakeRecorder
 windowStub.EventTarget = FakeEventTarget
 windowStub.MediaRecorder = FakeRecorder
 globalThis.AbortSignal = { timeout: () => undefined }
-globalThis.fetch = async () => ({ ok: true, json: async () => ({ ok: true }) })
+globalThis.fetch = async (url) => {
+  if (String(url).endsWith('/dictionary')) {
+    return { ok: true, json: async () => ({ words: ['GitHub'], replacements: { 'гитхаб': 'GitHub' } }) }
+  }
+  return { ok: true, json: async () => ({ ok: true }) }
+}
 
 await import(`${bundle}?v=${Date.now()}`)
 const plugin = windowStub.entry.factory(() => { throw new Error('no modules') })
@@ -174,14 +179,16 @@ console.log('после остановки записи каретка уход�
 {
   check('наблюдатель установлен', observerCallbacks.length === 1, String(observerCallbacks.length))
   // Рекордер создаём через пропатченный MediaRecorder: только так патч его видит.
+  editable.innerText = 'Проверка GitHub и фордж'
   const recorder = new windowStub.MediaRecorder()
   recorder.stop()
   selectionState.ranges.length = 0
   observerCallbacks[0]()
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 10))
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
   check('каретка перенесена', selectionState.ranges.length === 1, String(selectionState.ranges.length))
   check('диапазон в конце поля', selectionState.ranges[0]?.element === editable && selectionState.ranges[0]?.collapseToEnd === true,
     JSON.stringify({ same: selectionState.ranges[0]?.element === editable, toEnd: selectionState.ranges[0]?.collapseToEnd }))
+  check('уведомление о применённых заменах', documentStub.body.children.some((element) => String(element.textContent).includes('Словарь: заменено')), JSON.stringify(documentStub.body.children.map((element) => element.textContent)))
 }
 
 console.log('без свежей диктовки каретка не двигается')
@@ -201,8 +208,10 @@ console.log('без свежей диктовки каретка не двига
   const freshObserver = observerCallbacks[observerCallbacks.length - 1]
   selectionState.ranges.length = 0
   freshObserver?.()
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 10))
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
   check('без диктовки переноса нет', selectionState.ranges.length === 0, String(selectionState.ranges.length))
+  const notices = documentStub.body.children.filter((element) => String(element.textContent).includes('Словарь: заменено'))
+  check('без диктовки уведомления нет', notices.length <= 1, String(notices.length))
 }
 
 console.log('выгрузка')

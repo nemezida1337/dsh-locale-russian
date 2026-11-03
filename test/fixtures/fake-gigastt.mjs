@@ -24,7 +24,7 @@ const server = createServer((request, response) => {
   request.on('data', () => {})
   request.on('end', () => {
     response.writeHead(200, { 'content-type': 'application/json' })
-    response.end(JSON.stringify({ text: 'Проверка связи', duration: 1 }))
+    response.end(JSON.stringify({ text: process.env.FAKE_TRANSCRIPT ?? 'Проверка связи', duration: 1 }))
   })
 })
 server.listen(port, '127.0.0.1')

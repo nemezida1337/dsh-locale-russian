@@ -14,6 +14,7 @@ import { spawnSync } from 'node:child_process'
 import {
   MAX_PERSONAL_HOTWORDS,
   addPersonalHotword,
+  applyReplacements,
   clearPersonalHotwords,
   readPersonalHotwords,
   removePersonalHotword,
@@ -49,6 +50,11 @@ console.log('модуль словаря')
   check('пустая фраза отклоняется', addPersonalHotword(base, '   ').ok === false)
   check('слишком длинная отклоняется', addPersonalHotword(base, 'x'.repeat(80)).ok === false)
   check('лимит словаря', MAX_PERSONAL_HOTWORDS === 400)
+  const map = { 'гитхаб': 'GitHub', 'фордж': 'Forge' }
+  check('замена применяется', applyReplacements('Проверка гитхаб и фордж', map) === 'Проверка GitHub и Forge')
+  check('замена без учёта регистра', applyReplacements('Гитхаб, фордж.', map) === 'GitHub, Forge.')
+  check('границы слова соблюдаются', applyReplacements('гитхабер не тронут', map) === 'гитхабер не тронут')
+  check('без замен текст не меняется', applyReplacements('Проверка связи', map) === 'Проверка связи')
 }
 
 console.log('CLI словаря')
@@ -153,21 +159,28 @@ console.log('движок читает словарь файлом и перез
     binaryPath: engine,
     modelDir,
     hotwordsFile: file,
+    replacementsFile: join(dir, 'replacements.json'),
     prewarm: false,
     dictionaryPort: 0,
   })
   const wav = readFileSync(join(import.meta.dirname, '..', 'test', 'fixtures', 'ru-sample.wav'))
   const provider = service.provider
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб и фордж'
+  const replacementsFile = join(dir, 'replacements.json')
+  writeFileSync(replacementsFile, JSON.stringify({ replacements: { 'гитхаб': 'GitHub', 'фордж': 'Forge' } }))
   const first = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
-  check('распознавание работает', first.text === 'Проверка связи', first.text)
+  check('провайдер применяет выученные замены', first.text === 'Проверка GitHub и Forge', first.text)
+  delete process.env.FAKE_TRANSCRIPT
   const started = readFileSync(argsFile, 'utf8').trim().split('\n')
   check('движок получил файл словаря', started[0].includes('--hotwords-file') && started[0].includes(file), started[0])
   check('движок получил буст', started[0].includes('--hotwords-boost'), started[0])
   // Меняем словарь: следующий запрос перезапускает движок.
   writeFileSync(file, '# Hotwords\nDeepSeek Harness\n\n# === личный словарь (dsh-locale-russian) ===\nconfigHotwords\n# === /личный словарь ===\n')
   await new Promise((resolve) => setTimeout(resolve, 20))
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб и фордж'
   const second = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
-  check('после изменения словаря распознавание работает', second.text === 'Проверка связи', second.text)
+  check('после изменения словаря распознавание работает', second.text === 'Проверка GitHub и Forge', second.text)
+  delete process.env.FAKE_TRANSCRIPT
   const restarted = readFileSync(argsFile, 'utf8').trim().split('\n')
   check('движок перезапущен с новым файлом', restarted.length === 2 && restarted[1].includes('--hotwords-file'), String(restarted.length))
   for (const cleanup of cleanups.reverse()) await cleanup()
