@@ -132,6 +132,13 @@ const SCAN_STOPWORDS = new Set([
   'module', 'modules', 'default', 'index', 'spec', 'test', 'tests', 'readme', 'license', 'changelog',
   'build', 'scripts', 'script', 'docs', 'doc', 'example', 'examples', 'demo', 'public', 'static',
   'assets', 'images', 'fonts', 'icons', 'styles', 'types', 'typing', 'utils', 'shared', 'helpers',
+  // Частые английские слова из комментариев и документации (с большой буквы тоже).
+  'could', 'would', 'should', 'will', 'shall', 'can', 'may', 'might', 'must', 'this', 'that',
+  'these', 'those', 'there', 'their', 'they', 'them', 'then', 'than', 'when', 'where', 'which',
+  'while', 'what', 'who', 'why', 'how', 'into', 'from', 'with', 'without', 'about', 'above',
+  'after', 'again', 'against', 'because', 'before', 'being', 'below', 'between', 'both', 'during',
+  'each', 'few', 'more', 'most', 'other', 'over', 'same', 'some', 'such', 'only', 'own', 'very',
+  'just', 'also', 'here', 'once', 'now', 'plugin', 'open', 'node', 'web', 'host', 'read', 'write',
 ])
 /** Caps for one scan. */
 const SCAN_MAX_FILES = 4000
@@ -204,13 +211,28 @@ function collectFileWords(path, frequencies) {
   }
 }
 
+/** True when the word is a whole-word fragment of an existing phrase (or the reverse). */
+function fragmentOfExisting(word, existing) {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const wordPattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, 'iu')
+  const lower = word.toLowerCase()
+  for (const phrase of existing) {
+    const phraseLower = phrase.toLowerCase()
+    if (phraseLower === lower) continue
+    if (wordPattern.test(phrase)) return true
+    if (phraseLower.includes(lower) && lower.length < phraseLower.length) return true
+  }
+  return false
+}
+
 /**
  * Scans a project and ranks terminology candidates.
  * @param root - project directory.
  * @param limit - how many words to return.
+ * @param existing - phrases already in the dictionary.
  * @returns ranked words.
  */
-function scanProject(root, limit) {
+function scanProject(root, limit, existing = []) {
   const files = collectProjectFiles(root)
   const frequencies = new Map()
   for (const file of files) collectFileWords(file, frequencies)
@@ -237,6 +259,8 @@ function scanProject(root, limit) {
     if (chosenLower.has(lower)) continue
     // Не добавляем подстроку уже выбранного более специфичного слова.
     if (chosen.some((entry) => entry.toLowerCase().includes(lower))) continue
+    // И не добавляем обрывок уже существующей фразы («Harness» при «DeepSeek Harness»).
+    if (fragmentOfExisting(candidate.word, existing)) continue
     chosen.push(candidate.word)
     chosenLower.add(lower)
   }
@@ -290,7 +314,11 @@ if (hotwordsMode) {
     }
     const root = resolve(source)
     const limit = Math.max(1, Math.min(400, Number(value('--hotwords-limit') ?? SCAN_DEFAULT_LIMIT) || SCAN_DEFAULT_LIMIT))
-    const { words, files, scanned } = scanProject(root, limit)
+    const existing = read()
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line !== '' && !line.startsWith('#'))
+    const { words, files, scanned } = scanProject(root, limit, existing)
     const manifestFile = join(dirname(file), 'projects.json')
     let manifest = {}
     try {
