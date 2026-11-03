@@ -40,7 +40,7 @@ node tools/engine-smoke.mjs       # сквозная проверка движк
 node tools/market-live.mjs        # живой индекс маркета официальным валидатором и сверка с репозиторием
 ```
 
-Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-voice-keepalive`, `test-check-voice-hook`, `test-check-docs`.
+Тесты инструментов входят в `npm test`; каждый — офлайн и без сети: `test-speech-provider`, `test-engine-install`, `test-prewarm`, `test-hotwords`, `test-dictionary-chip`, `test-translate-batches`, `test-review-translations`, `test-dashboard`, `test-check-app`, `test-market-live`, `test-scaffold`, `test-discussion-report`, `test-history`, `test-consistency`, `test-install-desktop`, `test-voice-keepalive`, `test-check-voice-hook`, `test-check-docs`.
 
 Если вы делаете свой плагин для DSH — практическое руководство со всеми граблями лежит в [contrib/plugin-recipe.md](../contrib/plugin-recipe.md).
 

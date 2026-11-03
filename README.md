@@ -89,7 +89,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.9.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.10.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -132,6 +132,23 @@ npx dsh-locale-russian-install --desktop
     maxDurationSeconds: 600      # 10 минут
     maxAudioBytes: 20971520      # 20 МиБ
 ```
+
+### Личный словарь
+
+Движок не знает ваших терминов — он может услышать «конфиг хотводс» вместо `configHotwords`. Для этого есть личный словарь: он хранится отдельной секцией в `~/.dsh/speech-ru/hotwords.txt` и подмешивается к распознаванию.
+
+**Первичное заполнение** — из терминала, списком или файлом:
+
+```sh
+npx dsh-locale-russian-install --hotwords-add "configHotwords, GigaAM, dsh-locale-russian"
+npx dsh-locale-russian-install --hotwords-add-file terms.txt   # по одному слову в строке
+npx dsh-locale-russian-install --hotwords-list                 # посмотреть словарь
+npx dsh-locale-russian-install --hotwords-remove "GigaAM"
+```
+
+**Пополнение прямо из распознанного текста:** выделите исправленное слово в поле ввода — рядом появится кнопка «+ в словарь». Нажали — слово в личном словаре, и в следующий раз движок распознает его правильно. Это явное действие, ничего не правится молча.
+
+Лимит личного словаря — 400 фраз (движок читает файл целиком, ограничение в 64 фразы относится только к HTTP-запросу). После изменения словаря движок один раз перезагружается: первая диктовка будет на ~5 секунд дольше.
 
 ### Диктовка в фоне
 

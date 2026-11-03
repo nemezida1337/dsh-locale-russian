@@ -178,6 +178,8 @@ writeFileSync(resolve(root, 'cordis.patch.yml'), patchFile)
 // добавляет локальное распознавание русской речи для штатного голосового ввода.
 const hostPlugin = readFileSync(resolve(here, 'templates/host-plugin.js'), 'utf8')
 writeFileSync(resolve(root, 'lib/index.js'), hostPlugin)
+// Личный словарь общий для хост-половины и CLI установщика.
+writeFileSync(resolve(root, 'lib/hotwords.mjs'), readFileSync(resolve(here, 'templates/hotwords.mjs'), 'utf8'))
 
 const manifest = {
   ...existingManifest,

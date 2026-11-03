@@ -17,11 +17,19 @@
  *   npx dsh-locale-russian-install --desktop --dry-run
  *   npx dsh-locale-russian-install --desktop --revert
  */
-import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { dirname, resolve } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createInterface } from 'node:readline/promises'
+import {
+  MAX_PERSONAL_HOTWORDS,
+  addPersonalHotword,
+  clearPersonalHotwords,
+  readPersonalHotwords,
+  removePersonalHotword,
+} from '../lib/hotwords.mjs'
 import {
   PACKAGE_NAME,
   defaultAppPath,
@@ -40,15 +48,20 @@ const value = (name) => {
 }
 
 // Неизвестный флаг — почти всегда опечатка: лучше сказать об этом сразу.
-const KNOWN = new Set(['--desktop', '--dry-run', '--revert', '--yes', '-y', '--help', '-h', '--profile'])
+const KNOWN = new Set([
+  '--desktop', '--dry-run', '--revert', '--yes', '-y', '--help', '-h', '--profile',
+  '--hotwords-add', '--hotwords-add-file', '--hotwords-list', '--hotwords-remove',
+  '--hotwords-clear', '--hotwords-file',
+])
+const NEEDS_VALUE = new Set(['--profile', '--hotwords-add', '--hotwords-add-file', '--hotwords-remove', '--hotwords-file'])
 for (const [index, arg] of args.entries()) {
   if (!arg.startsWith('-')) continue
   if (!KNOWN.has(arg)) {
     console.error(`неизвестный флаг: ${arg}. Справка: --help`)
     process.exit(2)
   }
-  if (arg === '--profile' && (args[index + 1] === undefined || args[index + 1].startsWith('-'))) {
-    console.error('флагу --profile нужен путь к каталогу DSH')
+  if (NEEDS_VALUE.has(arg) && (args[index + 1] === undefined || args[index + 1].startsWith('-'))) {
+    console.error(`флагу ${arg} нужен аргумент`)
     process.exit(2)
   }
 }
@@ -59,6 +72,84 @@ if (flag('--help') || flag('-h')) {
   console.log('  --dry-run                                     показать изменения без записи')
   console.log('  --revert                                      откатить установку в приложение')
   console.log('  --profile <путь>                              каталог DSH (по умолчанию ~/.dsh)')
+  console.log('')
+  console.log('Личный словарь распознавания:')
+  console.log('  --hotwords-add "слово, фраза"                 добавить слова в словарь')
+  console.log('  --hotwords-add-file <путь>                    добавить слова из файла (по одному в строке)')
+  console.log('  --hotwords-list                               показать личный словарь')
+  console.log('  --hotwords-remove "слово"                     удалить слово')
+  console.log('  --hotwords-clear                              очистить личный словарь')
+  console.log('  --hotwords-file <путь>                        свой файл словаря')
+  process.exit(0)
+}
+
+// Личный словарь: первичное заполнение и правка из терминала.
+const hotwordsMode = flag('--hotwords-add') || flag('--hotwords-add-file') || flag('--hotwords-list')
+  || flag('--hotwords-remove') || flag('--hotwords-clear')
+if (hotwordsMode) {
+  const dshHome = resolve(value('--profile') ?? process.env.DSH_HOME ?? join(homedir(), '.dsh'))
+  const file = resolve(value('--hotwords-file') ?? join(dshHome, 'speech-ru', 'hotwords.txt'))
+  const read = () => (existsSync(file) ? readFileSync(file, 'utf8') : '')
+  const write = (text) => {
+    mkdirSync(dirname(file), { recursive: true })
+    writeFileSync(file, text)
+  }
+  const phrases = []
+  if (flag('--hotwords-add')) {
+    phrases.push(...String(value('--hotwords-add') ?? '').split(/[,;\n]/u))
+  }
+  if (flag('--hotwords-add-file')) {
+    const source = value('--hotwords-add-file')
+    if (source === undefined || !existsSync(source)) {
+      console.error(`файл не найден: ${source ?? '(не указан)'}`)
+      process.exit(1)
+    }
+    phrases.push(...readFileSync(source, 'utf8').split('\n'))
+  }
+  // Пустые строки — не «пропущенные фразы»: просто убираем их из ввода.
+  const requested = phrases.map((phrase) => phrase.trim()).filter((phrase) => phrase !== '')
+  if (phrases.length > 0) {
+    let text = read()
+    let added = 0
+    let skipped = 0
+    for (const phrase of requested) {
+      const result = addPersonalHotword(text, phrase)
+      if (result.ok && result.duplicate !== true) {
+        text = result.text
+        added += 1
+      } else {
+        skipped += 1
+      }
+    }
+    write(text)
+    const count = readPersonalHotwords(text).length
+    console.log(`добавлено: ${added}, пропущено: ${skipped}, всего в личном словаре: ${count}/${MAX_PERSONAL_HOTWORDS}`)
+    process.exit(0)
+  }
+  if (flag('--hotwords-remove')) {
+    const result = removePersonalHotword(read(), String(value('--hotwords-remove') ?? ''))
+    if (!result.ok) {
+      console.error(`не найдено в словаре: ${value('--hotwords-remove')}`)
+      process.exit(1)
+    }
+    write(result.text)
+    console.log(`удалено, осталось: ${result.count}`)
+    process.exit(0)
+  }
+  if (flag('--hotwords-clear')) {
+    const result = clearPersonalHotwords(read())
+    write(result.text)
+    console.log('личный словарь очищен')
+    process.exit(0)
+  }
+  // --hotwords-list
+  const personal = readPersonalHotwords(read())
+  if (personal.length === 0) {
+    console.log(`личный словарь пуст: ${file}`)
+    process.exit(0)
+  }
+  console.log(`личный словарь (${personal.length}/${MAX_PERSONAL_HOTWORDS}), файл: ${file}`)
+  for (const phrase of personal) console.log(`  ${phrase}`)
   process.exit(0)
 }
 

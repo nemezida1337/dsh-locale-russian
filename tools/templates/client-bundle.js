@@ -235,6 +235,167 @@ window.__ModuleLoader__.load({
 			}
 		}
 
+		/** Ports the host half listens on for the personal dictionary (see the host template). */
+		const DICTIONARY_PORTS = [47118, 47119, 47120, 47121, 47122];
+
+		/**
+		 * Adds a "+ в словарь" chip next to a text selection inside an editable
+		 * field: the corrected word goes to the personal hotwords dictionary of the
+		 * host half, so the engine recognises it next time. The chip is explicit —
+		 * nothing is corrected silently.
+		 * @returns disposer that removes the chip and its listeners.
+		 */
+		function installDictionaryChip() {
+			if (typeof document === "undefined" || typeof document.addEventListener !== "function") return () => {};
+			if (typeof document.createElement !== "function") return () => {};
+			let chip;
+			let toast;
+			let toastTimer;
+			let current = "";
+			let removed = false;
+
+			/** Removes the chip. */
+			function hideChip() {
+				if (chip === undefined) return;
+				if (typeof chip.remove === "function") chip.remove();
+				else if (chip.parentNode) chip.parentNode.removeChild(chip);
+				chip = undefined;
+			}
+
+			/** Shows a short confirmation below the chip position. */
+			function showToast(text, ok) {
+				if (toast !== undefined) {
+					if (typeof toast.remove === "function") toast.remove();
+					toast = undefined;
+				}
+				if (typeof document.createElement !== "function" || document.body === undefined) return;
+				toast = document.createElement("div");
+				toast.textContent = text;
+				toast.style.cssText = "position:fixed;z-index:2147483647;padding:6px 12px;border-radius:999px;"
+					+ "background:" + (ok ? "rgba(28,92,58,.96)" : "rgba(92,28,28,.96)") + ";color:#fff;"
+					+ "font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+					+ "box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none;transition:opacity .2s";
+				toast.style.left = "50%";
+				toast.style.transform = "translateX(-50%)";
+				toast.style.bottom = "84px";
+				document.body.appendChild(toast);
+				clearTimeout(toastTimer);
+				toastTimer = setTimeout(() => {
+					if (toast !== undefined) {
+						toast.style.opacity = "0";
+						setTimeout(() => {
+							if (toast !== undefined && typeof toast.remove === "function") toast.remove();
+							toast = undefined;
+						}, 220);
+					}
+				}, 1800);
+			}
+
+			/** Sends the phrase to the host half, trying the known ports. */
+			async function sendPhrase(phrase) {
+				for (const port of DICTIONARY_PORTS) {
+					try {
+						const response = await fetch(`http://127.0.0.1:${port}/hotwords`, {
+							method: "POST",
+							body: phrase,
+							signal: AbortSignal.timeout(1200),
+						});
+						if (!response.ok) continue;
+						return await response.json();
+					} catch (error) {
+						// порт не слушается — пробуем следующий
+					}
+				}
+				return undefined;
+			}
+
+			/** Places the chip near the selection. */
+			function showChip(rect, phrase) {
+				current = phrase;
+				if (chip !== undefined) return;
+				chip = document.createElement("div");
+				chip.setAttribute("role", "button");
+				chip.setAttribute("data-dsh-locale-ru-dictionary", "");
+				chip.textContent = "+ в словарь";
+				chip.style.cssText = "position:fixed;z-index:2147483647;padding:5px 10px;border-radius:999px;"
+					+ "background:rgba(20,20,22,.96);color:#fff;border:1px solid rgba(122,162,255,.6);"
+					+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+					+ "box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer;user-select:none";
+				const top = rect.top > 40 ? rect.top - 34 : rect.bottom + 8;
+				chip.style.left = `${Math.max(8, rect.left)}px`;
+				chip.style.top = `${Math.max(8, top)}px`;
+				chip.addEventListener("mousedown", (event) => {
+					// Не сбрасываем выделение до клика.
+					event.preventDefault();
+				});
+				chip.addEventListener("click", async () => {
+					const phrase = current;
+					hideChip();
+					if (phrase === "") return;
+					const result = await sendPhrase(phrase);
+					if (result !== undefined && result.ok) {
+						showToast(result.duplicate ? "Уже в словаре" : "Добавлено в словарь", true);
+					} else {
+						showToast("Не удалось добавить: плагин не активен", false);
+					}
+				});
+				if (document.body !== undefined) document.body.appendChild(chip);
+			}
+
+			/** Handles a selection change: shows or hides the chip. */
+			function onSelectionChange() {
+				if (removed) return;
+				let selection;
+				try {
+					selection = document.getSelection();
+				} catch (error) {
+					return;
+				}
+				if (!selection || selection.isCollapsed === true || selection.rangeCount === 0) {
+					hideChip();
+					return;
+				}
+				const phrase = String(selection.toString()).replace(/\s+/g, " ").trim();
+				if (phrase.length === 0 || phrase.length > 64) {
+					hideChip();
+					return;
+				}
+				const anchor = selection.anchorNode;
+				let element = null;
+				if (anchor !== null && anchor !== undefined) {
+					element = anchor.nodeType === 1 ? anchor : anchor.parentElement === undefined ? null : anchor.parentElement;
+				}
+				if (element === null || typeof element.closest !== "function" || element.closest("[contenteditable=true]") === null) {
+					hideChip();
+					return;
+				}
+				let rect;
+				try {
+					rect = selection.getRangeAt(0).getBoundingClientRect();
+				} catch (error) {
+					hideChip();
+					return;
+				}
+				showChip(rect, phrase);
+			}
+
+			document.addEventListener("selectionchange", onSelectionChange);
+			document.addEventListener("mouseup", onSelectionChange);
+			document.addEventListener("keyup", onSelectionChange);
+			window.addEventListener("scroll", hideChip, true);
+			return () => {
+				removed = true;
+				document.removeEventListener("selectionchange", onSelectionChange);
+				document.removeEventListener("mouseup", onSelectionChange);
+				document.removeEventListener("keyup", onSelectionChange);
+				window.removeEventListener("scroll", hideChip, true);
+				clearTimeout(toastTimer);
+				hideChip();
+				if (toast !== undefined && typeof toast.remove === "function") toast.remove();
+				toast = undefined;
+			};
+		}
+
 		/** Marker on the patched EventTarget prototype: the voice keep-alive is installed. */
 		const VOICE_KEEPALIVE_MARKER = "__dshLocaleRuVoiceKeepAlive";
 
@@ -404,6 +565,7 @@ window.__ModuleLoader__.load({
 			// Патч диктовки ставится сразу: он должен успеть до монтирования
 			// интерфейса голосового ввода. Локаль регистрируем на следующем тике.
 			const restoreVoice = installVoiceKeepAlive();
+			const restoreChip = installDictionaryChip();
 			ctx.effect(() => {
 				let dispose = () => {};
 				const timer = setTimeout(() => {
@@ -417,6 +579,7 @@ window.__ModuleLoader__.load({
 					clearTimeout(timer);
 					dispose();
 					restoreVoice();
+					restoreChip();
 				};
 			}, "__MODULE_ID__: registration");
 		}
