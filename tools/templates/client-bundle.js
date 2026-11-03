@@ -430,6 +430,60 @@ window.__ModuleLoader__.load({
 			return [];
 		}
 
+		/**
+		 * Asks the user before learning a pair that is not an obvious
+		 * misrecognition (similarity below 0.8). Returns true to learn it.
+		 * @param pairs - heard → chosen pairs.
+		 * @returns whether the user confirmed.
+		 */
+		function confirmLearn(pairs) {
+			return new Promise((resolve) => {
+				if (typeof document === "undefined" || typeof document.createElement !== "function" || document.body === undefined) {
+					resolve(false);
+					return;
+				}
+				const panel = document.createElement("div");
+				panel.setAttribute("data-dsh-locale-ru-learn", "");
+				panel.style.cssText = "position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);bottom:84px;"
+					+ "padding:8px;border-radius:12px;background:rgba(20,20,22,.97);"
+					+ "border:1px solid rgba(122,162,255,.35);box-shadow:0 6px 22px rgba(0,0,0,.45);"
+					+ "display:flex;flex-direction:column;gap:4px;min-width:240px;max-width:340px";
+				const title = document.createElement("div");
+				title.textContent = "Запомнить исправление?";
+				title.style.cssText = "padding:2px 8px;color:#8a8a95;font:500 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
+				panel.appendChild(title);
+				for (const pair of pairs.slice(0, 3)) {
+					const row = document.createElement("div");
+					row.textContent = `${pair.heard} → ${pair.chosen}`;
+					row.style.cssText = "padding:4px 8px;color:#f2f2f5;font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+						+ "overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+					panel.appendChild(row);
+				}
+				const actions = document.createElement("div");
+				actions.style.cssText = "display:flex;gap:6px;padding:2px 4px 0";
+				const makeButton = (label, value) => {
+					const button = document.createElement("div");
+					button.setAttribute("role", "button");
+					button.textContent = label;
+					button.style.cssText = "flex:1;text-align:center;padding:6px 10px;border-radius:8px;cursor:pointer;"
+						+ "color:#f2f2f5;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+						+ "background:" + (value ? "rgba(28,92,58,.9)" : "rgba(60,60,66,.9)");
+					button.addEventListener("mousedown", (event) => {
+						event.preventDefault();
+					});
+					button.addEventListener("click", () => {
+						if (typeof panel.remove === "function") panel.remove();
+						resolve(value);
+					});
+					return button;
+				};
+				actions.appendChild(makeButton("Запомнить", true));
+				actions.appendChild(makeButton("Не надо", false));
+				panel.appendChild(actions);
+				document.body.appendChild(panel);
+			});
+		}
+
 		/** Schedules a check for user edits of the last dictation text. */
 		function scheduleLearn(editable) {
 			if (dictationInsertion === null || editable === null || editable === undefined) return;
@@ -459,10 +513,18 @@ window.__ModuleLoader__.load({
 			if (edited === insertion.inserted) return;
 			const pairs = pairChangedWords(insertion.inserted, edited);
 			if (pairs.length === 0) return;
+			const confident = pairs.filter((pair) => similarity(pair.heard, pair.chosen) >= 0.8);
+			const uncertain = pairs.filter((pair) => similarity(pair.heard, pair.chosen) < 0.8);
 			const learned = [];
-			for (const pair of pairs) {
+			for (const pair of confident) {
 				const result = await postDictionary("/learn", pair);
 				if (result !== undefined && result.ok) learned.push(pair);
+			}
+			if (uncertain.length > 0 && await confirmLearn(uncertain)) {
+				for (const pair of uncertain) {
+					const result = await postDictionary("/learn", pair);
+					if (result !== undefined && result.ok) learned.push(pair);
+				}
 			}
 			// Обновляем сохранённую вставку, чтобы не учить одну пару повторно.
 			dictationInsertion = { ...insertion, inserted: edited };

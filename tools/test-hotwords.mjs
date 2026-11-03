@@ -221,6 +221,7 @@ console.log('движок читает словарь файлом и перез
     replacementsFile: join(dir, 'replacements.json'),
     prewarm: false,
     dictionaryPort: 0,
+    hotwordsWatchMs: 50,
   })
   const wav = readFileSync(join(import.meta.dirname, '..', 'test', 'fixtures', 'ru-sample.wav'))
   const provider = service.provider
@@ -229,14 +230,17 @@ console.log('движок читает словарь файлом и перез
   writeFileSync(replacementsFile, JSON.stringify({ replacements: { 'гитхаб': 'GitHub', 'фордж': 'Forge' } }))
   const first = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('провайдер применяет выученные замены', first.text === 'Проверка GitHub и Forge', first.text)
-  delete process.env.FAKE_TRANSCRIPT
   const started = readFileSync(argsFile, 'utf8').trim().split('\n')
   check('движок получил файл словаря', started[0].includes('--hotwords-file') && started[0].includes(file), started[0])
   check('движок получил буст', started[0].includes('--hotwords-boost'), started[0])
   // Меняем словарь: следующий запрос перезапускает движок.
   writeFileSync(file, '# Hotwords\nDeepSeek Harness\n\n# === личный словарь (dsh-locale-russian) ===\nconfigHotwords\n# === /личный словарь ===\n')
   await new Promise((resolve) => setTimeout(resolve, 20))
-  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб и фордж'
+  // Изменяем словарь и ждём фоновый перезапуск — без новой диктовки.
+  writeFileSync(file, '# Hotwords\nDeepSeek Harness\n\n# === личный словарь (dsh-locale-russian) ===\nconfigHotwords\nНовоеСлово\n# === /личный словарь ===\n')
+  await new Promise((resolve) => setTimeout(resolve, 250))
+  const background = readFileSync(argsFile, 'utf8').trim().split('\n')
+  check('движок перезапущен в фоне без диктовки', background.length === 2, String(background.length))
   const second = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('после изменения словаря распознавание работает', second.text === 'Проверка GitHub и Forge', second.text)
   delete process.env.FAKE_TRANSCRIPT

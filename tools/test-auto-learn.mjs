@@ -34,6 +34,7 @@ class FakeElement {
     this.parentNode = null
     this.textContent = ''
     this.innerText = ''
+    this.attributes = {}
   }
 
   addEventListener(type, listener) {
@@ -63,6 +64,14 @@ class FakeElement {
 
   closest() {
     return this.editable === true ? this : null
+  }
+
+  setAttribute(name, value) {
+    this.attributes[name] = value
+  }
+
+  getAttribute(name) {
+    return this.attributes[name] ?? null
   }
 }
 
@@ -196,6 +205,37 @@ console.log('склейка двух слов в одно учится')
   await edit('Проверка GitHub')
   const learn = learnRequests()
   check('пара «гит хаб → GitHub»', learn.length === 1 && JSON.parse(learn[0].body).heard === 'гит хаб' && JSON.parse(learn[0].body).chosen === 'GitHub', JSON.stringify(learn.map((request) => request.body)))
+}
+
+console.log('неуверенная пара — по подтверждению')
+{
+  requests.length = 0
+  await dictate('Проверка ', 'Проверка форд')
+  await edit('Проверка Forge')
+  check('сразу не учится', learnRequests().length === 0, JSON.stringify(learnRequests()))
+  const prompt = documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-learn') !== null)
+  check('показан вопрос «Запомнить?»', prompt !== undefined)
+  const confirm = prompt?.children.find((child) => (child.children ?? []).some((button) => button.textContent === 'Запомнить'))
+    ?.children.find((button) => button.textContent === 'Запомнить')
+  check('есть кнопка «Запомнить»', confirm !== undefined)
+  confirm.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const learned = learnRequests()
+  check('после подтверждения пара ушла', learned.length === 1 && JSON.parse(learned[0].body).heard === 'форд' && JSON.parse(learned[0].body).chosen === 'Forge', JSON.stringify(learned))
+  check('вопрос закрыт', documentStub.body.children.every((element) => element.getAttribute('data-dsh-locale-ru-learn') === null))
+}
+
+console.log('неуверенную пару можно не запоминать')
+{
+  requests.length = 0
+  await dictate('Проверка ', 'Проверка форд')
+  await edit('Проверка Forge')
+  const prompt = documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-learn') !== null)
+  const deny = prompt?.children.find((child) => (child.children ?? []).some((button) => button.textContent === 'Не надо'))
+    ?.children.find((button) => button.textContent === 'Не надо')
+  deny.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('после отказа пары нет', learnRequests().length === 0, JSON.stringify(learnRequests()))
 }
 
 console.log('грамматика и смысловые правки не учатся')
