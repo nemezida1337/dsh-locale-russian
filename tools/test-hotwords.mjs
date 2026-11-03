@@ -16,6 +16,7 @@ import {
   addPersonalHotword,
   applyReplacements,
   clearPersonalHotwords,
+  forgetPersonalHotword,
   readPersonalHotwords,
   removePersonalHotword,
 } from '../lib/hotwords.mjs'
@@ -50,6 +51,11 @@ console.log('модуль словаря')
   check('пустая фраза отклоняется', addPersonalHotword(base, '   ').ok === false)
   check('слишком длинная отклоняется', addPersonalHotword(base, 'x'.repeat(80)).ok === false)
   check('лимит словаря', MAX_PERSONAL_HOTWORDS === 400)
+  const caseAdd = addPersonalHotword(base, 'GitHub')
+  const caseDup = addPersonalHotword(caseAdd.text, 'github')
+  check('дубликат без учёта регистра', caseDup.ok === true && caseDup.duplicate === true && caseDup.count === 1)
+  const forgotten = forgetPersonalHotword(caseAdd.text, 'github')
+  check('забывание без учёта регистра', forgotten.ok === true && forgotten.count === 0)
   const map = { 'гитхаб': 'GitHub', 'фордж': 'Forge' }
   check('замена применяется', applyReplacements('Проверка гитхаб и фордж', map) === 'Проверка GitHub и Forge')
   check('замена без учёта регистра', applyReplacements('Гитхаб, фордж.', map) === 'GitHub, Forge.')
@@ -127,6 +133,10 @@ console.log('endpoint хоста')
     body: JSON.stringify({ heard: 'гитхаб', chosen: 'GitHub' }),
   }).then((response) => response.json())
   check('повторное обучение не дублирует', learnedAgain.ok === true && learnedAgain.replacements === 1)
+  const forget = await fetch(`http://127.0.0.1:${port}/forget`, { method: 'POST', body: JSON.stringify('GitHub') }).then((response) => response.json())
+  check('слово забыто через endpoint', forget.ok === true && !readFileSync(file, 'utf8').includes('\nGitHub\n'), JSON.stringify(forget))
+  const forgetMissing = await fetch(`http://127.0.0.1:${port}/forget`, { method: 'POST', body: JSON.stringify('НетТакого') })
+  check('забывание отсутствующего — 400', forgetMissing.status === 400)
   const learnedBad = await fetch(`http://127.0.0.1:${port}/learn`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

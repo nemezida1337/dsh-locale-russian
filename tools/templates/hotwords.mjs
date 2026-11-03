@@ -67,7 +67,11 @@ export function addPersonalHotword(text, phrase) {
   const cleaned = normalizePhrase(phrase)
   if (cleaned === '' || cleaned.length > MAX_HOTWORD_LENGTH) return { ok: false, reason: 'bad-phrase' }
   const { before, personal } = splitPersonal(text)
-  if (personal.includes(cleaned)) return { ok: true, duplicate: true, count: personal.length, text: String(text ?? '') }
+  // «GitHub» и «github» — одно и то же слово: дубликат без учёта регистра.
+  const lower = cleaned.toLowerCase()
+  if (personal.some((entry) => entry.toLowerCase() === lower)) {
+    return { ok: true, duplicate: true, count: personal.length, text: String(text ?? '') }
+  }
   if (personal.length >= MAX_PERSONAL_HOTWORDS) return { ok: false, reason: 'full', count: personal.length }
   const next = [...personal, cleaned]
   return { ok: true, count: next.length, text: render(before, next) }
@@ -175,4 +179,20 @@ export function applyReplacements(text, replacements) {
     result = result.replace(pattern, (match, prefix) => `${prefix}${chosen}`)
   }
   return result
+}
+
+/**
+ * Forgets a phrase from the personal dictionary, matching case-insensitively.
+ * @param text - hotwords file contents.
+ * @param phrase - phrase to forget.
+ * @returns the result and the new file contents.
+ */
+export function forgetPersonalHotword(text, phrase) {
+  const cleaned = normalizePhrase(phrase)
+  if (cleaned === '') return { ok: false, reason: 'bad-phrase' }
+  const lower = cleaned.toLowerCase()
+  const { before, personal } = splitPersonal(text)
+  const next = personal.filter((entry) => entry.toLowerCase() !== lower)
+  if (next.length === personal.length) return { ok: false, reason: 'not-found', count: personal.length }
+  return { ok: true, count: next.length, text: render(before, next) }
 }

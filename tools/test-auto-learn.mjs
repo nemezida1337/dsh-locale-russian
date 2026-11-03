@@ -189,6 +189,15 @@ console.log('правка слова после диктовки учит пар
   check('тост «Выучено»', documentStub.body.children.some((element) => String(element.textContent).includes('Выучено')), JSON.stringify(documentStub.body.children.map((element) => element.textContent)))
 }
 
+console.log('склейка двух слов в одно учится')
+{
+  requests.length = 0
+  await dictate('Проверка ', 'Проверка гит хаб')
+  await edit('Проверка GitHub')
+  const learn = learnRequests()
+  check('пара «гит хаб → GitHub»', learn.length === 1 && JSON.parse(learn[0].body).heard === 'гит хаб' && JSON.parse(learn[0].body).chosen === 'GitHub', JSON.stringify(learn.map((request) => request.body)))
+}
+
 console.log('ссылки и числа не учатся')
 {
   requests.length = 0

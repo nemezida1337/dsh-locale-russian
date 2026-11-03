@@ -214,6 +214,21 @@ console.log('без кандидатов — только добавление �
   check('в JSON-строке', add !== undefined && JSON.parse(add.body) === 'Проверка', add?.body)
 }
 
+console.log('слово из словаря можно убрать')
+{
+  const editable = new FakeElement('div')
+  editable.editable = true
+  await select('GitHub', editable)
+  check('есть пункт «убрать из словаря»', rows().some((text) => text.includes('убрать из словаря')), JSON.stringify(rows()))
+  requests.length = 0
+  row('− убрать из словаря').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const forget = requests.find((request) => request.url.endsWith('/forget'))
+  check('запрос на /forget', forget !== undefined && forget.method === 'POST', JSON.stringify(requests))
+  check('тело — слово', forget !== undefined && JSON.parse(forget.body) === 'GitHub', forget?.body)
+  check('тост об удалении', documentStub.body.children.some((element) => element.textContent.includes('Удалено из словаря')))
+}
+
 console.log('вне поля ввода поповера нет')
 {
   const plain = new FakeElement('div')
