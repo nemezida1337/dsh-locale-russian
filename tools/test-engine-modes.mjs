@@ -151,6 +151,55 @@ console.log('гибрид: замены применяются после сли
   delete process.env.FAKE_WHISPER_TRANSCRIPT
 }
 
+console.log('режим text и диагностика')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('в режиме text выбран лучший текст', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('диагностика сохраняет оба текста')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const hotwordsFile = join(workspace, 'debug-hotwords.txt')
+  writeFileSync(hotwordsFile, '# Hotwords\nGitHub\n')
+  const { service, cleanups } = setup({ engine: 'hybrid', words: ['GitHub'] })
+  // Включаем диагностику через отдельный apply с тем же файлом словаря.
+  const serviceDebug = {
+    register(provider) { this.provider = provider; return async () => {} },
+    snapshot() { return { selection: { providerId: 'gigaam-local' } } },
+    async *follow() {},
+  }
+  const debugCleanups = []
+  const scoped = { speechToText: serviceDebug, effect(cb) { const d = cb(); debugCleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); debugCleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+    binaryPath: fakeGigastt,
+    modelDir,
+    hotwordsFile,
+    replacementsFile: join(workspace, 'debug-replacements.json'),
+    engine: 'hybrid',
+    whisperBinaryPath: fakeWhisper,
+    whisperModelPath: whisperModel,
+    prewarm: false,
+    dictionaryPort: 0,
+    hotwordsWatchMs: 10,
+    debugTranscripts: true,
+  })
+  await serviceDebug.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const debug = JSON.parse(readFileSync(join(workspace, 'last-transcripts.json'), 'utf8'))
+  check('диагностика: оба текста и слияние', debug.gigaam === 'Проверка гитхаб' && debug.whisper === 'Проверка GitHub' && debug.merged === 'Проверка GitHub', JSON.stringify(debug))
+  for (const cleanup of debugCleanups.reverse()) await cleanup()
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('whisper не установлен — понятная ошибка')
 {
   const { service, cleanups } = setup({ engine: 'whisper', whisper: false })
