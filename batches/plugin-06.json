@@ -1,0 +1,98 @@
+{
+  "id": "plugin-06",
+  "kind": "plugin-meta",
+  "count": 13,
+  "items": [
+    {
+      "kind": "title",
+      "en": "Scheduling tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-schedule"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Session history tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-session-query"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Text editor tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-str-replace-editor"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Persistent terminal tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-terminal"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Working directory tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-working-directory"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Workspace dependencies",
+      "packages": [
+        "@deepseek-ai/dsh-tool-workspace-dependencies"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Session working directories",
+      "packages": [
+        "@deepseek-ai/dsh-working-directory"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Browser Use (Chrome DevTools)",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-chrome-devtools-mcp"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Browser Use (Playwright)",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-playwright-mcp"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Computer Use (Cua Driver MCP)",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Computer Use (Cua Driver)",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Claude Code subagent",
+      "packages": [
+        "@deepseek-ai/dsh-subagent-claude-code"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Codex subagent",
+      "packages": [
+        "@deepseek-ai/dsh-subagent-codex"
+      ]
+    }
+  ]
+}

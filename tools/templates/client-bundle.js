@@ -396,6 +396,67 @@ window.__ModuleLoader__.load({
 			};
 		}
 
+		/** When the last dictation recording stopped; the insertion follows shortly. */
+		let dictationEndedAt = 0;
+		/** How long after the recording stop an insertion is expected. */
+		const DICTATION_INSERT_WINDOW_MS = 8000;
+
+		/**
+		 * Moves the caret to the end of the composer after a dictation insertion.
+		 * The stock flow captures the insertion span before recording starts; when
+		 * the caret stays at the start of the draft, the next dictation lands above
+		 * the previous text. Moving the caret to the end keeps insertions in order.
+		 * @returns disposer that stops the observer and listeners.
+		 */
+		function installDictationCaretFix() {
+			if (typeof MutationObserver !== "function" || typeof document === "undefined") return () => {};
+			if (typeof document.createRange !== "function") return () => {};
+			let removed = false;
+			let lastEditable = null;
+			const moveToEnd = (editable) => {
+				try {
+					const selection = document.getSelection();
+					if (!selection) return;
+					const range = document.createRange();
+					range.selectNodeContents(editable);
+					range.collapse(false);
+					selection.removeAllRanges();
+					selection.addRange(range);
+				} catch (error) {
+					// редактор мог размонтироваться
+				}
+			};
+			const onFocusIn = (event) => {
+				const target = event !== null && event !== undefined ? event.target : null;
+				if (target === null || target === undefined || typeof target.closest !== "function") return;
+				const editable = target.closest("[contenteditable=true]");
+				if (editable !== null) lastEditable = editable;
+			};
+			document.addEventListener("focusin", onFocusIn);
+			const observer = new MutationObserver(() => {
+				if (removed) return;
+				if (Date.now() - dictationEndedAt > DICTATION_INSERT_WINDOW_MS) return;
+				const active = document.activeElement;
+				const editable = active !== null && active !== undefined && typeof active.closest === "function"
+					? active.closest("[contenteditable=true]")
+					: null;
+				const target = editable === null ? lastEditable : editable;
+				if (target === null) return;
+				// Каретку двигаем после того, как вставка применилась.
+				setTimeout(() => {
+					if (!removed) moveToEnd(target);
+				}, 0);
+			});
+			const observeTarget = document.body !== undefined && document.body !== null ? document.body : document.documentElement;
+			if (observeTarget === undefined || observeTarget === null) return () => {};
+			observer.observe(observeTarget, { childList: true, subtree: true, characterData: true });
+			return () => {
+				removed = true;
+				observer.disconnect();
+				document.removeEventListener("focusin", onFocusIn);
+			};
+		}
+
 		/** Marker on the patched EventTarget prototype: the voice keep-alive is installed. */
 		const VOICE_KEEPALIVE_MARKER = "__dshLocaleRuVoiceKeepAlive";
 
@@ -516,6 +577,7 @@ window.__ModuleLoader__.load({
 						recorders.add(recorder);
 						recorder.addEventListener("stop", () => {
 							recorders.delete(recorder);
+							dictationEndedAt = Date.now();
 							hideIndicator();
 						});
 						return recorder;
@@ -527,7 +589,9 @@ window.__ModuleLoader__.load({
 				};
 			}
 
-			function patchedAdd(type, listener, options) {
+	
+
+		function patchedAdd(type, listener, options) {
 				if ((type === "blur" || type === "visibilitychange") && isCancelListener(listener)) {
 					const wrapped = function () {
 						showIndicator();
@@ -566,6 +630,7 @@ window.__ModuleLoader__.load({
 			// интерфейса голосового ввода. Локаль регистрируем на следующем тике.
 			const restoreVoice = installVoiceKeepAlive();
 			const restoreChip = installDictionaryChip();
+			const restoreCaret = installDictationCaretFix();
 			ctx.effect(() => {
 				let dispose = () => {};
 				const timer = setTimeout(() => {
@@ -580,6 +645,7 @@ window.__ModuleLoader__.load({
 					dispose();
 					restoreVoice();
 					restoreChip();
+					restoreCaret();
 				};
 			}, "__MODULE_ID__: registration");
 		}
