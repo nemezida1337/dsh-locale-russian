@@ -128,6 +128,11 @@ function findPnpm({ appPath } = {}) {
   return undefined
 }
 
+/** Blocks the process for the given time without external commands (cross-platform). */
+function sleepSync(ms) {
+  spawnSync(process.execPath, ['-e', `setTimeout(() => {}, ${ms})`])
+}
+
 /** Runs pnpm install in the profile directory. */
 function runPnpm(pnpm, profileDir, { dryRun }) {
   if (dryRun) return { status: 0, stdout: '(dry-run)', stderr: '' }
@@ -144,7 +149,14 @@ function runPnpm(pnpm, profileDir, { dryRun }) {
  * @param options - profile location, version, pnpm, dry-run and logging.
  * @returns the result with changes, backup and verification.
  */
-export function installDesktop({ dshHome, version, dryRun = false, appPath, log = console.log }) {
+export function installDesktop({
+  dshHome,
+  version,
+  dryRun = false,
+  appPath,
+  log = console.log,
+  retryDelays = [15000, 30000, 45000],
+}) {
   const profileDir = join(dshHome, 'profiles', 'desktop')
   if (!existsSync(profileDir)) {
     throw new Error(`профиль приложения не найден: ${profileDir}. Запустите приложение DeepSeek Harness хотя бы раз.`)
@@ -168,7 +180,13 @@ export function installDesktop({ dshHome, version, dryRun = false, appPath, log 
     // Проверяем, что записанный файл читается и совпадает с задуманным.
     const written = readManifest(profileDir)
     if (JSON.stringify(written) !== JSON.stringify(next)) throw new Error('записанный package.json не совпадает с ожидаемым')
-    const install = runPnpm(pnpm, profileDir, { dryRun })
+    // Сразу после релиза npm может ещё не отдавать новую версию: повторяем.
+    let install = runPnpm(pnpm, profileDir, { dryRun })
+    for (let attempt = 0; install.status !== 0 && attempt < retryDelays.length; attempt += 1) {
+      log(`  pnpm install не удался (код ${install.status}), повтор через ${Math.round(retryDelays[attempt] / 1000)} с — возможно, npm ещё не отдаёт версию`)
+      sleepSync(retryDelays[attempt])
+      install = runPnpm(pnpm, profileDir, { dryRun })
+    }
     if (install.status !== 0) {
       throw new Error(`pnpm install завершился с кодом ${install.status}: ${String(install.stderr).slice(-500)}`)
     }

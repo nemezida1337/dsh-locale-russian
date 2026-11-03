@@ -61,6 +61,7 @@ console.log('модуль словаря')
   check('замена без учёта регистра', applyReplacements('Гитхаб, фордж.', map) === 'GitHub, Forge.')
   check('границы слова соблюдаются', applyReplacements('гитхабер не тронут', map) === 'гитхабер не тронут')
   check('без замен текст не меняется', applyReplacements('Проверка связи', map) === 'Проверка связи')
+  check('длинная замена применяется первой', applyReplacements('гитхаб и гит', { 'гит': 'GIT', 'гитхаб': 'GitHub' }) === 'GitHub и GIT')
 }
 
 console.log('CLI словаря')

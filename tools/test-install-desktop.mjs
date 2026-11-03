@@ -27,7 +27,7 @@ const workspace = mkdtempSync(join(tmpdir(), 'dsh-desktop-test-'))
 const voiceBundle = '@deepseek-ai/dsh-experimental-voice-input-bundle'
 
 /** Builds a fake DSH home with a desktop profile and a fake pnpm. */
-function prepare({ pnpmFails = false } = {}) {
+function prepare({ pnpmFails = false, pnpmFailsOnce = false } = {}) {
   rmSync(workspace, { recursive: true, force: true })
   const profileDir = join(workspace, 'profiles', 'desktop')
   mkdirSync(profileDir, { recursive: true })
@@ -45,6 +45,10 @@ const fs = require('node:fs')
 const path = require('node:path')
 const version = ${JSON.stringify(pnpmFails ? 'fail' : '1.2.3')}
 if (version === 'fail') { console.error('pnpm: simulated failure'); process.exit(1) }
+if (${pnpmFailsOnce ? 'true' : 'false'}) {
+  const marker = path.join(process.cwd(), 'pnpm-failed-once')
+  if (!fs.existsSync(marker)) { fs.writeFileSync(marker, '1'); console.error('pnpm: first attempt fails'); process.exit(1) }
+}
 const target = path.join(process.cwd(), 'node_modules', 'dsh-locale-russian')
 fs.mkdirSync(target, { recursive: true })
 fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify({ name: 'dsh-locale-russian', version: '1.2.3' }))
@@ -110,13 +114,21 @@ console.log('сбой установки')
   const before = readFileSync(join(profileDir, 'package.json'), 'utf8')
   let error
   try {
-    installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+    installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [] })
   } catch (caught) {
     error = caught
   }
   check('ошибка сообщает об откате', error instanceof Error && error.message.includes('восстановлен'), error?.message)
   check('манифест восстановлен', readFileSync(join(profileDir, 'package.json'), 'utf8') === before)
   check('резервная копия осталась', latestBackup(profileDir) !== undefined)
+}
+
+console.log('повтор после сбоя pnpm')
+{
+  const { profileDir, appPath } = prepare({ pnpmFailsOnce: true })
+  const result = installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, retryDelays: [10] })
+  check('установка прошла после повтора', result.verified.ok === true, JSON.stringify(result.verified))
+  check('пакет установлен', existsSync(join(profileDir, 'node_modules', 'dsh-locale-russian', 'package.json')))
 }
 
 console.log('откат')

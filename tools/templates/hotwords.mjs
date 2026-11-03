@@ -172,8 +172,11 @@ export function removeReplacement(text, heard) {
  */
 export function applyReplacements(text, replacements) {
   let result = String(text ?? '')
-  for (const [heard, chosen] of Object.entries(replacements ?? {})) {
-    if (typeof heard !== 'string' || typeof chosen !== 'string' || heard === '') continue
+  // Длинные фразы первыми: иначе «гит» съел бы начало «гитхаб».
+  const entries = Object.entries(replacements ?? {})
+    .filter(([heard, chosen]) => typeof heard === 'string' && typeof chosen === 'string' && heard !== '')
+    .sort(([left], [right]) => right.length - left.length)
+  for (const [heard, chosen] of entries) {
     const escaped = heard.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const pattern = new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}(?=$|[^\\p{L}\\p{N}])`, 'giu')
     result = result.replace(pattern, (match, prefix) => `${prefix}${chosen}`)
