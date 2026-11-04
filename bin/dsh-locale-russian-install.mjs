@@ -98,7 +98,7 @@ if (flag('--help') || flag('-h')) {
   console.log('  --hotwords-from <папка>                       собрать термины из проекта')
   console.log('')
   console.log('Движок распознавания (для --desktop):')
-  console.log('  --engine <gigaam|whisper|hybrid>              движок (по умолчанию hybrid, если Whisper есть)')
+  console.log('  --engine <auto|gigaam|whisper|hybrid>         движок (по умолчанию auto: GigaAM + Whisper при терминах)')
   console.log('  --merge <auto|sentences|text|words>           стратегия слияния (по умолчанию auto)')
   console.log('  --no-whisper                                  не ставить Whisper, остаться на GigaAM')
   console.log('  --whisper-model <путь>                        свой путь к модели Whisper')

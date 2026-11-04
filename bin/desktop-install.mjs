@@ -361,7 +361,7 @@ export async function installDesktop({
     // Пакет уже стоит: всё равно настраиваем движок и докачиваем Whisper.
     const whisperResult = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: false, modelPath, fetchImpl })
     const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'hybrid' : 'gigaam')
-    writeProfileConfig(profileDir, { engine: chosenEngine, merge, debugTranscripts, whisperBinaryPath: whisperResult.binary, whisperModelPath: whisperResult.modelPath })
+    writeProfileConfig(profileDir, { engine: chosenEngine, merge, debugTranscripts: debugTranscripts ?? true, whisperBinaryPath: whisperResult.binary, whisperModelPath: whisperResult.modelPath })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
     return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: verifyInstalled(profileDir, manifest), engine: chosenEngine, whisper: whisperResult, alreadyInstalled: true }
   }
@@ -394,11 +394,11 @@ export async function installDesktop({
     if (whisper !== false) {
       whisperResult = await installWhisper({ dshHome, log, dryRun, modelPath, fetchImpl })
     }
-    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'hybrid' : 'gigaam')
+    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
-      debugTranscripts,
+      debugTranscripts: debugTranscripts ?? true,
       whisperBinaryPath: whisperResult.binary,
       whisperModelPath: whisperResult.modelPath,
     })

@@ -6,7 +6,7 @@
  * Usage:
  *   node tools/test-engine-modes.mjs
  */
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createServer } from 'node:net'
@@ -28,6 +28,9 @@ const fakeGigastt = join(workspace, 'fake-gigastt.mjs')
 const fakeWhisper = join(workspace, 'fake-whisper.mjs')
 copyFileSync(join(here, '..', 'test', 'fixtures', 'fake-gigastt.mjs'), fakeGigastt)
 copyFileSync(join(here, '..', 'test', 'fixtures', 'fake-whisper-cli.mjs'), fakeWhisper)
+const fakeWhisperServer = join(workspace, 'fake-whisper-server.mjs')
+copyFileSync(join(here, '..', 'test', 'fixtures', 'fake-whisper-server.mjs'), fakeWhisperServer)
+chmodSync(fakeWhisperServer, 0o755)
 chmodSync(fakeGigastt, 0o755)
 chmodSync(fakeWhisper, 0o755)
 const modelDir = join(workspace, 'models')
@@ -64,7 +67,7 @@ const { apply, internals } = await import('../lib/index.js')
 for (const name of internals.modelFiles) writeFileSync(join(modelDir, name), 'x')
 
 /** Applies the provider with the given engine mode and dictionary. */
-function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, merge, port = 0 }) {
+function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, whisperServer = false, merge, port = 0 }) {
   const hotwordsFile = join(workspace, `hotwords-${engine}.txt`)
   const header = '# Hotwords\n'
   const section = words.length === 0
@@ -89,6 +92,8 @@ function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, 
     ...(merge === undefined ? {} : { merge }),
     whisperBinaryPath: whisper ? fakeWhisper : join(workspace, 'нет-бинаря'),
     whisperModelPath: whisperModel,
+    // По умолчанию тёплый сервер отключён: проверяем CLI-путь и auto-режим.
+    whisperServerPath: whisperServer ? fakeWhisperServer : join(workspace, 'нет-whisper-server'),
     prewarm: false,
     dictionaryPort: port,
     hotwordsWatchMs: 10,
@@ -434,6 +439,74 @@ console.log('подсказка динамического словаря по �
   check('подсказка указывает на словарь проекта', after.suggestion?.id === projectId && after.suggestion?.hits >= 2, JSON.stringify({ suggestion: after.suggestion, projectId }))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
+}
+
+const freePort = () => new Promise((resolve) => {
+  const probe = createServer()
+  probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+})
+
+console.log('auto: быстрый путь без Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка связи'
+  const argsFile = join(workspace, 'auto-fast-whisper-args.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const port = await freePort()
+  const { service, cleanups } = setup({ engine: 'auto', port })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: русский текст без Whisper', result.text === 'Проверка связи', result.text)
+  check('auto: Whisper не вызывался', !existsSync(argsFile), existsSync(argsFile) ? readFileSync(argsFile, 'utf8') : 'нет файла')
+  const info = await fetch(`http://127.0.0.1:${port}/last-transcription`).then((response) => response.json())
+  check('auto: fallback не срабатывал', info.autoFallback === false && info.mode === 'auto', JSON.stringify({ fallback: info.autoFallback, mode: info.mode }))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
+}
+
+console.log('auto: Whisper подключается на английских терминах')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const argsFile = join(workspace, 'auto-fallback-whisper-args.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const port = await freePort()
+  const { service, cleanups } = setup({ engine: 'auto', port })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: термин исправлен Whisper', result.text === 'Проверка GitHub', result.text)
+  check('auto: Whisper вызван', existsSync(argsFile) && readFileSync(argsFile, 'utf8').trim() !== '')
+  const info = await fetch(`http://127.0.0.1:${port}/last-transcription`).then((response) => response.json())
+  check('auto: fallback отмечен', info.autoFallback === true, JSON.stringify(info.autoFallback))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
+}
+
+console.log('auto: короткая латиница не включает Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Приоритет P0 и OK'
+  const argsFile = join(workspace, 'auto-short-latin-args.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const { service, cleanups } = setup({ engine: 'auto' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: P0/OK не тянут Whisper', result.text.includes('P0') && !existsSync(argsFile), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
+}
+
+console.log('тёплый whisper-server')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка через сервер'
+  const marker = join(workspace, 'whisper-server-marker.log')
+  process.env.FAKE_SERVER_MARKER = marker
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('тёплый сервер ответил', result.text === 'Проверка через сервер', result.text)
+  check('запрос ушёл на сервер', existsSync(marker) && readFileSync(marker, 'utf8').trim() !== '')
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_MARKER
 }
 
 console.log('whisper не установлен — понятная ошибка')

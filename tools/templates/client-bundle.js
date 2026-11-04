@@ -1503,6 +1503,7 @@ window.__ModuleLoader__.load({
 			section("Движок");
 			const engineRow = modalElement("div", "display:flex;gap:6px;padding:2px 4px 4px;flex-wrap:wrap");
 			for (const engine of [
+				{ id: "auto", label: "Авто (быстро)" },
 				{ id: "gigaam", label: "GigaAM" },
 				{ id: "whisper", label: "Whisper" },
 				{ id: "hybrid", label: "Гибрид" },
@@ -1843,6 +1844,7 @@ window.__ModuleLoader__.load({
 				section("Движок", 0);
 				const engineRow = modalElement("div", "display:flex;gap:6px;padding:2px 4px 4px;flex-wrap:wrap");
 				const engineButtons = [
+					{ id: "auto", label: "Авто (быстро)" },
 					{ id: "gigaam", label: "GigaAM" },
 					{ id: "whisper", label: "Whisper" },
 					{ id: "hybrid", label: "Гибрид" },

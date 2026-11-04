@@ -214,7 +214,9 @@ export function apply(ctx, config = {}) {
   const log = debug ? (...args) => console.log('[dsh-locale-russian]', ...args) : () => {}
   const hotwordsFile = config.hotwordsFile ?? DEFAULT_HOTWORDS_FILE
   /** Engine mode: GigaAM only, Whisper only, or both with a merge. */
-  const engineMode = config.engine === 'whisper' || config.engine === 'hybrid' ? config.engine : 'gigaam'
+  const engineMode = config.engine === 'whisper' || config.engine === 'hybrid' || config.engine === 'auto'
+    ? config.engine
+    : 'gigaam'
   const whisperBinaryPath = config.whisperBinaryPath ?? join(DSH_HOME, 'bin', 'whisper-cli')
   const whisperModelPath = config.whisperModelPath ?? join(DSH_HOME, 'speech-ru', 'whisper', 'ggml-large-v3-turbo-q5_0.bin')
   const whisperLanguage = config.whisperLanguage ?? 'ru'
@@ -241,6 +243,12 @@ export function apply(ctx, config = {}) {
   let preparation
   /** Managed child process and its readiness, or undefined when stopped. */
   let server
+  /** Warm whisper.cpp HTTP server: the model is loaded once per process. */
+  let whisperServer
+  /** Prompt the running whisper server was started with. */
+  let whisperServerPromptSignature = ''
+  /** Set after repeated server failures: fall back to the whisper CLI. */
+  let whisperServerDisabled = false
   /** Отпечаток файла словаря на момент старта движка. */
   let hotwordsSignature
   /** Serializes transcriptions because the engine pool is intentionally single. */
@@ -259,6 +267,8 @@ export function apply(ctx, config = {}) {
   let reloading = false
   /** Info about the last transcription: applied replacements, for the client. */
   let lastTranscription
+  /** Set when the auto mode had to ask Whisper for a second opinion. */
+  let autoFallback = false
   let disposed = false
 
   function hasModel() {
@@ -782,7 +792,7 @@ export function apply(ctx, config = {}) {
             response.end(JSON.stringify({ ok: false, reason: 'bad-json' }))
             return
           }
-          const engines = ['gigaam', 'whisper', 'hybrid']
+          const engines = ['auto', 'gigaam', 'whisper', 'hybrid']
           const merges = ['auto', 'sentences', 'text', 'words']
           const engine = engines.includes(payload?.engine) ? payload.engine : undefined
           const merge = merges.includes(payload?.merge) ? payload.merge : 'auto'
@@ -1514,6 +1524,133 @@ export function apply(ctx, config = {}) {
     return error instanceof Error && /fetch failed/i.test(error.message)
   }
 
+  /** Path to whisper-server (vendor bundle, Homebrew or the CLI directory). */
+  function whisperServerBinary() {
+    if (typeof config.whisperServerPath === 'string' && config.whisperServerPath !== '') return config.whisperServerPath
+    const candidates = [
+      join(dirname(whisperBinaryPath), 'whisper-server'),
+      '/opt/homebrew/bin/whisper-server',
+      '/usr/local/bin/whisper-server',
+    ]
+    return candidates.find((candidate) => existsSync(candidate))
+  }
+
+  /** Picks a free local TCP port. */
+  async function freePort() {
+    return await new Promise((resolve, reject) => {
+      const probe = createNetServer()
+      probe.once('error', reject)
+      probe.listen(0, '127.0.0.1', () => {
+        const address = probe.address()
+        const port = typeof address === 'object' && address !== null ? address.port : 0
+        probe.close(() => resolve(port))
+      })
+    })
+  }
+
+  /** Stops the warm whisper server. */
+  async function stopWhisperServer() {
+    const record = whisperServer
+    whisperServer = undefined
+    whisperServerPromptSignature = ''
+    if (record === undefined) return
+    if (record.child.exitCode !== null) return
+    const exited = new Promise((resolve) => record.child.once('exit', resolve))
+    record.child.kill('SIGTERM')
+    await Promise.race([exited, sleep(STOP_TIMEOUT_MS).then(() => record.child.kill('SIGKILL'))])
+  }
+
+  /**
+   * Starts (or reuses) the warm whisper server. The prompt is fixed for the
+   * process, so a dictionary change restarts the server in the background.
+   * @returns the server origin, or undefined when unavailable.
+   */
+  async function ensureWhisperServer() {
+    if (whisperServerDisabled) return undefined
+    if (!hasWhisper()) return undefined
+    const binary = whisperServerBinary()
+    if (binary === undefined) return undefined
+    const prompt = whisperPrompt()
+    if (whisperServer !== undefined) {
+      if (whisperServerPromptSignature === prompt) return whisperServer.origin
+      await stopWhisperServer()
+    }
+    let port
+    try {
+      port = await freePort()
+    } catch (error) {
+      log('cannot pick a port for whisper-server', error)
+      return undefined
+    }
+    const args = ['-m', whisperModelPath, '--host', '127.0.0.1', '--port', String(port), '-t', '8', '-l', whisperLanguage, '-nt']
+    if (prompt !== '') args.push('--prompt', prompt)
+    let child
+    try {
+      child = spawn(binary, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+    } catch (error) {
+      log('cannot start whisper-server', error)
+      whisperServerDisabled = true
+      return undefined
+    }
+    let stderr = ''
+    child.stderr.setEncoding('utf8')
+    child.stderr.on('data', (chunk) => { stderr = (stderr + chunk).slice(-2000) })
+    child.on('error', (error) => {
+      log('whisper-server error', error)
+      whisperServerDisabled = true
+    })
+    child.on('exit', () => {
+      if (whisperServer?.child === child) whisperServer = undefined
+    })
+    const origin = `http://127.0.0.1:${port}`
+    const deadline = Date.now() + 20000
+    while (Date.now() < deadline) {
+      try {
+        const response = await fetch(`${origin}/`, { signal: AbortSignal.timeout(800) })
+        if (response.ok || response.status === 404) {
+          whisperServer = { child, port, origin }
+          whisperServerPromptSignature = prompt
+          log('whisper-server ready on', port)
+          return origin
+        }
+      } catch (error) {
+        // сервер ещё загружает модель
+      }
+      await sleep(200)
+    }
+    log('whisper-server did not start', stderr.slice(-300))
+    whisperServerDisabled = true
+    try { child.kill('SIGKILL') } catch (error) { /* уже остановлен */ }
+    return undefined
+  }
+
+  /** Sends audio to the warm whisper server; returns text or undefined. */
+  async function postWhisperServer(audio, signal) {
+    const origin = await ensureWhisperServer()
+    if (origin === undefined) return undefined
+    const boundary = `----dshwhisper${Date.now()}${Math.random().toString(16).slice(2)}`
+    const head = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.wav"\r\nContent-Type: audio/wav\r\n\r\n`)
+    const tail = Buffer.from(`\r\n--${boundary}--\r\n`)
+    try {
+      const response = await fetch(`${origin}/inference`, {
+        method: 'POST',
+        headers: { 'content-type': `multipart/form-data; boundary=${boundary}` },
+        body: Buffer.concat([head, audio, tail]),
+        signal,
+      })
+      if (!response.ok) {
+        log('whisper-server HTTP', response.status)
+        return undefined
+      }
+      const payload = await response.json()
+      return typeof payload?.text === 'string' ? payload.text.trim() : undefined
+    } catch (error) {
+      if (signal.aborted) throw error
+      log('whisper-server request failed', error instanceof Error ? error.message : String(error))
+      return undefined
+    }
+  }
+
   /** Parses a 16-bit PCM WAV: format fields and the data chunk bounds. */
   function parseWav(audio) {
     if (!Buffer.isBuffer(audio) || audio.length < 44) return undefined
@@ -1678,6 +1815,13 @@ export function apply(ctx, config = {}) {
    * @returns recognized text.
    */
   async function transcribeViaWhisper(audio, signal) {
+    // Тёплый сервер держит модель в памяти: ~0,7 с вместо ~1,1 с у CLI.
+    const warm = await postWhisperServer(audio, signal).catch((error) => {
+      if (signal.aborted) throw error
+      log('whisper server unavailable', error instanceof Error ? error.message : String(error))
+      return undefined
+    })
+    if (warm !== undefined) return warm
     const file = join(tmpdir(), `dsh-whisper-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.wav`)
     writeFileSync(file, audio)
     try {
@@ -2082,6 +2226,7 @@ export function apply(ctx, config = {}) {
     gigaamWords = []
     gigaamTextForTimings = ''
     gigaamAudioSeconds = undefined
+    autoFallback = false
     // Обрезаем тишину: короче аудио — быстрее и точнее; слова сдвигаем назад.
     const prepared = trimSilenceWav(input.audio, {
       enabled: config.trimSilence !== false,
@@ -2095,6 +2240,31 @@ export function apply(ctx, config = {}) {
       let raw
       if (engineMode === 'whisper') {
         raw = await transcribeViaWhisper(trimmedInput.audio, signal)
+      } else if (engineMode === 'auto') {
+        // Быстрый путь: GigaAM отвечает за ~0,13 с; Whisper подключается только
+        // если в тексте появились английские термины или уверенность низкая.
+        const gigaamAnswer = await transcribeGigaam(trimmedInput, signal)
+        gigaamWords = gigaamAnswer.words ?? []
+        gigaamTextForTimings = gigaamAnswer.text
+        gigaamAudioSeconds = gigaamAnswer.duration
+        raw = gigaamAnswer.text
+        // Быстрый путь: английские слова вне словаря или низкая уверенность.
+        const autoDictionary = [...readHotwords(), ...Object.values(readReplacementsFile())].map((term) => term.toLowerCase())
+        const autoLatin = (String(gigaamAnswer.text ?? '').match(/[A-Za-z]{3,}/gu) ?? [])
+        const autoUnknownLatin = autoLatin.some((token) => !autoDictionary.some((term) => term.includes(token.toLowerCase())))
+        const autoConfidences = (gigaamAnswer.words ?? []).map((word) => Number(word.confidence)).filter((value) => Number.isFinite(value))
+        const autoAverage = autoConfidences.length === 0 ? 1 : autoConfidences.reduce((sum, value) => sum + value, 0) / autoConfidences.length
+        if (autoUnknownLatin || autoAverage < 0.55) {
+          const whisperText = await transcribeViaWhisper(trimmedInput.audio, signal).catch((error) => {
+            log('whisper failed in auto', error instanceof Error ? error.message : String(error))
+            return ''
+          })
+          if (whisperText !== '') {
+            autoFallback = true
+            const dictionary = [...readHotwords(), ...Object.values(readReplacementsFile())]
+            raw = mergeBySentences(gigaamAnswer.text, whisperText, dictionary) ?? gigaamAnswer.text
+          }
+        }
       } else if (engineMode === 'hybrid') {
         const [gigaamAnswer, whisperText] = await Promise.all([
           transcribeGigaam(trimmedInput, signal).catch((error) => {
@@ -2194,6 +2364,8 @@ export function apply(ctx, config = {}) {
         audioDurationSeconds: gigaamAudioSeconds,
         // Сколько тишины срезали: клиенты прибавляют это к своим меткам.
         audioTrimOffsetSeconds,
+        // В режиме auto: понадобился ли Whisper (для диагностики скорости).
+        autoFallback,
       }
       log('transcribed', raw.length, 'chars; mode:', engineMode, '; replaced:', text === raw ? 0 : 'yes')
       return {
@@ -2344,6 +2516,7 @@ export function apply(ctx, config = {}) {
     task.child?.kill('SIGTERM')
     await task.done.catch(() => {})
     await stopServer()
+    await stopWhisperServer()
   }
 
   const preparationApi = {
@@ -2382,7 +2555,14 @@ export function apply(ctx, config = {}) {
     }
     const timer = setTimeout(() => {
       try {
-        if (ctx.speechToText.snapshot?.()?.selection?.providerId === PROVIDER_ID) warm()
+        if (ctx.speechToText.snapshot?.()?.selection?.providerId === PROVIDER_ID) {
+          warm()
+          if (engineMode !== 'gigaam' && hasWhisper()) {
+            void ensureWhisperServer().catch((error) => {
+              log('whisper prewarm failed', error instanceof Error ? error.message : String(error))
+            })
+          }
+        }
       } catch (error) {
         log('prewarm skipped', error instanceof Error ? error.message : String(error))
       }
@@ -2445,6 +2625,7 @@ export function apply(ctx, config = {}) {
         listeners.clear()
         clearInterval(watchTimer)
         await stopServer()
+        await stopWhisperServer()
         await stopDictionaryServer()
         await remove()
       }
