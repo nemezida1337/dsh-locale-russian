@@ -574,7 +574,8 @@ console.log('тёплый сервер: выгрузка во время ста�
   process.env.FAKE_SERVER_DELAY = '1500'
   const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
   const pending = service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000)).catch(() => undefined)
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  const pidDeadline = Date.now() + 2000
+  while (Date.now() < pidDeadline && !existsSync(pidFile)) await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
   for (const cleanup of cleanups.reverse()) await cleanup()
   await pending
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
@@ -598,6 +599,7 @@ console.log('/engine сохраняет остальные ключи конфи
   mkdirSync(profileDir, { recursive: true })
   const patchFile = join(profileDir, 'cordis.patch.yml')
   writeFileSync(patchFile, [
+    '# мой комментарий про движок',
     '- id: locale-ru',
     '  config:',
     '    engine: hybrid',
@@ -606,6 +608,9 @@ console.log('/engine сохраняет остальные ключи конфи
     '    whisperServerPath: /custom/whisper-server',
     '    whisperBinaryPath: /custom/whisper-cli',
     '    whisperModelPath: /custom/model.bin',
+    '    hotwords:',
+    '      - GitHub',
+    '      - OpenAI',
     '',
   ].join('\n'))
   const previousHome = process.env.DSH_HOME
@@ -624,6 +629,8 @@ console.log('/engine сохраняет остальные ключи конфи
   check('whisperBinaryPath сохранён', patch.includes('whisperBinaryPath: /custom/whisper-cli'), patch)
   check('whisperModelPath сохранён', patch.includes('whisperModelPath: /custom/model.bin'), patch)
   check('комментарий не копится', (patch.match(/# Движок:/gu) ?? []).length === 1, patch)
+  check('комментарий пользователя сохранён', patch.includes('# мой комментарий про движок'), patch)
+  check('вложенный hotwords сохранён', patch.includes('    hotwords:') && patch.includes('      - GitHub'), patch)
   const second = await fetch(`http://127.0.0.1:${port}/engine`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -748,7 +755,8 @@ console.log('single-flight: prewarm и диктовка делят один whis
     dictionaryPort: 0,
     hotwordsWatchMs: 10,
   })
-  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  const startsDeadline = Date.now() + 2000
+  while (Date.now() < startsDeadline && !existsSync(starts)) await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
   await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   const lines = readFileSync(starts, 'utf8').trim().split('\n').filter(Boolean)
   check('стартовал ровно один сервер', lines.length === 1, JSON.stringify(lines))
@@ -756,6 +764,116 @@ console.log('single-flight: prewarm и диктовка делят один whis
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_SERVER_STARTS
   delete process.env.FAKE_SERVER_DELAY
+}
+
+console.log('abort: hybrid и CLI отменяют диктовку')
+{
+  process.env.FAKE_TRANSCRIPT = 'Медленный GigaAM'
+  process.env.FAKE_GIGAAM_DELAY = '3000'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Быстрый Whisper'
+  const hybrid = setup({ engine: 'hybrid' })
+  const hybridController = new AbortController()
+  const hybridPending = hybrid.service.provider.transcribe({ audio: wav }, hybridController.signal)
+  setTimeout(() => hybridController.abort(), 500)
+  let hybridError
+  try {
+    await hybridPending
+  } catch (caught) {
+    hybridError = caught
+  }
+  check('hybrid abort → AbortError', hybridError?.name === 'AbortError', hybridError === undefined ? 'resolve' : String(hybridError.name))
+  for (const cleanup of hybrid.cleanups.reverse()) await cleanup()
+  process.env.FAKE_WHISPER_DELAY = '3000'
+  delete process.env.FAKE_GIGAAM_DELAY
+  const cli = setup({ engine: 'whisper' })
+  const cliController = new AbortController()
+  const cliPending = cli.service.provider.transcribe({ audio: wav }, cliController.signal)
+  setTimeout(() => cliController.abort(), 200)
+  let cliError
+  try {
+    await cliPending
+  } catch (caught) {
+    cliError = caught
+  }
+  check('CLI abort → AbortError', cliError?.name === 'AbortError', cliError === undefined ? 'resolve' : String(cliError.name))
+  for (const cleanup of cli.cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_DELAY
+}
+
+console.log('auto: корректный GigaAM-текст не выбрасывается из-за OOV-латиницы')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка GitHub API'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка гитхаб апи'
+  for (const merge of ['text', 'sentences']) {
+    const { service, cleanups } = setup({ engine: 'auto', words: ['GitHub'], merge })
+    const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+    check(`auto/${merge}: GitHub API сохранён`, result.text.includes('GitHub API'), result.text)
+    for (const cleanup of cleanups.reverse()) await cleanup()
+  }
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('auto: одно предложение с битой латиницей без словаря')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const { service, cleanups } = setup({ engine: 'auto', words: [] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: gighab→GitHub в одном предложении', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('abort: ожидание чужого старта whisper-server прерывается')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Не должно вернуться'
+  process.env.FAKE_SERVER_DELAY = '1500'
+  const starts = join(workspace, 'abort-prewarm-starts.log')
+  process.env.FAKE_SERVER_STARTS = starts
+  const service = {
+    register(provider) { this.provider = provider; return async () => {} },
+    snapshot() { return { selection: { providerId: 'gigaam-local' } } },
+    async *follow() {},
+  }
+  const cleanups = []
+  const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+    binaryPath: fakeGigastt,
+    modelDir,
+    hotwordsFile: join(workspace, 'hotwords-whisper.txt'),
+    replacementsFile: join(workspace, 'replacements-whisper.json'),
+    engine: 'whisper',
+    whisperBinaryPath: fakeWhisper,
+    whisperModelPath: whisperModel,
+    whisperServerPath: fakeWhisperServer,
+    prewarm: true,
+    prewarmDelayMs: 0,
+    dictionaryPort: 0,
+    hotwordsWatchMs: 10,
+  })
+  // Ждём, пока prewarm реально начнёт старт сервера.
+  const deadline = Date.now() + 2000
+  while (Date.now() < deadline && !existsSync(starts)) await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
+  const controller = new AbortController()
+  const startedAt = Date.now()
+  const pending = service.provider.transcribe({ audio: wav }, controller.signal)
+  setTimeout(() => controller.abort(), 100)
+  let error
+  try {
+    await pending
+  } catch (caught) {
+    error = caught
+  }
+  const elapsed = Date.now() - startedAt
+  check('abort ожидания быстрый и AbortError', error?.name === 'AbortError' && elapsed < 900, `${error === undefined ? 'resolve' : error.name} за ${elapsed} мс`)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_DELAY
+  delete process.env.FAKE_SERVER_STARTS
 }
 
 console.log('whisper не установлен — понятная ошибка')

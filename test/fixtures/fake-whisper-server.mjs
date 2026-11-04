@@ -27,8 +27,11 @@ const server = createServer((request, response) => {
     const body = Buffer.concat(chunks)
     if (process.env.FAKE_SERVER_BODY) writeFileSync(process.env.FAKE_SERVER_BODY, body)
     if (process.env.FAKE_SERVER_MARKER) appendFileSync(process.env.FAKE_SERVER_MARKER, `${body.length}\n`)
-    response.writeHead(200, { 'content-type': 'application/json' })
-    response.end(JSON.stringify({ text: process.env.FAKE_WHISPER_TRANSCRIPT ?? 'Проверка связи' }))
+    const delay = Number(process.env.FAKE_INFERENCE_DELAY ?? 0)
+    setTimeout(() => {
+      response.writeHead(200, { 'content-type': 'application/json' })
+      response.end(JSON.stringify({ text: process.env.FAKE_WHISPER_TRANSCRIPT ?? 'Проверка связи' }))
+    }, delay)
   })
 })
 const delay = Number(process.env.FAKE_SERVER_DELAY ?? 0)

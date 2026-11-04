@@ -325,6 +325,21 @@ console.log('P0: дефолты установщика и пакет')
   const kept = readFileSync(patchPath, 'utf8')
   check('trimSilence сохранён', kept.includes('trimSilence: false'), kept)
   check('пути Whisper сохранены', kept.includes('/custom/whisper-cli') && kept.includes('/custom/model.bin'), kept)
+  // debugTranscripts: false и вложенный список не теряются.
+  writeFileSync(patchPath, [
+    '- id: locale-ru',
+    '  config:',
+    '    engine: auto',
+    '    debugTranscripts: false',
+    '    hotwords:',
+    '      - GitHub',
+    '      - OpenAI',
+    '',
+  ].join('\n'))
+  writeProfileConfig(join(home2, 'profiles', 'desktop'), { engine: 'gigaam' })
+  const keptSecond = readFileSync(patchPath, 'utf8')
+  check('debugTranscripts false сохранён', keptSecond.includes('debugTranscripts: false'), keptSecond)
+  check('вложенный hotwords сохранён', keptSecond.includes('    hotwords:') && keptSecond.includes('      - OpenAI'), keptSecond)
   rmSync(home2, { recursive: true, force: true })
 }
 

@@ -3,4 +3,5 @@
 import { appendFileSync } from 'node:fs'
 
 if (process.env.FAKE_WHISPER_ARGS) appendFileSync(process.env.FAKE_WHISPER_ARGS, `${JSON.stringify(process.argv.slice(2))}\n`)
-console.log(process.env.FAKE_WHISPER_TRANSCRIPT ?? 'Проверка связи')
+const delay = Number(process.env.FAKE_WHISPER_DELAY ?? 0)
+setTimeout(() => console.log(process.env.FAKE_WHISPER_TRANSCRIPT ?? 'Проверка связи'), delay)

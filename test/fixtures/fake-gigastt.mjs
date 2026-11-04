@@ -41,8 +41,11 @@ const server = createServer((request, response) => {
           confidence: 0.95,
         }))
     const duration = Number(process.env.FAKE_AUDIO_DURATION ?? 1)
-    response.writeHead(200, { 'content-type': 'application/json' })
-    response.end(JSON.stringify({ text, duration, words }))
+    const delay = Number(process.env.FAKE_GIGAAM_DELAY ?? 0)
+    setTimeout(() => {
+      response.writeHead(200, { 'content-type': 'application/json' })
+      response.end(JSON.stringify({ text, duration, words }))
+    }, delay)
   })
 })
 server.listen(port, '127.0.0.1')

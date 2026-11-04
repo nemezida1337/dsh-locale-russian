@@ -272,8 +272,10 @@ function removeEngineBlock(lines) {
   for (const line of lines) {
     if (line.startsWith('- id: locale-ru')) {
       // Убираем и комментарий-маркер прямо перед строкой.
-      while (result.length > 0 && (result[result.length - 1].trim() === '' || result[result.length - 1].trimStart().startsWith('#'))) {
-        result.pop()
+      while (result.length > 0) {
+        const previous = result[result.length - 1].trim()
+        if (previous === '' || previous.startsWith(ENGINE_BLOCK_MARKER) || previous.startsWith('# Движок:')) result.pop()
+        else break
       }
       skipping = true
       continue
@@ -287,15 +289,35 @@ function removeEngineBlock(lines) {
   return result
 }
 
-/**
- * Writes the engine configuration into the profile patch, replacing the old one.
- * @param profileDir - profile directory.
- * @param options - engine, merge, whisper paths.
- * @returns whether the file changed.
- */
 /** Strips newlines/CR so config values cannot inject extra YAML keys. */
 function sanitizeConfigValue(value) {
   return String(value ?? '').replace(/[\r\n]+/gu, ' ').trim()
+}
+
+/** Raw lines of config keys the installer does not manage (nested lists too). */
+function readProfileExtraLines(profileDir) {
+  try {
+    const text = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+    const block = text.match(/- id: locale-ru[\s\S]*?(?=\n- id:|\s*$)/u)
+    if (block === null) return []
+    const lines = block[0].split('\n')
+    const extras = []
+    const managed = new Set(['engine', 'merge', 'debugTranscripts', 'whisperBinaryPath', 'whisperServerPath', 'whisperModelPath'])
+    for (let index = 0; index < lines.length; index += 1) {
+      const match = lines[index].match(/^    ([A-Za-z][\w-]*):/u)
+      if (match === null || managed.has(match[1])) continue
+      extras.push(lines[index])
+      let nested = index + 1
+      while (nested < lines.length && /^\s{6,}\S/u.test(lines[nested])) {
+        extras.push(lines[nested])
+        nested += 1
+      }
+      index = nested - 1
+    }
+    return extras
+  } catch {
+    return []
+  }
 }
 
 /** Reads all keys of the existing locale-ru block. */
@@ -328,6 +350,13 @@ export function readProfileEngine(profileDir) {
   }
 }
 
+/**
+ * Writes the locale-ru block into the profile patch file, keeping keys the
+ * installer does not manage (trimSilence, nested lists, custom paths).
+ * @param profileDir - profile directory.
+ * @param options - engine, merge, whisper paths and diagnostics flag.
+ * @returns whether the file changed.
+ */
 export function writeProfileConfig(profileDir, { engine = 'auto', merge, whisperBinaryPath, whisperServerPath, whisperModelPath: modelPath, debugTranscripts } = {}) {
   const path = join(profileDir, 'cordis.patch.yml')
   if (!existsSync(path)) throw new Error(`в профиле нет cordis.patch.yml: ${path}`)
@@ -341,18 +370,17 @@ export function writeProfileConfig(profileDir, { engine = 'auto', merge, whisper
   // Пользовательские ключи (trimSilence, merge, пути) не теряем.
   const effectiveMerge = merge !== undefined ? merge : current.merge
   if (effectiveMerge !== undefined && effectiveMerge !== '') block.push(`    merge: ${sanitizeConfigValue(effectiveMerge)}`)
-  const effectiveDebug = debugTranscripts !== undefined ? debugTranscripts : current.debugTranscripts === 'true'
-  if (effectiveDebug === true) block.push('    debugTranscripts: true')
+  const effectiveDebug = debugTranscripts !== undefined
+    ? debugTranscripts
+    : current.debugTranscripts !== undefined ? current.debugTranscripts === 'true' : true
+  block.push(`    debugTranscripts: ${effectiveDebug === true ? 'true' : 'false'}`)
   const effectiveBinary = whisperBinaryPath !== undefined ? whisperBinaryPath : current.whisperBinaryPath
   const effectiveServer = whisperServerPath !== undefined ? whisperServerPath : current.whisperServerPath
   const effectiveModel = modelPath !== undefined ? modelPath : current.whisperModelPath
   if (effectiveBinary !== undefined && effectiveBinary !== '') block.push(`    whisperBinaryPath: ${sanitizeConfigValue(effectiveBinary)}`)
   if (effectiveServer !== undefined && effectiveServer !== '') block.push(`    whisperServerPath: ${sanitizeConfigValue(effectiveServer)}`)
   if (effectiveModel !== undefined && effectiveModel !== '') block.push(`    whisperModelPath: ${sanitizeConfigValue(effectiveModel)}`)
-  for (const [key, value] of Object.entries(current)) {
-    if (['engine', 'merge', 'debugTranscripts', 'whisperBinaryPath', 'whisperServerPath', 'whisperModelPath'].includes(key)) continue
-    block.push(`    ${key}: ${sanitizeConfigValue(value)}`)
-  }
+  for (const line of readProfileExtraLines(profileDir)) block.push(line)
   const next = `${cleaned.join('\n').replace(/\n+$/u, '')}\n\n${block.join('\n')}\n`
   if (previous === next) return false
   writeFileSync(path, next)
@@ -406,11 +434,12 @@ export async function installDesktop({
   if (changes.length === 0) {
     // Пакет уже стоит: всё равно настраиваем движок и докачиваем Whisper.
     const whisperResult = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: false, modelPath, fetchImpl })
-    const chosenEngine = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    const chosenEngineRaw = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    const chosenEngine = whisper === false && chosenEngineRaw !== 'gigaam' ? 'gigaam' : chosenEngineRaw
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
-      debugTranscripts: debugTranscripts ?? true,
+      debugTranscripts,
       whisperBinaryPath: whisperResult.binary,
       whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
       whisperModelPath: whisperResult.modelPath,
@@ -447,11 +476,12 @@ export async function installDesktop({
     if (whisper !== false) {
       whisperResult = await installWhisper({ dshHome, log, dryRun, modelPath, fetchImpl })
     }
-    const chosenEngine = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    const chosenEngineRaw = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    const chosenEngine = whisper === false && chosenEngineRaw !== 'gigaam' ? 'gigaam' : chosenEngineRaw
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
-      debugTranscripts: debugTranscripts ?? true,
+      debugTranscripts,
       whisperBinaryPath: whisperResult.binary,
       whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
       whisperModelPath: whisperResult.modelPath,
