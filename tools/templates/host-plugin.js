@@ -252,6 +252,8 @@ export function apply(ctx, config = {}) {
   let gigaamTextForTimings = ''
   /** Audio duration reported by GigaAM, when available. */
   let gigaamAudioSeconds
+  /** Leading silence removed before recognition (seconds). */
+  let audioTrimOffsetSeconds = 0
   /** True while a background engine reload is in flight. */
   let reloading = false
   /** Info about the last transcription: applied replacements, for the client. */
@@ -1248,6 +1250,116 @@ export function apply(ctx, config = {}) {
     return error instanceof Error && /fetch failed/i.test(error.message)
   }
 
+  /** Parses a 16-bit PCM WAV: format fields and the data chunk bounds. */
+  function parseWav(audio) {
+    if (!Buffer.isBuffer(audio) || audio.length < 44) return undefined
+    if (audio.toString('ascii', 0, 4) !== 'RIFF' || audio.toString('ascii', 8, 12) !== 'WAVE') return undefined
+    let offset = 12
+    let format
+    let dataOffset
+    let dataLength
+    while (offset + 8 <= audio.length) {
+      const id = audio.toString('ascii', offset, offset + 4)
+      const size = audio.readUInt32LE(offset + 4)
+      const body = offset + 8
+      if (id === 'fmt ' && body + 16 <= audio.length) {
+        format = {
+          audioFormat: audio.readUInt16LE(body),
+          channels: audio.readUInt16LE(body + 2),
+          sampleRate: audio.readUInt32LE(body + 4),
+          bitsPerSample: audio.readUInt16LE(body + 14),
+        }
+      } else if (id === 'data') {
+        dataOffset = body
+        dataLength = Math.min(size, audio.length - body)
+      }
+      offset = body + size + (size % 2)
+      if (dataOffset !== undefined && format !== undefined) break
+    }
+    if (format === undefined || dataOffset === undefined) return undefined
+    if (format.audioFormat !== 1 || format.bitsPerSample !== 16 || format.channels < 1) return undefined
+    return { ...format, dataOffset, dataLength }
+  }
+
+  /**
+   * Trims leading and trailing silence from a 16-bit PCM WAV. Timings returned
+   * by the engine are relative to the trimmed audio, so the caller shifts words
+   * by `offsetSeconds` back to the original recording timeline.
+   * @param audio - WAV buffer.
+   * @param options - enabled flag, threshold ratio and padding.
+   * @returns trimmed audio plus the removed leading offset.
+   */
+  function trimSilenceWav(audio, { enabled = true, thresholdRatio = 0.02, paddingMs = 150 } = {}) {
+    const originalSeconds = wavSeconds(audio)
+    const passthrough = { audio, offsetSeconds: 0, durationSeconds: originalSeconds, trimmed: false }
+    if (!enabled) return passthrough
+    const wav = parseWav(audio)
+    if (wav === undefined) return passthrough
+    const frameBytes = 2 * wav.channels
+    const frameCount = Math.floor(wav.dataLength / frameBytes)
+    if (frameCount === 0) return passthrough
+    const frameSamples = Math.max(1, Math.round(wav.sampleRate * 0.02))
+    const frames = Math.ceil(frameCount / frameSamples)
+    const energies = new Array(frames).fill(0)
+    let maxEnergy = 0
+    for (let frame = 0; frame < frames; frame += 1) {
+      let sum = 0
+      let count = 0
+      const start = frame * frameSamples
+      const end = Math.min(frameCount, start + frameSamples)
+      for (let sample = start; sample < end; sample += 1) {
+        const value = audio.readInt16LE(wav.dataOffset + sample * frameBytes)
+        sum += value * value
+        count += 1
+      }
+      const rms = count === 0 ? 0 : Math.sqrt(sum / count)
+      energies[frame] = rms
+      if (rms > maxEnergy) maxEnergy = rms
+    }
+    const threshold = Math.max(60, maxEnergy * thresholdRatio)
+    let first = energies.findIndex((energy) => energy >= threshold)
+    if (first === -1) return passthrough
+    let last = energies.length - 1
+    while (last > first && energies[last] < threshold) last -= 1
+    const paddingFrames = Math.round(paddingMs / 20)
+    first = Math.max(0, first - paddingFrames)
+    last = Math.min(energies.length - 1, last + paddingFrames)
+    const startSample = first * frameSamples
+    const endSample = Math.min(frameCount, (last + 1) * frameSamples)
+    if (startSample === 0 && endSample === frameCount) return passthrough
+    const startByte = startSample * frameBytes
+    const endByte = endSample * frameBytes
+    const header = Buffer.from(audio.subarray(0, wav.dataOffset))
+    const body = Buffer.from(audio.subarray(wav.dataOffset + startByte, wav.dataOffset + endByte))
+    const result = Buffer.concat([header, body])
+    result.writeUInt32LE(result.length - 8, 4)
+    result.writeUInt32LE(body.length, wav.dataOffset - 4)
+    return {
+      audio: result,
+      offsetSeconds: startSample / wav.sampleRate,
+      durationSeconds: wavSeconds(result),
+      trimmed: true,
+    }
+  }
+
+  /** Light punctuation cleanup: spacing, sentence capitals. */
+  function normalizeText(text) {
+    let value = String(text ?? '')
+    if (value === '') return value
+    value = value.replace(/[ \t]+/gu, ' ')
+    value = value.replace(/\s+([,.;:!?])/gu, '$1')
+    // Пробел после знака: не трогаем десятичные «1,2».
+    value = value.replace(/([,.;:!?])(?=[\p{L}])/gu, '$1 ')
+    value = value.replace(/([,;:!?])(?=\d)/gu, (match, punctuation, offset, whole) => {
+      const before = whole[offset - 1] ?? ''
+      return /\d/u.test(before) ? match : `${punctuation} `
+    })
+    value = value.replace(/([.!?])(?=\d)/gu, '$1 ')
+    // Заглавные в начале текста и после конца предложения.
+    value = value.replace(/(^|[.!?]\s+)(\p{Ll})/gu, (match, prefix, letter) => `${prefix}${letter.toUpperCase()}`)
+    return value.trim()
+  }
+
   function wavSeconds(audio) {
     return Math.max(0, (audio.byteLength - 44) / 32_000)
   }
@@ -1262,11 +1374,36 @@ export function apply(ctx, config = {}) {
    * multilingual engine also gets the project terminology.
    * @returns the prompt text (short enough for the model context).
    */
+  /** Cache for the Whisper prompt: rebuilt only when the dictionary changes. */
+  let whisperPromptCache = { signature: '', value: '' }
+
   function whisperPrompt() {
-    const terms = [...readHotwords(), ...Object.values(readReplacementsFile())]
-      .filter((term) => typeof term === 'string' && term.trim() !== '')
-    const prompt = terms.slice(0, 60).join(', ')
-    return prompt.length > 600 ? prompt.slice(0, 600) : prompt
+    const terms = []
+    const seen = new Set()
+    const push = (term, weight) => {
+      const clean = normalizePhrase(term)
+      const key = clean.toLowerCase()
+      if (clean === '' || seen.has(key)) return
+      seen.add(key)
+      terms.push({ term: clean, weight })
+    }
+    for (const word of readHotwords()) push(word, /[A-Za-z]/u.test(word) ? 3 : 1)
+    for (const chosen of Object.values(readReplacementsFile())) push(chosen, /[A-Za-z]/u.test(chosen) ? 3 : 1)
+    // Свежие авто-пары важнее: они появились из реальных ошибок.
+    for (const pair of readLearnedQueue()) push(pair.chosen, 4)
+    terms.sort((left, right) => right.weight - left.weight)
+    const signature = terms.map((entry) => entry.term).join('\u0000')
+    if (signature === whisperPromptCache.signature) return whisperPromptCache.value
+    let prompt = ''
+    let count = 0
+    for (const entry of terms) {
+      const next = prompt === '' ? entry.term : `${prompt}, ${entry.term}`
+      if (next.length > 600 || count >= 60) break
+      prompt = next
+      count += 1
+    }
+    whisperPromptCache = { signature, value: prompt }
+    return prompt
   }
 
   /**
@@ -1658,8 +1795,8 @@ export function apply(ctx, config = {}) {
       ? payload.words
           .map((word) => ({
             word: String(word?.word ?? word?.text ?? ''),
-            start: Number(word?.start),
-            end: Number(word?.end),
+            start: Number(word?.start) + audioTrimOffsetSeconds,
+            end: Number(word?.end) + audioTrimOffsetSeconds,
             confidence: Number.isFinite(Number(word?.confidence)) ? Number(word.confidence) : undefined,
           }))
           .filter((word) => word.word !== '' && Number.isFinite(word.start) && Number.isFinite(word.end))
@@ -1681,18 +1818,26 @@ export function apply(ctx, config = {}) {
     gigaamWords = []
     gigaamTextForTimings = ''
     gigaamAudioSeconds = undefined
+    // Обрезаем тишину: короче аудио — быстрее и точнее; слова сдвигаем назад.
+    const prepared = trimSilenceWav(input.audio, {
+      enabled: config.trimSilence !== false,
+      thresholdRatio: Number.isFinite(Number(config.silenceThreshold)) ? Number(config.silenceThreshold) : 0.02,
+      paddingMs: Number.isFinite(Number(config.silencePaddingMs)) ? Number(config.silencePaddingMs) : 150,
+    })
+    audioTrimOffsetSeconds = prepared.offsetSeconds
+    const trimmedInput = prepared.trimmed ? { ...input, audio: prepared.audio } : input
     const started = performance.now()
     try {
       let raw
       if (engineMode === 'whisper') {
-        raw = await transcribeViaWhisper(input.audio, signal)
+        raw = await transcribeViaWhisper(trimmedInput.audio, signal)
       } else if (engineMode === 'hybrid') {
         const [gigaamAnswer, whisperText] = await Promise.all([
-          transcribeGigaam(input, signal).catch((error) => {
+          transcribeGigaam(trimmedInput, signal).catch((error) => {
             log('gigaam failed in hybrid', error instanceof Error ? error.message : String(error))
             return { text: '', words: [], duration: undefined }
           }),
-          transcribeViaWhisper(input.audio, signal).catch((error) => {
+          transcribeViaWhisper(trimmedInput.audio, signal).catch((error) => {
             log('whisper failed in hybrid', error instanceof Error ? error.message : String(error))
             return ''
           }),
@@ -1752,7 +1897,7 @@ export function apply(ctx, config = {}) {
         }
         if (raw === '') throw new Error('Не удалось распознать: ни GigaAM, ни Whisper не ответили.')
       } else {
-        const gigaamAnswer = await transcribeGigaam(input, signal)
+        const gigaamAnswer = await transcribeGigaam(trimmedInput, signal)
         raw = gigaamAnswer.text
         gigaamWords = gigaamAnswer.words ?? []
         gigaamTextForTimings = gigaamAnswer.text
@@ -1761,7 +1906,8 @@ export function apply(ctx, config = {}) {
       // Выученные замены применяем к расшифровке: «гитхап» → GitHub. Клиент
       // показывает уведомление о замене, поэтому это не молчаливая правка.
       const replacements = readReplacementsFile()
-      const text = applyReplacements(raw, replacements)
+      let text = applyReplacements(raw, replacements)
+      if (config.punctuation !== false) text = normalizeText(text)
       // Какие замены реально сработали — клиент подсветит эти слова.
       const applied = []
       if (text !== raw) {
@@ -1781,6 +1927,8 @@ export function apply(ctx, config = {}) {
         wordsSource: gigaamWords.length === 0 ? undefined : 'gigaam',
         gigaamText: gigaamTextForTimings === '' ? undefined : gigaamTextForTimings,
         audioDurationSeconds: gigaamAudioSeconds,
+        // Сколько тишины срезали: клиенты прибавляют это к своим меткам.
+        audioTrimOffsetSeconds,
       }
       log('transcribed', raw.length, 'chars; mode:', engineMode, '; replaced:', text === raw ? 0 : 'yes')
       return {

@@ -3,7 +3,7 @@
  * Stand-in engine for tests: records its argv when started with `serve`, answers
  * `/ready`, and returns a fixed transcript for `/v1/transcribe`.
  */
-import { appendFileSync } from 'node:fs'
+import { appendFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 
 const args = process.argv.slice(2)
@@ -21,8 +21,10 @@ const server = createServer((request, response) => {
     response.end('ok')
     return
   }
-  request.on('data', () => {})
+  const chunks = []
+  request.on('data', (chunk) => chunks.push(chunk))
   request.on('end', () => {
+    if (process.env.FAKE_AUDIO_OUT) writeFileSync(process.env.FAKE_AUDIO_OUT, Buffer.concat(chunks))
     const text = process.env.FAKE_TRANSCRIPT ?? 'Проверка связи'
     // Синтетические тайминги: 0.4 с на слово, как у настоящего GigaAM.
     const words = process.env.FAKE_WORDS_JSON !== undefined

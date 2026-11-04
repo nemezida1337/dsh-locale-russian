@@ -32,6 +32,31 @@ chmodSync(fakeGigastt, 0o755)
 chmodSync(fakeWhisper, 0o755)
 const modelDir = join(workspace, 'models')
 mkdirSync(modelDir, { recursive: true })
+/** Builds a 16 kHz mono 16-bit WAV with silence-tone-silence. */
+function makeWav({ silenceSeconds = 1, toneSeconds = 0.5, sampleRate = 16000, amplitude = 8000 } = {}) {
+  const samples = []
+  for (let index = 0; index < Math.round(silenceSeconds * sampleRate); index += 1) samples.push(0)
+  for (let index = 0; index < Math.round(toneSeconds * sampleRate); index += 1) samples.push(Math.round(Math.sin((2 * Math.PI * 440 * index) / sampleRate) * amplitude))
+  for (let index = 0; index < Math.round(silenceSeconds * sampleRate); index += 1) samples.push(0)
+  const data = Buffer.alloc(samples.length * 2)
+  samples.forEach((value, index) => data.writeInt16LE(Math.max(-32768, Math.min(32767, value)), index * 2))
+  const header = Buffer.alloc(44)
+  header.write('RIFF', 0, 'ascii')
+  header.writeUInt32LE(36 + data.length, 4)
+  header.write('WAVE', 8, 'ascii')
+  header.write('fmt ', 12, 'ascii')
+  header.writeUInt32LE(16, 16)
+  header.writeUInt16LE(1, 20)
+  header.writeUInt16LE(1, 22)
+  header.writeUInt32LE(sampleRate, 24)
+  header.writeUInt32LE(sampleRate * 2, 28)
+  header.writeUInt16LE(2, 32)
+  header.writeUInt16LE(16, 34)
+  header.write('data', 36, 'ascii')
+  header.writeUInt32LE(data.length, 40)
+  return Buffer.concat([header, data])
+}
+
 const whisperModel = join(workspace, 'whisper-model.bin')
 writeFileSync(whisperModel, 'x')
 
@@ -68,7 +93,7 @@ function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, 
     dictionaryPort: port,
     hotwordsWatchMs: 10,
   })
-  return { service, cleanups }
+  return { service, cleanups, hotwordsFile }
 }
 
 console.log('режим whisper')
@@ -326,6 +351,66 @@ console.log('last-transcription: whisper и hybrid')
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_TRANSCRIPT
   delete process.env.FAKE_WORDS_JSON
+}
+
+console.log('VAD: тишина обрезается, слова сдвигаются')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка'
+  process.env.FAKE_WORDS_JSON = JSON.stringify([{ word: 'Проверка', start: 0.1, end: 0.4, confidence: 0.9 }])
+  process.env.FAKE_AUDIO_DURATION = '0.5'
+  const audioFile = join(workspace, 'trimmed.wav')
+  process.env.FAKE_AUDIO_OUT = audioFile
+  const silenceWav = makeWav({ silenceSeconds: 1, toneSeconds: 0.5 })
+  const port = await new Promise((resolve) => {
+    const probe = createServer()
+    probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+  })
+  const { service, cleanups } = setup({ engine: 'gigaam', port })
+  await service.provider.transcribe({ audio: silenceWav }, AbortSignal.timeout(30_000))
+  const received = readFileSync(audioFile)
+  check('тишина обрезана', received.length < silenceWav.length, `${received.length} vs ${silenceWav.length}`)
+  const info = await fetch(`http://127.0.0.1:${port}/last-transcription`).then((response) => response.json())
+  check('смещение обрезки записано', info.audioTrimOffsetSeconds > 0.5 && info.audioTrimOffsetSeconds < 1.2, String(info.audioTrimOffsetSeconds))
+  check('слова сдвинуты на смещение', Array.isArray(info.words) && info.words[0].start > 0.5 && info.words[0].start < 1.3, JSON.stringify(info.words))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WORDS_JSON
+  delete process.env.FAKE_AUDIO_DURATION
+  delete process.env.FAKE_AUDIO_OUT
+}
+
+console.log('пунктуация и заглавные')
+{
+  process.env.FAKE_TRANSCRIPT = 'привет как дела? всё хорошо'
+  const first = setup({ engine: 'gigaam' })
+  const result = await first.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('заглавные и пунктуация', result.text === 'Привет как дела? Всё хорошо', result.text)
+  for (const cleanup of first.cleanups.reverse()) await cleanup()
+  process.env.FAKE_TRANSCRIPT = 'проверка 1 , 2 , 3'
+  const second = setup({ engine: 'gigaam' })
+  const numbers = await second.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('пробелы у чисел и запятых', numbers.text === 'Проверка 1, 2, 3', numbers.text)
+  for (const cleanup of second.cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+}
+
+console.log('prompt Whisper обновляется вместе со словарём')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const argsFile = join(workspace, 'whisper-args-cache.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const { service, cleanups, hotwordsFile } = setup({ engine: 'whisper', words: ['GitHub'] })
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const before = readFileSync(hotwordsFile, 'utf8')
+  writeFileSync(hotwordsFile, before.replace('# === /личный словарь ===', 'Kubernetes\n# === /личный словарь ==='))
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const lines = readFileSync(argsFile, 'utf8').trim().split('\n').map((line) => JSON.parse(line))
+  const promptOf = (args) => args[args.indexOf('--prompt') + 1] ?? ''
+  check('prompt содержит словарь', promptOf(lines[0]).includes('GitHub'), promptOf(lines[0]))
+  check('prompt обновился после нового слова', promptOf(lines[1]).includes('Kubernetes'), promptOf(lines[1]))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
 }
 
 console.log('whisper не установлен — понятная ошибка')
