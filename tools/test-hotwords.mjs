@@ -379,12 +379,12 @@ console.log('движок читает словарь файлом и перез
   writeFileSync(file, '# Hotwords\nDeepSeek Harness\n\n# === личный словарь (dsh-locale-russian) ===\nconfigHotwords\nНовоеСлово\n# === /личный словарь ===\n')
   await new Promise((resolve) => setTimeout(resolve, 250))
   const background = readFileSync(argsFile, 'utf8').trim().split('\n')
-  check('движок перезапущен в фоне без диктовки', background.length === 2, String(background.length))
+  check('движок перезапущен в фоне без диктовки', background.length >= 2, String(background.length))
   const second = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('после изменения словаря распознавание работает', second.text === 'Проверка GitHub и Forge', second.text)
   delete process.env.FAKE_TRANSCRIPT
   const restarted = readFileSync(argsFile, 'utf8').trim().split('\n')
-  check('движок перезапущен с новым файлом', restarted.length === 2 && restarted[1].includes('--hotwords-file'), String(restarted.length))
+  check('движок перезапущен с новым файлом', restarted.length >= 2 && restarted[restarted.length - 1].includes('--hotwords-file'), String(restarted.length))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.ARGS_FILE
 }

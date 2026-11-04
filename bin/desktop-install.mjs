@@ -337,6 +337,17 @@ function readProfileConfigKeys(profileDir) {
   }
 }
 
+/** Existing whisper paths that should survive an upgrade. */
+function readExistingWhisperPaths(profileDir, { modelOverride = false } = {}) {
+  const current = readProfileConfigKeys(profileDir)
+  const alive = (value) => typeof value === 'string' && value !== '' && existsSync(value)
+  return {
+    binary: alive(current.whisperBinaryPath),
+    server: alive(current.whisperServerPath),
+    model: !modelOverride && alive(current.whisperModelPath),
+  }
+}
+
 /** Reads the engine of the existing locale-ru block (keeps the user choice). */
 export function readProfileEngine(profileDir) {
   try {
@@ -436,13 +447,15 @@ export async function installDesktop({
     const whisperResult = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: false, modelPath, fetchImpl })
     const chosenEngineRaw = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
     const chosenEngine = whisper === false && chosenEngineRaw !== 'gigaam' ? 'gigaam' : chosenEngineRaw
+    // Пользовательские пути Whisper не перезаписываем управляемыми.
+    const keep = readExistingWhisperPaths(profileDir, { modelOverride: modelPath !== undefined })
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
       debugTranscripts,
-      whisperBinaryPath: whisperResult.binary,
-      whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
-      whisperModelPath: whisperResult.modelPath,
+      whisperBinaryPath: keep.binary ? undefined : whisperResult.binary,
+      whisperServerPath: keep.server ? undefined : whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
+      whisperModelPath: keep.model ? undefined : whisperResult.modelPath,
     })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
     return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: verifyInstalled(profileDir, manifest), engine: chosenEngine, whisper: whisperResult, alreadyInstalled: true }
@@ -478,13 +491,15 @@ export async function installDesktop({
     }
     const chosenEngineRaw = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
     const chosenEngine = whisper === false && chosenEngineRaw !== 'gigaam' ? 'gigaam' : chosenEngineRaw
+    // Пользовательские пути Whisper не перезаписываем управляемыми.
+    const keep = readExistingWhisperPaths(profileDir, { modelOverride: modelPath !== undefined })
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
       debugTranscripts,
-      whisperBinaryPath: whisperResult.binary,
-      whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
-      whisperModelPath: whisperResult.modelPath,
+      whisperBinaryPath: keep.binary ? undefined : whisperResult.binary,
+      whisperServerPath: keep.server ? undefined : whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
+      whisperModelPath: keep.model ? undefined : whisperResult.modelPath,
     })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
     return { profileDir, changes, backupDir, pnpm, verified, engine: chosenEngine, whisper: whisperResult }

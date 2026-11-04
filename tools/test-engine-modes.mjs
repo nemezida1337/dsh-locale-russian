@@ -638,6 +638,13 @@ console.log('/engine сохраняет остальные ключи конфи
   }).then((answer) => answer.json())
   const patchAfterSecond = readFileSync(patchFile, 'utf8')
   check('повторный POST идемпотентен', second.changed === false && patchAfterSecond === patch, JSON.stringify(second))
+  const noMerge = await fetch(`http://127.0.0.1:${port}/engine`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ engine: 'gigaam' }),
+  }).then((answer) => answer.json())
+  const patchNoMerge = readFileSync(patchFile, 'utf8')
+  check('merge по умолчанию — sentences', noMerge.ok === true && patchNoMerge.includes('merge: sentences'), JSON.stringify(noMerge))
   for (const cleanup of cleanups.reverse()) await cleanup()
   if (previousHome === undefined) delete process.env.DSH_HOME
   else process.env.DSH_HOME = previousHome
@@ -874,6 +881,34 @@ console.log('abort: ожидание чужого старта whisper-server п
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_SERVER_DELAY
   delete process.env.FAKE_SERVER_STARTS
+}
+
+console.log('auto: вторая фраза Whisper не теряется')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub. Вторая фраза.'
+  const { service, cleanups } = setup({ engine: 'auto', words: [] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: обе фразы Whisper сохранены', result.text.includes('GitHub') && result.text.includes('Вторая фраза'), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('auto: кириллическая транслитерация термина включает Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка гейтхэп'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const argsFile = join(workspace, 'translit-whisper-args.log')
+  process.env.FAKE_WHISPER_ARGS = argsFile
+  const { service, cleanups } = setup({ engine: 'auto', words: ['GitHub'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: транслитерация исправлена', result.text === 'Проверка GitHub', result.text)
+  check('auto: Whisper вызван для транслитерации', existsSync(argsFile) && readFileSync(argsFile, 'utf8').trim() !== '')
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_ARGS
 }
 
 console.log('whisper не установлен — понятная ошибка')

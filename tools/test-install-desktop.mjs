@@ -7,7 +7,7 @@
  * Usage:
  *   node tools/test-install-desktop.mjs
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -288,6 +288,34 @@ console.log('откат без копий')
 }
 
 rmSync(workspace, { recursive: true, force: true })
+console.log('P2: custom whisper-пути переживают повторную установку')
+{
+  const home = mkdtempSync(join(tmpdir(), 'dsh-install-paths-'))
+  const profileDir = join(home, 'profiles', 'desktop')
+  mkdirSync(profileDir, { recursive: true })
+  const customBinary = join(home, 'custom-whisper-cli')
+  const customModel = join(home, 'custom-model.bin')
+  writeFileSync(customBinary, '#!/bin/sh\nexit 0\n')
+  chmodSync(customBinary, 0o755)
+  writeFileSync(customModel, 'x')
+  writeFileSync(join(profileDir, 'package.json'), JSON.stringify({ name: 'dsh-profile-desktop', private: true, dependencies: { 'dsh-locale-russian': '^1.2.3' }, dsh: { profile: { bundles: ['base', voiceBundle, 'dsh-locale-russian'] } } }))
+  writeFileSync(join(profileDir, 'cordis.patch.yml'), [
+    '- id: locale-ru',
+    '  config:',
+    '    engine: auto',
+    `    whisperBinaryPath: ${customBinary}`,
+    `    whisperModelPath: ${customModel}`,
+    '',
+  ].join('\n'))
+  mkdirSync(join(profileDir, 'node_modules', 'dsh-locale-russian'), { recursive: true })
+  writeFileSync(join(profileDir, 'node_modules', 'dsh-locale-russian', 'package.json'), JSON.stringify({ name: 'dsh-locale-russian', version: '1.2.3' }))
+  const result = await installDesktop({ dshHome: home, version: '1.2.3', appPath: join(home, 'fake-app'), log: silent, whisper: false })
+  const patch = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+  check('custom binary сохранён', patch.includes(customBinary), patch)
+  check('custom model сохранён', patch.includes(customModel), patch)
+  rmSync(home, { recursive: true, force: true })
+}
+
 console.log('P0: дефолты установщика и пакет')
 {
   const here = dirname(fileURLToPath(import.meta.url))
