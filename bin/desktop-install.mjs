@@ -272,7 +272,7 @@ function removeEngineBlock(lines) {
   for (const line of lines) {
     if (line.startsWith('- id: locale-ru')) {
       // Убираем и комментарий-маркер прямо перед строкой.
-      while (result.length > 0 && (result[result.length - 1].trim() === '' || result[result.length - 1].startsWith(ENGINE_BLOCK_MARKER))) {
+      while (result.length > 0 && (result[result.length - 1].trim() === '' || result[result.length - 1].trimStart().startsWith('#'))) {
         result.pop()
       }
       skipping = true
@@ -293,6 +293,28 @@ function removeEngineBlock(lines) {
  * @param options - engine, merge, whisper paths.
  * @returns whether the file changed.
  */
+/** Strips newlines/CR so config values cannot inject extra YAML keys. */
+function sanitizeConfigValue(value) {
+  return String(value ?? '').replace(/[\r\n]+/gu, ' ').trim()
+}
+
+/** Reads all keys of the existing locale-ru block. */
+function readProfileConfigKeys(profileDir) {
+  try {
+    const text = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+    const block = text.match(/- id: locale-ru[\s\S]*?(?=\n- id:|\s*$)/u)
+    if (block === null) return {}
+    const keys = {}
+    for (const line of block[0].split('\n')) {
+      const pair = line.match(/^\s{4}([A-Za-z][\w-]*):\s*(.*)$/u)
+      if (pair !== null) keys[pair[1]] = pair[2]
+    }
+    return keys
+  } catch {
+    return {}
+  }
+}
+
 /** Reads the engine of the existing locale-ru block (keeps the user choice). */
 export function readProfileEngine(profileDir) {
   try {
@@ -309,19 +331,29 @@ export function readProfileEngine(profileDir) {
 export function writeProfileConfig(profileDir, { engine = 'auto', merge, whisperBinaryPath, whisperServerPath, whisperModelPath: modelPath, debugTranscripts } = {}) {
   const path = join(profileDir, 'cordis.patch.yml')
   if (!existsSync(path)) throw new Error(`в профиле нет cordis.patch.yml: ${path}`)
-  const lines = readFileSync(path, 'utf8').split('\n')
-  const cleaned = removeEngineBlock(lines)
+  const previous = readFileSync(path, 'utf8')
+  const current = readProfileConfigKeys(profileDir)
+  const cleaned = removeEngineBlock(previous.split('\n'))
   const block = [ENGINE_BLOCK_MARKER + ': английские термины от Whisper, русская речь от GigaAM.']
   block.push('- id: locale-ru')
   block.push('  config:')
-  block.push(`    engine: ${engine}`)
-  if (merge !== undefined) block.push(`    merge: ${merge}`)
-  if (debugTranscripts === true) block.push('    debugTranscripts: true')
-  if (whisperBinaryPath !== undefined) block.push(`    whisperBinaryPath: ${whisperBinaryPath}`)
-  if (whisperServerPath !== undefined) block.push(`    whisperServerPath: ${whisperServerPath}`)
-  if (modelPath !== undefined) block.push(`    whisperModelPath: ${modelPath}`)
+  block.push(`    engine: ${sanitizeConfigValue(engine)}`)
+  // Пользовательские ключи (trimSilence, merge, пути) не теряем.
+  const effectiveMerge = merge !== undefined ? merge : current.merge
+  if (effectiveMerge !== undefined && effectiveMerge !== '') block.push(`    merge: ${sanitizeConfigValue(effectiveMerge)}`)
+  const effectiveDebug = debugTranscripts !== undefined ? debugTranscripts : current.debugTranscripts === 'true'
+  if (effectiveDebug === true) block.push('    debugTranscripts: true')
+  const effectiveBinary = whisperBinaryPath !== undefined ? whisperBinaryPath : current.whisperBinaryPath
+  const effectiveServer = whisperServerPath !== undefined ? whisperServerPath : current.whisperServerPath
+  const effectiveModel = modelPath !== undefined ? modelPath : current.whisperModelPath
+  if (effectiveBinary !== undefined && effectiveBinary !== '') block.push(`    whisperBinaryPath: ${sanitizeConfigValue(effectiveBinary)}`)
+  if (effectiveServer !== undefined && effectiveServer !== '') block.push(`    whisperServerPath: ${sanitizeConfigValue(effectiveServer)}`)
+  if (effectiveModel !== undefined && effectiveModel !== '') block.push(`    whisperModelPath: ${sanitizeConfigValue(effectiveModel)}`)
+  for (const [key, value] of Object.entries(current)) {
+    if (['engine', 'merge', 'debugTranscripts', 'whisperBinaryPath', 'whisperServerPath', 'whisperModelPath'].includes(key)) continue
+    block.push(`    ${key}: ${sanitizeConfigValue(value)}`)
+  }
   const next = `${cleaned.join('\n').replace(/\n+$/u, '')}\n\n${block.join('\n')}\n`
-  const previous = readFileSync(path, 'utf8')
   if (previous === next) return false
   writeFileSync(path, next)
   return true
@@ -380,7 +412,7 @@ export async function installDesktop({
       merge,
       debugTranscripts: debugTranscripts ?? true,
       whisperBinaryPath: whisperResult.binary,
-      whisperServerPath: whisperResult.binary === undefined ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
+      whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
       whisperModelPath: whisperResult.modelPath,
     })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
@@ -415,13 +447,13 @@ export async function installDesktop({
     if (whisper !== false) {
       whisperResult = await installWhisper({ dshHome, log, dryRun, modelPath, fetchImpl })
     }
-    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    const chosenEngine = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
     writeProfileConfig(profileDir, {
       engine: chosenEngine,
       merge,
       debugTranscripts: debugTranscripts ?? true,
       whisperBinaryPath: whisperResult.binary,
-      whisperServerPath: whisperResult.binary === undefined ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
+      whisperServerPath: whisperResult.binary === undefined || !existsSync(join(dirname(whisperResult.binary), 'whisper-server')) ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
       whisperModelPath: whisperResult.modelPath,
     })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)

@@ -529,9 +529,10 @@ try {
     ? (() => { throw new Error(`неизвестная стратегия «${rawMerge}»: sentences|text|auto|words`) })()
     : rawMerge
   const noWhisper = flag('--no-whisper')
-  const effectiveEngine = engine === 'auto' && noWhisper ? 'gigaam' : engine
-  if (engine === 'auto' && noWhisper) {
-    console.log('Предупреждение: режим auto требует Whisper; использую gigaam.')
+  // Без Whisper любой движок, кроме gigaam, нерабочий: понижаем до gigaam.
+  const effectiveEngine = noWhisper && engine !== undefined && engine !== 'gigaam' ? 'gigaam' : engine
+  if (noWhisper && engine !== undefined && engine !== 'gigaam') {
+    console.log(`Предупреждение: --no-whisper несовместим с «${engine}»; использую gigaam.`)
   }
   const result = await installDesktop({
     dshHome,

@@ -94,7 +94,7 @@ console.log('dry-run')
 console.log('установка')
 {
   const { profileDir, appPath } = prepare()
-  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false })
   const manifest = readProfile(profileDir)
   check('зависимость в манифесте', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
   check('бандл после голосового ввода', manifest.dsh.profile.bundles.indexOf('dsh-locale-russian') > manifest.dsh.profile.bundles.indexOf(voiceBundle))
@@ -103,7 +103,7 @@ console.log('установка')
   const backupManifest = JSON.parse(readFileSync(join(result.backupDir, 'package.json'), 'utf8'))
   check('в копии прежний манифест', backupManifest.dependencies['dsh-locale-russian'] === undefined)
   check('чужой плагин сохранён', manifest.dependencies['other-plugin'] === '1.0.0')
-  const again = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const again = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false })
   check('повторная установка идемпотентна', again.changes.length === 0)
 }
 
@@ -114,7 +114,7 @@ console.log('перестановка из старого порядка')
   manifest.dsh.profile.bundles = ['base', 'dsh-locale-russian', voiceBundle]
   manifest.dependencies['dsh-locale-russian'] = '^1.2.3'
   writeFileSync(join(profileDir, 'package.json'), `${JSON.stringify(manifest, null, 2)}\n`)
-  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false })
   const after = readProfile(profileDir)
   check('бандл перемещён после голосового ввода', after.dsh.profile.bundles.indexOf('dsh-locale-russian') > after.dsh.profile.bundles.indexOf(voiceBundle))
   check('перестановка отражена в изменениях', result.changes.some((change) => change.includes('перемещён')), JSON.stringify(result.changes))
@@ -250,7 +250,7 @@ console.log('манифест без dsh и dependencies')
 {
   const { profileDir, appPath } = prepare()
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({ name: 'dsh-profile-desktop' }, null, 2))
-  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent })
+  const result = await installDesktop({ dshHome: workspace, version: '1.2.3', appPath, log: silent, whisper: false })
   const manifest = readProfile(profileDir)
   check('dependencies созданы', manifest.dependencies['dsh-locale-russian'] === '^1.2.3')
   check('dsh.profile создан', Array.isArray(manifest.dsh?.profile?.bundles) && manifest.dsh.profile.bundles.includes('dsh-locale-russian'))
@@ -310,6 +310,21 @@ console.log('P0: дефолты установщика и пакет')
   writeFileSync(join(home2, 'profiles', 'desktop', 'cordis.patch.yml'), '- id: test\n')
   writeProfileConfig(join(home2, 'profiles', 'desktop'), { engine: 'auto', merge: 'sentences', debugTranscripts: true })
   check('движок читается из профиля', readProfileEngine(join(home2, 'profiles', 'desktop')) === 'auto')
+  // Повторная запись не теряет пользовательские ключи.
+  const patchPath = join(home2, 'profiles', 'desktop', 'cordis.patch.yml')
+  writeFileSync(patchPath, [
+    '- id: locale-ru',
+    '  config:',
+    '    engine: gigaam',
+    '    trimSilence: false',
+    '    whisperBinaryPath: /custom/whisper-cli',
+    '    whisperModelPath: /custom/model.bin',
+    '',
+  ].join('\n'))
+  writeProfileConfig(join(home2, 'profiles', 'desktop'), { engine: 'gigaam' })
+  const kept = readFileSync(patchPath, 'utf8')
+  check('trimSilence сохранён', kept.includes('trimSilence: false'), kept)
+  check('пути Whisper сохранены', kept.includes('/custom/whisper-cli') && kept.includes('/custom/model.bin'), kept)
   rmSync(home2, { recursive: true, force: true })
 }
 

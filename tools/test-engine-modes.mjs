@@ -605,6 +605,7 @@ console.log('/engine сохраняет остальные ключи конфи
     '    debugTranscripts: true',
     '    whisperServerPath: /custom/whisper-server',
     '    whisperBinaryPath: /custom/whisper-cli',
+    '    whisperModelPath: /custom/model.bin',
     '',
   ].join('\n'))
   const previousHome = process.env.DSH_HOME
@@ -620,10 +621,141 @@ console.log('/engine сохраняет остальные ключи конфи
   check('движок обновлён', response.ok === true && patch.includes('engine: auto'), JSON.stringify(response))
   check('debugTranscripts сохранён', patch.includes('debugTranscripts: true'), patch)
   check('whisperServerPath сохранён', patch.includes('whisperServerPath: /custom/whisper-server'), patch)
+  check('whisperBinaryPath сохранён', patch.includes('whisperBinaryPath: /custom/whisper-cli'), patch)
+  check('whisperModelPath сохранён', patch.includes('whisperModelPath: /custom/model.bin'), patch)
+  check('комментарий не копится', (patch.match(/# Движок:/gu) ?? []).length === 1, patch)
+  const second = await fetch(`http://127.0.0.1:${port}/engine`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ engine: 'auto', merge: 'sentences' }),
+  }).then((answer) => answer.json())
+  const patchAfterSecond = readFileSync(patchFile, 'utf8')
+  check('повторный POST идемпотентен', second.changed === false && patchAfterSecond === patch, JSON.stringify(second))
   for (const cleanup of cleanups.reverse()) await cleanup()
   if (previousHome === undefined) delete process.env.DSH_HOME
   else process.env.DSH_HOME = previousHome
   rmSync(dshHome, { recursive: true, force: true })
+}
+
+console.log('auto/hybrid: пустой или упавший GigaAM не теряет Whisper')
+{
+  process.env.FAKE_FAIL = '1'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи'
+  const auto = setup({ engine: 'auto' })
+  const autoResult = await auto.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: обычный Whisper-текст не теряется', autoResult.text === 'Проверка связи', autoResult.text)
+  for (const cleanup of auto.cleanups.reverse()) await cleanup()
+  const hybrid = setup({ engine: 'hybrid' })
+  const hybridResult = await hybrid.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('hybrid: обычный Whisper-текст не теряется', hybridResult.text === 'Проверка связи', hybridResult.text)
+  for (const cleanup of hybrid.cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_FAIL
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('auto: битая латиница без словаря исправляется Whisper')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub. Вторая фраза.'
+  const { service, cleanups } = setup({ engine: 'auto', words: [] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: gighab заменён на GitHub', result.text.startsWith('Проверка GitHub'), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('whisper-server: ошибка запуска не роняет провайдер')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка через CLI'
+  const broken = join(workspace, 'broken-whisper-server')
+  writeFileSync(broken, '#!/bin/sh\nexit 0\n')
+  chmodSync(broken, 0o644)
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  // Подменяем путь на неисполняемый файл.
+  const port = 0
+  const brokenService = {
+    register(provider) { this.provider = provider; return async () => {} },
+    snapshot() { return { selection: { providerId: 'gigaam-local' } } },
+    async *follow() {},
+  }
+  const brokenCleanups = []
+  const scoped = { speechToText: brokenService, effect(cb) { const d = cb(); brokenCleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); brokenCleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+    binaryPath: fakeGigastt,
+    modelDir,
+    hotwordsFile: join(workspace, 'hotwords-whisper.txt'),
+    replacementsFile: join(workspace, 'replacements-whisper.json'),
+    engine: 'whisper',
+    whisperBinaryPath: fakeWhisper,
+    whisperModelPath: whisperModel,
+    whisperServerPath: broken,
+    prewarm: false,
+    dictionaryPort: 0,
+    hotwordsWatchMs: 10,
+  })
+  const result = await brokenService.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('откат на CLI после ошибки spawn', result.text === 'Проверка через CLI', result.text)
+  for (const cleanup of brokenCleanups.reverse()) await cleanup()
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('abort во время старта whisper-server прерывает диктовку')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Не должно вернуться'
+  process.env.FAKE_SERVER_DELAY = '1500'
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  const controller = new AbortController()
+  const pending = service.provider.transcribe({ audio: wav }, controller.signal)
+  setTimeout(() => controller.abort(), 300)
+  let error
+  try {
+    await pending
+  } catch (caught) {
+    error = caught
+  }
+  check('abort прерывает диктовку', error !== undefined && error.name === 'AbortError', error === undefined ? 'resolve' : String(error.name))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_DELAY
+}
+
+console.log('single-flight: prewarm и диктовка делят один whisper-server')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка'
+  const starts = join(workspace, 'server-starts.log')
+  process.env.FAKE_SERVER_STARTS = starts
+  process.env.FAKE_SERVER_DELAY = '300'
+  const service = {
+    register(provider) { this.provider = provider; return async () => {} },
+    snapshot() { return { selection: { providerId: 'gigaam-local' } } },
+    async *follow() {},
+  }
+  const cleanups = []
+  const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+    binaryPath: fakeGigastt,
+    modelDir,
+    hotwordsFile: join(workspace, 'hotwords-whisper.txt'),
+    replacementsFile: join(workspace, 'replacements-whisper.json'),
+    engine: 'whisper',
+    whisperBinaryPath: fakeWhisper,
+    whisperModelPath: whisperModel,
+    whisperServerPath: fakeWhisperServer,
+    prewarm: true,
+    prewarmDelayMs: 0,
+    dictionaryPort: 0,
+    hotwordsWatchMs: 10,
+  })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const lines = readFileSync(starts, 'utf8').trim().split('\n').filter(Boolean)
+  check('стартовал ровно один сервер', lines.length === 1, JSON.stringify(lines))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_STARTS
+  delete process.env.FAKE_SERVER_DELAY
 }
 
 console.log('whisper не установлен — понятная ошибка')

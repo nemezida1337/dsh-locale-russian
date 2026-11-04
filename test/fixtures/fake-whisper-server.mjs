@@ -9,6 +9,7 @@ import { createServer } from 'node:http'
 const args = process.argv.slice(2)
 const port = Number(args[args.indexOf('--port') + 1])
 if (process.env.FAKE_SERVER_PID) writeFileSync(process.env.FAKE_SERVER_PID, String(process.pid))
+if (process.env.FAKE_SERVER_STARTS) appendFileSync(process.env.FAKE_SERVER_STARTS, `${process.pid}\n`)
 const server = createServer((request, response) => {
   if (request.url === '/') {
     response.writeHead(200)

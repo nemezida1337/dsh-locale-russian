@@ -313,7 +313,7 @@ console.log('endpoint хоста')
   })
   check('чужой Host отклонён', badHost === 403, String(badHost))
   const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
-  check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'auto', JSON.stringify(engineGet))
+  check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'sentences', JSON.stringify(engineGet))
   const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
