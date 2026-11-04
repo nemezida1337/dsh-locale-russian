@@ -250,6 +250,25 @@ console.log('endpoint хоста')
   check('односимвольная замена — 400', tooShort.status === 400, String(tooShort.status))
   const forgetMissingPair = await fetch(`http://127.0.0.1:${port}/review/forget`, { method: 'POST', body: JSON.stringify({ heard: 'нет-такой' }) })
   check('удаление отсутствующей пары — 400', forgetMissingPair.status === 400, String(forgetMissingPair.status))
+  // Настройки диктовки, статус и «доктор».
+  const settingsGet = await fetch(`http://127.0.0.1:${port}/settings`).then((response) => response.json())
+  check('настройки: авто-обучение по умолчанию включено', settingsGet.autoLearn === true, JSON.stringify(settingsGet))
+  const settingsPost = await fetch(`http://127.0.0.1:${port}/settings`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ autoLearn: false }),
+  }).then((response) => response.json())
+  check('настройки: выключение авто-обучения', settingsPost.ok === true && settingsPost.settings.autoLearn === false, JSON.stringify(settingsPost))
+  const settingsAfter = await fetch(`http://127.0.0.1:${port}/settings`).then((response) => response.json())
+  check('настройки: значение сохранилось', settingsAfter.autoLearn === false, JSON.stringify(settingsAfter))
+  const settingsBad = await fetch(`http://127.0.0.1:${port}/settings`, { method: 'POST', body: JSON.stringify({ autoLearn: 'нет' }) })
+  check('настройки: неверное значение — 400', settingsBad.status === 400, String(settingsBad.status))
+  const status = await fetch(`http://127.0.0.1:${port}/status`).then((response) => response.json())
+  check('статус: движок и модель', status.engine === 'gigaam' && typeof status.gigaam?.model === 'boolean', JSON.stringify(status))
+  check('статус: словарь и настройки', typeof status.dictionary?.words === 'number' && status.settings?.autoLearn === false, JSON.stringify(status.dictionary))
+  const doctor = await fetch(`http://127.0.0.1:${port}/doctor`).then((response) => response.json())
+  check('доктор: список проверок', Array.isArray(doctor.items) && doctor.items.length >= 6 && typeof doctor.ok === 'boolean', JSON.stringify(doctor.items?.map((item) => item.id)))
+  check('доктор: битые ресурсы отмечены', doctor.items.some((item) => item.id === 'gigaam-model' && item.ok === false), JSON.stringify(doctor.items))
   // Защита от cross-site запросов: чужой сайт не читает диктовку и не пишет словарь.
   const crossSite = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
     headers: { 'sec-fetch-site': 'cross-site', origin: 'https://evil.example' },

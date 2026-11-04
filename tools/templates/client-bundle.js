@@ -520,6 +520,9 @@ window.__ModuleLoader__.load({
 		async function learnEdits(editable) {
 			const insertion = dictationInsertion;
 			if (insertion === null) return;
+			// Пользователь мог выключить авто-обучение в настройках диктовки.
+			const settings = await (globalThis.__dshLocaleRuSettings?.fetch?.() ?? { autoLearn: true });
+			if (settings.autoLearn === false) return;
 			if (Date.now() - dictationInsertedAt > 60000) {
 				dictationInsertion = null;
 				return;
@@ -1268,6 +1271,333 @@ window.__ModuleLoader__.load({
 			}
 		}
 
+		/** Voice-input settings: cached auto-learn flag. */
+		let settingsCache = { at: 0, autoLearn: true };
+
+		/** Fetches voice-input settings from the host. */
+		async function fetchSettings() {
+			if (Date.now() - settingsCache.at < 30000) return settingsCache;
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/settings`, { signal: AbortSignal.timeout(1200) });
+					if (!response.ok) continue;
+					const payload = await response.json();
+					settingsCache = { at: Date.now(), autoLearn: payload?.autoLearn !== false };
+					return settingsCache;
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return settingsCache;
+		}
+
+		/** Saves the auto-learn toggle. */
+		async function saveAutoLearn(value) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/settings`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ autoLearn: value }),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					settingsCache = { at: Date.now(), autoLearn: value };
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Fetches the voice-input status (engine, model, preparation). */
+		async function fetchVoiceStatus() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/status`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Runs the health checks. */
+		async function fetchDoctor() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/doctor`, { signal: AbortSignal.timeout(2000) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Asks the host to prepare the recognition engine and model. */
+		async function prepareModel() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/model/prepare`, { method: "POST", signal: AbortSignal.timeout(2000) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Settings window state. */
+		let voiceSettingsModal;
+
+		/** Closes the settings window. */
+		function closeVoiceSettingsModal() {
+			if (voiceSettingsModal === undefined) return;
+			clearInterval(voiceSettingsModal.poll);
+			const { backdrop } = voiceSettingsModal;
+			if (typeof backdrop.remove === "function") backdrop.remove();
+			else if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+			voiceSettingsModal = undefined;
+		}
+
+		/** Toggles the settings window. */
+		function toggleVoiceSettingsModal() {
+			if (voiceSettingsModal !== undefined) closeVoiceSettingsModal();
+			else void openVoiceSettingsModal();
+		}
+
+		/** Renders the settings window: engine, auto-learn, model, doctor, limits. */
+		function renderVoiceSettingsModal() {
+			if (voiceSettingsModal === undefined) return;
+			const { body, status, doctor } = voiceSettingsModal;
+			while (body.firstChild !== undefined && body.firstChild !== null) body.removeChild(body.firstChild);
+			const section = (title) => {
+				body.appendChild(modalElement("div", "padding:12px 4px 4px;color:#8a8a95;font:600 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.04em", title));
+			};
+			const line = (text, ok) => {
+				const row = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:8px;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+				row.appendChild(modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", text));
+				row.appendChild(modalElement("span", "flex:none;font-weight:700;color:" + (ok ? "#9fe6b4" : "#e69f9f"), ok ? "✓" : "✗"));
+				return row;
+			};
+
+			// Движок и стратегия.
+			section("Движок");
+			const engineRow = modalElement("div", "display:flex;gap:6px;padding:2px 4px 4px;flex-wrap:wrap");
+			for (const engine of [
+				{ id: "gigaam", label: "GigaAM" },
+				{ id: "whisper", label: "Whisper" },
+				{ id: "hybrid", label: "Гибрид" },
+			]) {
+				const active = status?.engine === engine.id;
+				const button = modalElement("div", "cursor:pointer;padding:6px 12px;border-radius:8px;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+					+ "background:" + (active ? "rgba(40,60,110,.95)" : "rgba(60,60,66,.9)") + ";color:#fff", engine.label);
+				button.setAttribute("role", "button");
+				button.addEventListener("click", async () => {
+					const result = await saveEngineChoice(engine.id, status?.merge ?? "sentences");
+					if (result !== undefined && result.ok) {
+						voiceSettingsModal.status = await fetchVoiceStatus();
+						renderVoiceSettingsModal();
+						showToast(`Движок: ${engine.id} — перезапустите приложение`, true);
+					} else {
+						showToast("Не удалось сохранить движок", false);
+					}
+				});
+				engineRow.appendChild(button);
+			}
+			body.appendChild(engineRow);
+			const strategyRow = modalElement("div", "display:flex;gap:6px;padding:0 4px 6px;flex-wrap:wrap");
+			for (const merge of ["sentences", "text", "auto", "words"]) {
+				const active = (status?.merge ?? "sentences") === merge;
+				const button = modalElement("div", "cursor:pointer;padding:5px 10px;border-radius:8px;font:500 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+					+ "background:" + (active ? "rgba(122,162,255,.25)" : "rgba(60,60,66,.7)") + ";color:#f2f2f5", merge);
+				button.setAttribute("role", "button");
+				button.addEventListener("click", async () => {
+					const result = await saveEngineChoice(status?.engine ?? "hybrid", merge);
+					if (result !== undefined && result.ok) {
+						voiceSettingsModal.status = await fetchVoiceStatus();
+						renderVoiceSettingsModal();
+						showToast(`Стратегия: ${merge} — перезапустите приложение`, true);
+					} else {
+						showToast("Не удалось сохранить стратегию", false);
+					}
+				});
+				strategyRow.appendChild(button);
+			}
+			body.appendChild(strategyRow);
+
+			// Авто-обучение.
+			section("Авто-обучение");
+			const autoLearn = status?.settings?.autoLearn !== false;
+			const toggle = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(30,34,44,.9);cursor:pointer;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+			toggle.appendChild(modalElement("span", "", "Запоминать исправления после диктовки"));
+			toggle.appendChild(modalElement("span", "flex:none;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:" + (autoLearn ? "rgba(28,92,58,.9)" : "rgba(60,60,66,.9)"), autoLearn ? "включено" : "выключено"));
+			toggle.setAttribute("role", "button");
+			toggle.addEventListener("click", async () => {
+				const result = await saveAutoLearn(!autoLearn);
+				if (result !== undefined && result.ok) {
+					voiceSettingsModal.status = await fetchVoiceStatus();
+					renderVoiceSettingsModal();
+					showToast(result.settings.autoLearn ? "Авто-обучение включено" : "Авто-обучение выключено", true);
+				} else {
+					showToast("Не удалось сохранить настройку", false);
+				}
+			});
+			body.appendChild(toggle);
+
+			// Модель и подготовка.
+			section("Модель");
+			body.appendChild(line("Движок GigaAM", status?.gigaam?.binary === true));
+			body.appendChild(line("Модель GigaAM", status?.gigaam?.model === true));
+			body.appendChild(line("Whisper", status?.whisper?.binary === true));
+			body.appendChild(line("Модель Whisper", status?.whisper?.model === true));
+			const preparation = status?.preparation;
+			const preparing = preparation !== undefined && ["checking", "downloading", "loading"].includes(preparation.phase);
+			if (preparing) {
+				body.appendChild(modalElement("div", "padding:4px 10px 6px;color:#8a8a95;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", `Подготовка: ${preparation.phase}${preparation.resource === undefined ? "" : ` · ${preparation.resource}`}`));
+			} else if (status?.gigaam?.model !== true || status?.gigaam?.binary !== true) {
+				const prepareButton = modalElement("div", "cursor:pointer;margin:4px 10px 8px;padding:8px 12px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Подготовить движок и модель");
+				prepareButton.setAttribute("role", "button");
+				prepareButton.addEventListener("click", async () => {
+					const result = await prepareModel();
+					if (result !== undefined && result.ok) {
+						showToast("Подготовка началась", true);
+						voiceSettingsModal.status = await fetchVoiceStatus();
+						renderVoiceSettingsModal();
+					} else {
+						showToast("Не удалось запустить подготовку", false);
+					}
+				});
+				body.appendChild(prepareButton);
+			}
+
+			// Доктор.
+			section("Доктор");
+			const doctorButton = modalElement("div", "cursor:pointer;margin:2px 10px 6px;padding:8px 12px;border-radius:9px;background:rgba(60,60,66,.9);color:#f2f2f5;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Проверить диктовку");
+			doctorButton.setAttribute("role", "button");
+			doctorButton.addEventListener("click", async () => {
+				const result = await fetchDoctor();
+				voiceSettingsModal.doctor = result;
+				renderVoiceSettingsModal();
+				showToast(result?.ok === true ? "Всё в порядке" : "Есть проблемы — смотрите список", result?.ok === true);
+			});
+			body.appendChild(doctorButton);
+			if (doctor !== undefined) {
+				for (const item of doctor.items ?? []) body.appendChild(line(item.label, item.ok === true));
+			}
+
+			// Лимиты.
+			section("Лимиты");
+			body.appendChild(modalElement("div", "padding:2px 10px 8px;color:#8a8a95;font:500 12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Слова: 400 (до 64 символов) · замены: без счётчика · сканирование проекта: 150 · prompt Whisper: 60 терминов"));
+			if (status?.dictionary !== undefined) {
+				body.appendChild(modalElement("div", "padding:0 10px 10px;color:#6f7c94;font:500 11.5px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", `Сейчас: слов ${status.dictionary.words ?? 0}, замен ${status.dictionary.replacements ?? 0}, в очереди ${status.dictionary.review ?? 0}`));
+			}
+		}
+
+		/** Opens the settings window. */
+		async function openVoiceSettingsModal() {
+			if (voiceSettingsModal !== undefined) return;
+			const status = await fetchVoiceStatus();
+			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
+			const panel = modalElement("div", "width:min(540px,92vw);max-height:80vh;display:flex;flex-direction:column;"
+				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
+				+ "box-shadow:0 18px 60px rgba(0,0,0,.55);overflow:hidden");
+			panel.setAttribute("data-dsh-locale-ru-settings", "");
+			panel.addEventListener("mousedown", (event) => event.stopPropagation());
+			backdrop.addEventListener("mousedown", (event) => {
+				if (event.target === backdrop) closeVoiceSettingsModal();
+			});
+			const header = modalElement("div", "display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px");
+			header.appendChild(modalElement("div", "color:#f2f2f5;font:600 15px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Настройки диктовки"));
+			const close = modalElement("div", "cursor:pointer;color:#8a8a95;font-size:18px;line-height:1;padding:2px 6px", "×");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => closeVoiceSettingsModal());
+			header.appendChild(close);
+			panel.appendChild(header);
+			const body = modalElement("div", "flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px");
+			body.addEventListener("wheel", (event) => event.stopPropagation(), { passive: true });
+			panel.appendChild(body);
+			const footer = modalElement("div", "display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06)");
+			const dictionaryButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(60,60,66,.9);color:#f2f2f5;"
+				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Словарь");
+			dictionaryButton.setAttribute("role", "button");
+			dictionaryButton.addEventListener("click", () => {
+				closeVoiceSettingsModal();
+				void openDictionaryModal();
+			});
+			const doneButton = modalElement("div", "cursor:pointer;padding:7px 14px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;"
+				+ "font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Готово");
+			doneButton.setAttribute("role", "button");
+			doneButton.addEventListener("click", () => closeVoiceSettingsModal());
+			footer.appendChild(dictionaryButton);
+			footer.appendChild(doneButton);
+			panel.appendChild(footer);
+			backdrop.appendChild(panel);
+			if (document.body !== undefined) document.body.appendChild(backdrop);
+			voiceSettingsModal = { backdrop, panel, body, status, doctor: undefined, poll: undefined };
+			renderVoiceSettingsModal();
+			// Пока идёт подготовка — обновляем статус.
+			voiceSettingsModal.poll = setInterval(async () => {
+				if (voiceSettingsModal === undefined) return;
+				const next = await fetchVoiceStatus();
+				if (voiceSettingsModal === undefined) return;
+				voiceSettingsModal.status = next;
+				renderVoiceSettingsModal();
+				const preparing = next?.preparation !== undefined && ["checking", "downloading", "loading"].includes(next.preparation.phase);
+				if (!preparing) clearInterval(voiceSettingsModal.poll);
+			}, 1500);
+		}
+
+		/** One-time onboarding hint after the first launch. */
+		function maybeShowOnboarding() {
+			try {
+				if (typeof localStorage === "undefined") return;
+				if (localStorage.getItem("dsh-locale-ru-onboarding") === "1") return;
+				localStorage.setItem("dsh-locale-ru-onboarding", "1");
+			} catch (error) {
+				return;
+			}
+			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px");
+			const panel = modalElement("div", "width:min(460px,92vw);background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:10px");
+			panel.setAttribute("data-dsh-locale-ru-onboarding", "");
+			panel.appendChild(modalElement("div", "color:#f2f2f5;font:600 16px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Диктовка готова. Три шага:"));
+			panel.appendChild(modalElement("div", "color:#b6c0d2;font:500 13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "1. Проверьте модель и движок в настройках диктовки.\n2. Нажмите микрофон в поле ввода и продиктуйте фразу.\n3. Исправьте ошибки в тексте — словарь запомнит термины."));
+			const buttons = modalElement("div", "display:flex;gap:8px;justify-content:flex-end;margin-top:4px");
+			const openSettings = modalElement("div", "cursor:pointer;padding:8px 12px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Настройки диктовки");
+			openSettings.setAttribute("role", "button");
+			openSettings.addEventListener("click", () => {
+				backdrop.remove?.();
+				void openVoiceSettingsModal();
+			});
+			const close = modalElement("div", "cursor:pointer;padding:8px 12px;border-radius:9px;background:rgba(60,60,66,.9);color:#f2f2f5;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Понятно");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => backdrop.remove?.());
+			buttons.appendChild(openSettings);
+			buttons.appendChild(close);
+			panel.appendChild(buttons);
+			backdrop.appendChild(panel);
+			if (document.body !== undefined) document.body.appendChild(backdrop);
+		}
+
+		try {
+			globalThis.__dshLocaleRuOnboarding = maybeShowOnboarding;
+			// Настройки объявлены ниже по модулю; мост нужен для вызовов из
+			// ранних функций (авто-обучение, горячие клавиши).
+			globalThis.__dshLocaleRuSettings = {
+				fetch: fetchSettings,
+				open: openVoiceSettingsModal,
+				toggle: toggleVoiceSettingsModal,
+			};
+		} catch (error) {
+			// среда без globalThis
+		}
+
 		/** Renders the modal content: search, add row, words and replacements. */
 		function renderDictionaryModal() {
 			if (dictionaryModal === undefined) return;
@@ -1757,6 +2087,14 @@ window.__ModuleLoader__.load({
 				+ "font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Готово");
 			doneButton.setAttribute("role", "button");
 			doneButton.addEventListener("click", () => closeDictionaryModal());
+			const settingsButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;"
+				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Настройки диктовки");
+			settingsButton.setAttribute("role", "button");
+			settingsButton.addEventListener("click", () => {
+				closeDictionaryModal();
+				void globalThis.__dshLocaleRuSettings?.open?.();
+			});
+			footer.appendChild(settingsButton);
 			footer.appendChild(agentButton);
 			footer.appendChild(importButton);
 			footer.appendChild(exportButton);
@@ -1946,9 +2284,12 @@ window.__ModuleLoader__.load({
 			const onHotkey = (event) => {
 				if (event === null || event === undefined) return;
 				if (!(event.metaKey || event.ctrlKey) || !event.shiftKey) return;
-				if (String(event.key ?? "").toLowerCase() !== "d") return;
+				const key = String(event.key ?? "").toLowerCase();
+				if (key !== "d" && key !== ",") return;
 				if (typeof event.preventDefault === "function") event.preventDefault();
-				if (!removed) toggleDictionaryModal();
+				if (removed) return;
+				if (key === ",") globalThis.__dshLocaleRuSettings?.toggle?.();
+				else toggleDictionaryModal();
 			};
 			document.addEventListener("keydown", onHotkey);
 			const onDocumentMouseDown = (event) => {
@@ -1964,6 +2305,10 @@ window.__ModuleLoader__.load({
 			const onKeyDown = (event) => {
 				if (event === null || event === undefined) return;
 				if (event.key !== "Escape" && event.keyCode !== 27) return;
+				if (voiceSettingsModal !== undefined) {
+					closeVoiceSettingsModal();
+					return;
+				}
 				if (dictionaryModal !== undefined) {
 					closeDictionaryModal();
 					return;
@@ -2269,6 +2614,15 @@ window.__ModuleLoader__.load({
 			const restoreChip = installDictionaryChip();
 			const restoreCaret = installDictationCaretFix();
 			const restoreHighlights = installHighlightMaintenance();
+			// Функция онбординга живёт в том же модуле, но вызываем через
+			// globalThis: так её видно из apply независимо от порядка объявлений.
+			setTimeout(() => {
+				try {
+					globalThis.__dshLocaleRuOnboarding?.();
+				} catch (error) {
+					// онбординг не критичен
+				}
+			}, 1500);
 			ctx.effect(() => {
 				let dispose = () => {};
 				const timer = setTimeout(() => {

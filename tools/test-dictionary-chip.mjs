@@ -152,9 +152,38 @@ Object.defineProperty(globalThis, 'navigator', {
   configurable: true,
 })
 let dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
+let autoLearnSetting = true
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  if (url.endsWith('/settings')) {
+    if ((options.method ?? 'GET') === 'POST') {
+      const body = JSON.parse(options.body ?? '{}')
+      autoLearnSetting = body.autoLearn !== false
+      return { ok: true, json: async () => ({ ok: true, settings: { autoLearn: autoLearnSetting } }) }
+    }
+    return { ok: true, json: async () => ({ autoLearn: autoLearnSetting }) }
+  }
+  if (url.endsWith('/status')) {
+    return { ok: true, json: async () => ({
+      engine: 'gigaam',
+      merge: 'sentences',
+      gigaam: { binary: true, model: true, modelDir: '/tmp/models' },
+      whisper: { binary: true, model: true },
+      dictionary: { words: 3, replacements: 1, review: 1, corrupt: false },
+      settings: { autoLearn: autoLearnSetting },
+      preparation: { phase: 'ready' },
+    }) }
+  }
+  if (url.endsWith('/doctor')) {
+    return { ok: true, json: async () => ({ ok: true, items: [
+      { id: 'gigaam-binary', label: 'Движок GigaAM', ok: true, detail: '' },
+      { id: 'gigaam-model', label: 'Модель GigaAM', ok: true, detail: '' },
+    ] }) }
+  }
+  if (url.endsWith('/model/prepare')) {
+    return { ok: true, json: async () => ({ ok: true }) }
+  }
   if (url.endsWith('/review/keep') || url.endsWith('/review/forget')) {
     try {
       const heard = JSON.parse(options.body ?? '{}').heard
@@ -343,6 +372,50 @@ const openModal = async () => {
 }
 const closeModal = () => {
   documentStub.dispatch('keydown', { key: 'Escape' })
+}
+
+const settingsPanel = () => {
+  for (const child of documentStub.body.children) {
+    const panel = (child.children ?? []).find((entry) => entry.getAttribute('data-dsh-locale-ru-settings') !== null)
+    if (panel !== undefined) return panel
+  }
+  return undefined
+}
+const settingsTexts = () => {
+  const texts = []
+  const walk = (element) => {
+    if (element === undefined) return
+    if (typeof element.textContent === 'string' && element.textContent !== '') texts.push(element.textContent)
+    for (const child of element.children ?? []) walk(child)
+  }
+  walk(settingsPanel())
+  return texts
+}
+const findInSettings = (text) => {
+  const walk = (element) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === text) return element
+    for (const child of element.children ?? []) {
+      const found = walk(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  return walk(settingsPanel())
+}
+const findLineWithChild = (text) => {
+  const walk = (element) => {
+    if (element === undefined) return undefined
+    for (const child of element.children ?? []) {
+      if (String(child.textContent ?? '') === text) return element
+    }
+    for (const child of element.children ?? []) {
+      const found = walk(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  return walk(settingsPanel())
 }
 
 console.log('модальное окно словаря')
@@ -564,8 +637,47 @@ console.log('импорт из файла')
   globalThis.FileReader = originalFileReader
 }
 
+console.log('окно настроек диктовки')
+{
+  closeModal()
+  await openModal()
+  findByText('Настройки диктовки').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('окно настроек открыто', settingsPanel() !== undefined)
+  const texts = settingsTexts()
+  check('секции настроек', ['Движок', 'Авто-обучение', 'Модель', 'Доктор', 'Лимиты'].every((title) => texts.some((text) => text.includes(title))), JSON.stringify(texts))
+  check('статус модели', texts.some((text) => text.includes('Модель GigaAM')), JSON.stringify(texts))
+  // Авто-обучение: клик по строке выключает и отправляет настройку.
+  requests.length = 0
+  const toggleLine = findLineWithChild('Запоминать исправления после диктовки')
+  check('строка авто-обучения найдена', toggleLine !== undefined)
+  toggleLine.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('авто-обучение выключено', autoLearnSetting === false && requests.some((request) => request.url.endsWith('/settings') && request.method === 'POST'), JSON.stringify(requests))
+  // Доктор.
+  requests.length = 0
+  findInSettings('Проверить диктовку').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('доктор запущен', requests.some((request) => request.url.endsWith('/doctor')), JSON.stringify(requests))
+  check('результаты доктора', settingsTexts().some((text) => text.includes('Движок GigaAM')), JSON.stringify(settingsTexts()))
+  findInSettings('Готово').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+  check('окно настроек закрыто', settingsPanel() === undefined)
+}
+
+console.log('горячая клавиша настроек')
+{
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('Cmd+Shift+, открывает настройки', settingsPanel() !== undefined)
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+}
+
 console.log('добавление слова через поле')
 {
+  closeModal()
+  await openModal()
   const inputs = modalInputs()
   const addInput = inputs[0]
   addInput.value = 'Kubernetes, Podman'
