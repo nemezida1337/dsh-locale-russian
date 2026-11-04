@@ -8,6 +8,7 @@
  */
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
+import { request as httpRequest } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -249,6 +250,28 @@ console.log('endpoint хоста')
   check('односимвольная замена — 400', tooShort.status === 400, String(tooShort.status))
   const forgetMissingPair = await fetch(`http://127.0.0.1:${port}/review/forget`, { method: 'POST', body: JSON.stringify({ heard: 'нет-такой' }) })
   check('удаление отсутствующей пары — 400', forgetMissingPair.status === 400, String(forgetMissingPair.status))
+  // Защита от cross-site запросов: чужой сайт не читает диктовку и не пишет словарь.
+  const crossSite = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'cross-site', origin: 'https://evil.example' },
+  })
+  check('cross-site запрос отклонён', crossSite.status === 403, String(crossSite.status))
+  const sameSite = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'same-site', origin: `http://127.0.0.1:${port}` },
+  })
+  check('same-site запрос разрешён', sameSite.status === 200, String(sameSite.status))
+  const electronNull = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'cross-site', origin: 'null' },
+  })
+  check('запрос приложения (Origin: null) разрешён', electronNull.status === 200, String(electronNull.status))
+  const badHost = await new Promise((resolve) => {
+    const request = httpRequest({ hostname: '127.0.0.1', port, path: '/health', headers: { host: 'evil.example' } }, (response) => {
+      response.resume()
+      response.on('end', () => resolve(response.statusCode))
+    })
+    request.on('error', () => resolve(0))
+    request.end()
+  })
+  check('чужой Host отклонён', badHost === 403, String(badHost))
   const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
   check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'auto', JSON.stringify(engineGet))
   const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {

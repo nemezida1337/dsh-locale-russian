@@ -58,6 +58,7 @@
 Эти вещи проверены на живом Chronoflow и ломать их нельзя:
 
 - `GET /last-transcription` слушает порты **47118–47122** и отдаёт CORS `*`.
+- **Безопасность**: сервер отклоняет cross-site запросы (`Sec-Fetch-Site: cross-site` с непустым Origin) и чужие `Host` — чтобы сайт в браузере не мог прочитать последнюю диктовку или писать в словарь. Same-site (веб-ГУИ на другом порту) и Electron (`Origin: null`) разрешены.
 - `at` — epoch ms момента окончания распознавания: клиенты отсеивают по нему устаревшие ответы.
 - Поля `raw`, `text`, `applied`, `mode` не меняются; новые поля добавляются только аддитивно.
 - `words[] {word, start, end, confidence}` — тайминги GigaAM в секундах от начала аудио; `wordsSource: "gigaam"`; `gigaamText` — текст GigaAM до замен (в hybrid итоговый текст может отличаться); `audioDurationSeconds`.
