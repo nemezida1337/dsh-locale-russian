@@ -7,7 +7,8 @@
 [![npm downloads](https://img.shields.io/npm/dw/dsh-locale-russian.svg)](https://www.npmjs.com/package/dsh-locale-russian)
 [![stars](https://img.shields.io/github/stars/nemezida1337/dsh-locale-russian.svg?style=flat)](https://github.com/nemezida1337/dsh-locale-russian/stargazers)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![coverage dashboard](https://img.shields.io/badge/покрытие-дашборд-2b5cff)](https://nemezida1337.github.io/dsh-locale-russian/)
+[![coverage dashboard](https://img.shields.io/badge/покрытие-дашборд-2b5cff)](https://nemezida1337.github.io/dsh-locale-russian/dashboard.html)
+[![site](https://img.shields.io/badge/сайт-открыть-2b5cff)](https://nemezida1337.github.io/dsh-locale-russian/)
 
 ## Быстрый старт
 
@@ -44,11 +45,28 @@ dsh plugin --profile web add dsh-locale-russian
 | Русские склонения | формы выбираются по `Intl.PluralRules('ru')`, а не по английскому правилу «1 или много» |
 | Голосовой ввод | локальный распознаватель **GigaAM v3** для штатного голосового ввода: аудио не покидает машину, ключи не нужны, ставится одной кнопкой |
 | Терминология | единый глоссарий ([GLOSSARY.md](GLOSSARY.md)) и правила стиля ([STYLE.md](STYLE.md)), проверяемые линтером |
+| Гибридная диктовка | **GigaAM + Whisper** параллельно: русский текст от GigaAM, английские термины от Whisper. На смешанной речи — 8,6% ошибок в словах и 97% верных терминов |
+| Словарь в интерфейсе | окно по **Cmd/Ctrl+Shift+D**: слова и замены, поиск, добавление, импорт из буфера, переключение движка и стратегии слияния |
+| Подсветка и правка | заменённые термины подсвечиваются синим, подсказки — жёлтым; клик по слову открывает варианты и «Вернуть как было» |
+| Обучение через агента | попросите в чате «дообучи на моей терминологии» — агент добавит слова и замены и объяснит, как пользоваться |
+| Установка одной командой | пакет, встроенный Whisper без Homebrew, модель с прогрессом и настройка гибрида — за одно действие |
 | Установка | один пакет: ставится из npm, git, tarball или локального пути |
 
 Пакет — обычный клиентский плагин DSH: он добавляет язык `ru` в расширяемый каталог локалей и регистрирует переводы для всех namespace интерфейса. Недостающие ключи автоматически показываются по-английски, поэтому неполный перевод не ломает интерфейс. Одновременно это bundle, поэтому ставится одной командой и обновляется как обычный пакет.
 
-Строки сняты из трёх источников: клиентских пакетов установленного приложения (`app.asar`), CLI-сборки и репозитория. Пропущенных ключей нет — актуальные цифры и разбивка по namespace на [дашборде покрытия](https://nemezida1337.github.io/dsh-locale-russian/).
+Строки сняты из трёх источников: клиентских пакетов установленного приложения (`app.asar`), CLI-сборки и репозитория. Пропущенных ключей нет — актуальные цифры и разбивка по namespace на [дашборде покрытия](https://nemezida1337.github.io/dsh-locale-russian/dashboard.html).
+
+## Что нового в 0.23.0
+
+**Гибридный движок и словарь, которым удобно пользоваться.**
+
+- **Второй движок:** Whisper рядом с GigaAM, посентенционное слияние. На корпусе из 10 смешанных фраз — **8,6% ошибок в словах** и **97% терминов** (у GigaAM было 27,7%, у Whisper — 11,3%).
+- **Словарный prompt для Whisper:** термины из проекта получают оба движка — GigaAM через hotwords, Whisper через `--prompt`.
+- **Окно словаря** (Cmd/Ctrl+Shift+D): секции «Слова» и «Замены», поиск, добавление, импорт из буфера, секция «Движок» и автоподсказки из последних диктовок.
+- **Подсветка в тексте:** синие заменённые термины, жёлтые подсказки, клик — варианты и «Вернуть».
+- **Установщик одной командой** ставит встроенный Whisper без Homebrew, модель и настраивает гибрид; `--revert` возвращает профиль.
+- **Гайды:** [словарь](docs/DICTIONARY.md), [замены](docs/REPLACEMENTS.md), [тюнинг через агента](docs/COACHING.md).
+- **Локализация плагинов:** 358 описаний переписаны адаптивно, без «швов» и «каскадов».
 
 ## Как выглядит
 
@@ -265,13 +283,19 @@ npx dsh-locale-russian-install --hotwords-from .              # собрать �
 - Ответы в обсуждениях DeepSeek Harness проверяет еженедельный workflow и при новом комментарии открывает issue в этом репозитории.
 - Мейнтейнерам — [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (инструменты, CI, выпуски) и [docs/MAINTENANCE.md](https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/MAINTENANCE.md) (чек-лист обслуживания: новая версия DSH, движок, жалобы на перевод).
 
+## Сайт
+
+- **Сайт плагина:** https://nemezida1337.github.io/dsh-locale-russian/ — возможности, установка, гайды.
+- **Дашборд покрытия:** https://nemezida1337.github.io/dsh-locale-russian/dashboard.html
+- **Индекс плагинов:** https://nemezida1337.github.io/dsh-locale-russian/index.json
+
 ## Ссылки
 
 | Что | Адрес |
 |---|---|
 | Пакет в npm | https://www.npmjs.com/package/dsh-locale-russian |
 | Релизы и история изменений | https://github.com/nemezida1337/dsh-locale-russian/releases |
-| Дашборд покрытия | https://nemezida1337.github.io/dsh-locale-russian/ |
+| Дашборд покрытия | https://nemezida1337.github.io/dsh-locale-russian/dashboard.html |
 | Индекс маркета (для «Плагины → Обзор») | https://nemezida1337.github.io/dsh-locale-russian/index.json |
 | Витрина в обсуждениях DSH | https://github.com/deepseek-ai/deepseek-harness/discussions/10146 |
 | Предложение: хук склонений | https://github.com/deepseek-ai/deepseek-harness/discussions/10147 |

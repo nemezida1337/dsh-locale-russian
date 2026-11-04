@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Русская локализация DeepSeek Harness — интерфейс и диктовка</title>
+<meta name="description" content="Русская локализация DeepSeek Harness: перевод интерфейса и описаний плагинов, локальная диктовка с гибридом GigaAM + Whisper, словарь своей терминологии и обучение через агента.">
+<meta name="theme-color" content="#090a0b">
+<link rel="canonical" href="https://nemezida1337.github.io/dsh-locale-russian/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Русская локализация DeepSeek Harness">
+<meta property="og:description" content="Интерфейс и описания плагинов по-русски. Локальная диктовка с гибридом GigaAM + Whisper и словарём вашей терминологии.">
+<meta property="og:url" content="https://nemezida1337.github.io/dsh-locale-russian/">
+<meta property="og:image" content="https://nemezida1337.github.io/dsh-locale-russian/card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Гибридная диктовка по-русски">
+<meta property="og:site_name" content="dsh-locale-russian">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nemezida1337.github.io/dsh-locale-russian/card.jpg">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090a0b;
+    --panel: #0e1013;
+    --panel-2: #121418;
+    --line: #202329;
+    --line-soft: #171a1e;
+    --ink: #f2f3f5;
+    --muted: #9ba0aa;
+    --muted-2: #6f747e;
+    --accent: #8ba3ff;
+    --accent-2: #dce3ff;
+    --green: #8ee6b0;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+  .bg { position: fixed; inset: 0; z-index: -1; background:
+    radial-gradient(900px 600px at 8% -5%, rgba(96,122,255,.22), transparent 65%),
+    radial-gradient(800px 600px at 100% 30%, rgba(87,210,160,.10), transparent 65%),
+    radial-gradient(700px 500px at 50% 110%, rgba(96,122,255,.10), transparent 70%);
+  }
+  .grid { position: fixed; inset: 0; z-index: -1; opacity: .10;
+    background-image: linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(900px 700px at 50% 0%, #000, transparent 75%);
+  }
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(9,10,11,.72); border-bottom: 1px solid var(--line-soft); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 11px; font-weight: 700; letter-spacing: -.02em; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .brand span { color: var(--muted-2); font-weight: 500; font-size: 13px; }
+  .links { display: flex; gap: 22px; color: var(--muted); font-size: 14.5px; }
+  .links a:hover { color: var(--ink); }
+  .nav-actions { display: flex; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 10px; padding: 9px 14px; font: 600 14px/1 var(--sans); cursor: pointer; transition: .15s; }
+  .btn:hover { border-color: #333a45; background: var(--panel-2); }
+  .btn.primary { background: #2f6bf5; border-color: #2f6bf5; color: #fff; }
+  .btn.primary:hover { background: #3a76ff; }
+  .hero { padding: 86px 0 40px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-2); border: 1px solid rgba(139,163,255,.4); background: rgba(139,163,255,.08); border-radius: 999px; padding: 6px 12px; font-size: 13px; margin-bottom: 22px; }
+  .badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); }
+  h1 { font-size: clamp(38px, 5.4vw, 64px); line-height: 1.03; letter-spacing: -.045em; margin: 0 0 20px; font-weight: 850; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { color: #b6c0d2; font-size: clamp(17px, 1.5vw, 21px); max-width: 640px; margin: 0 0 28px; }
+  .install { display: flex; align-items: center; min-width: 0; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 10px 10px 16px; max-width: 560px; font-family: var(--mono); font-size: 14px; color: #d8e0f0; overflow: auto; }
+  .install code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .install .copy { flex: none; }
+  .cta { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .hero-visual { margin: 46px 0 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 40px 90px rgba(0,0,0,.55); }
+  .hero-visual img { display: block; width: 100%; height: auto; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin: 34px 0 0; }
+  .stat { background: var(--panel); padding: 18px 20px; }
+  .stat b { display: block; font-size: 26px; letter-spacing: -.02em; color: var(--accent-2); }
+  .stat span { color: var(--muted-2); font-size: 13.5px; }
+  section { padding: 76px 0; }
+  .kicker { color: var(--accent); font: 600 12.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; }
+  h2 { font-size: clamp(26px, 3vw, 38px); letter-spacing: -.03em; margin: 0 0 14px; font-weight: 800; }
+  .sub { color: var(--muted); max-width: 700px; margin: 0 0 34px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; transition: .18s; }
+  .card:hover { border-color: #2e3542; transform: translateY(-2px); }
+  .card .ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: rgba(139,163,255,.12); border: 1px solid rgba(139,163,255,.25); margin-bottom: 14px; }
+  .card .ico svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .card h3 { margin: 0 0 8px; font-size: 17px; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .card p b { color: var(--accent-2); font-weight: 600; }
+  .list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 26px; margin: 0; padding: 0; list-style: none; }
+  .list li { color: var(--muted); font-size: 15px; padding-left: 22px; position: relative; }
+  .list li::before { content: ""; position: absolute; left: 0; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .list li b { color: var(--ink); font-weight: 600; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+  .panel + .panel { margin-top: 12px; }
+  .panel h3 { margin: 0 0 10px; font-size: 16px; }
+  .panel p { margin: 0 0 12px; color: var(--muted); font-size: 14.5px; }
+  pre { background: #0b0d10; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow: auto; margin: 0; font-family: var(--mono); font-size: 13.5px; color: #d8e0f0; }
+  pre .c { color: #6f747e; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .guides { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .guide { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; transition: .18s; }
+  .guide:hover { border-color: rgba(139,163,255,.5); transform: translateY(-2px); }
+  .guide .tag { color: var(--accent); font: 600 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .guide h3 { margin: 10px 0 8px; font-size: 17px; }
+  .guide p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  details { border-bottom: 1px solid var(--line-soft); padding: 16px 0; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 15.5px; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; float: right; color: var(--muted-2); }
+  details[open] summary::after { content: "−"; }
+  details p { color: var(--muted); font-size: 14.5px; margin: 10px 0 0; }
+  footer { border-top: 1px solid var(--line-soft); padding: 34px 0 46px; color: var(--muted-2); font-size: 14px; }
+  .foot { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .foot a { color: var(--muted); }
+  .foot a:hover { color: var(--ink); }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: #14181f; border: 1px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 900px) {
+    .cards, .guides, .grid2 { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .links { display: none; }
+    .hero { padding-top: 56px; }
+    .nav { height: 60px; gap: 10px; }
+    .brand span { display: none; }
+    .nav-actions .btn:first-child { display: none; }
+    h1 { font-size: 34px; }
+    .install { padding: 8px 8px 8px 12px; font-size: 12.5px; }
+    .install .copy { padding: 8px 10px; font-size: 13px; }
+    .card, .guide, .panel { min-width: 0; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    .foot { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="grid"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/"><img src="icon.svg" alt=""><span>dsh-locale-russian</span></a>
+    <nav class="links">
+      <a href="#features">Возможности</a>
+      <a href="#whats-new">Что нового</a>
+      <a href="#install">Установка</a>
+      <a href="#guides">Гайды</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn" href="https://github.com/nemezida1337/dsh-locale-russian" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn primary" href="https://www.npmjs.com/package/dsh-locale-russian" target="_blank" rel="noopener">npm</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="badge"><i></i> версия 0.23.0 · DeepSeek Harness</div>
+      <h1>Русская локализация<br><em>DeepSeek Harness</em></h1>
+      <p class="lead">Интерфейс и описания плагинов по-русски. Плюс локальная диктовка с гибридом <b>GigaAM + Whisper</b>, словарём вашей терминологии и обучением через агента.</p>
+      <div class="install">
+        <code>npx dsh-locale-russian-install --desktop</code>
+        <button class="btn copy" data-copy="npx dsh-locale-russian-install --desktop">Копировать</button>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.23.0" target="_blank" rel="noopener">Релиз 0.23.0</a>
+        <a class="btn" href="#install">Как установить</a>
+        <a class="btn" href="https://nemezida1337.github.io/dsh-locale-russian/dashboard.html" target="_blank" rel="noopener">Дашборд покрытия</a>
+      </div>
+      <div class="hero-visual"><img src="card.jpg" alt="Гибридная диктовка по-русски"></div>
+      <div class="stats">
+        <div class="stat"><b>8,6%</b><span>ошибок в словах на смешанной речи</span></div>
+        <div class="stat"><b>97%</b><span>верных терминов в гибриде</span></div>
+        <div class="stat"><b>3929</b><span>строк интерфейса переведено</span></div>
+        <div class="stat"><b>389</b><span>автоматических проверок</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="kicker">Возможности</div>
+      <h2>Локализация и диктовка в одном пакете</h2>
+      <p class="sub">Обычный клиентский плагин DSH: добавляет язык <b>ru</b> и регистрирует локального провайдера распознавания. Не форк, ничего не патчит в приложении.</p>
+      <div class="cards">
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div><h3>Гибридная диктовка</h3><p>GigaAM и Whisper работают параллельно: русский текст — от GigaAM, английские термины — от Whisper. Словарь передаётся обоим движкам.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M8 20V7"/><path d="M12 7v6"/></svg></div><h3>Словарь в интерфейсе</h3><p><b>Cmd+Shift+D</b>: слова и замены, поиск, добавление, импорт из буфера, переключение движка и стратегии слияния.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z"/></svg></div><h3>Подсветка и правка</h3><p>Заменённые термины подсвечиваются синим, подсказки — жёлтым. Клик по слову открывает варианты и «Вернуть как было».</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M9.5 4a3.5 3.5 0 0 0-3.4 4.3A3.5 3.5 0 0 0 7 15.6V18a2 2 0 0 0 2 2h1.5V4z"/><path d="M14.5 4a3.5 3.5 0 0 1 3.4 4.3A3.5 3.5 0 0 1 17 15.6V18a2 2 0 0 1-2 2h-1.5V4z"/></svg></div><h3>Автообучение</h3><p>Исправили слово — пара «как услышали → как надо» запоминается. Неуверенные правки подтверждаются, а не применяются молча.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M8.5 14h.01M15.5 14h.01M9 18h6"/></svg></div><h3>Обучение через агента</h3><p>Напишите в чате «дообучи на моей терминологии» — агент добавит слова и замены и объяснит, как пользоваться.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></div><h3>Установка одной командой</h3><p>Пакет, встроенный Whisper без Homebrew, модель и настройка гибрида — всё за одно действие. Откат — одной командой.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="whats-new">
+    <div class="wrap">
+      <div class="kicker">Что нового</div>
+      <h2>0.23.0 — гибрид и словарь</h2>
+      <p class="sub">Главное обновление: диктовка теперь понимает ваши термины и учится у вас.</p>
+      <ul class="list">
+        <li><b>Второй движок:</b> Whisper рядом с GigaAM, посентенционное слияние — 8,6% ошибок в словах, 97% терминов.</li>
+        <li><b>Словарный prompt для Whisper:</b> термины из проекта работают в обоих движках.</li>
+        <li><b>Окно словаря</b> по Cmd+Shift+D с секцией «Движок» и автоподсказками из последних диктовок.</li>
+        <li><b>Подсветка замен и подсказок</b> прямо в тексте, клик — варианты и «Вернуть».</li>
+        <li><b>Установщик</b> ставит встроенный Whisper без Homebrew и настраивает гибрид в профиле.</li>
+        <li><b>Гайды:</b> словарь, замены и тюнинг через разговор с агентом.</li>
+        <li><b>Описания плагинов</b> переписаны по-человечески: 358 строк без «швов» и «каскадов».</li>
+        <li><b>Диагностика:</b> история диктовок с обоими исходными текстами и стенд с корпусом.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="kicker">Установка</div>
+      <h2>Одна команда — и всё работает</h2>
+      <p class="sub">Нужен установленный DeepSeek Harness. Установщик найдёт профиль, сделает резервную копию и настроит движок.</p>
+      <div class="grid2">
+        <div class="panel">
+          <h3>Приложение DeepSeek Harness</h3>
+          <p>Ставит пакет, встроенный Whisper, модель ~574 МБ с прогрессом и гибридный движок.</p>
+          <pre>npx dsh-locale-russian-install --desktop
+
+<span class="c"># только GigaAM, без Whisper</span>
+npx dsh-locale-russian-install --desktop --no-whisper
+
+<span class="c"># откатить профиль</span>
+npx dsh-locale-russian-install --desktop --revert</pre>
+        </div>
+        <div class="panel">
+          <h3>Сервер dsh web</h3>
+          <p>Только перевод интерфейса, без локальной диктовки.</p>
+          <pre>dsh plugin --profile web add dsh-locale-russian</pre>
+          <p style="margin-top:12px">Флаги движка: <b>--engine gigaam|whisper|hybrid</b>, стратегия слияния: <b>--merge sentences|text|auto|words</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="guides">
+    <div class="wrap">
+      <div class="kicker">Гайды</div>
+      <h2>Как настроить под себя</h2>
+      <p class="sub">Три коротких руководства в репозитории.</p>
+      <div class="guides">
+        <a class="guide" href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/DICTIONARY.md" target="_blank" rel="noopener"><span class="tag">Словарь</span><h3>Слова и замены</h3><p>Как добавлять термины, исправлять в тексте, пользоваться подсветкой и автообучением.</p></a>
+        <a class="guide" href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/REPLACEMENTS.md" target="_blank" rel="noopener"><span class="tag">Замены</span><h3>Пары «как услышали → как надо»</h3><p>Падежи, порядок применения, опасные пары и управление заменами.</p></a>
+        <a class="guide" href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/COACHING.md" target="_blank" rel="noopener"><span class="tag">Агент</span><h3>Тюнинг через разговор</h3><p>Что попросить у агента: добавить термины, разобрать диктовки, прогнать корпус, переключить движок.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="kicker">Вопросы</div>
+      <h2>Коротко о главном</h2>
+      <details open><summary>Диктовка правда работает без облака?</summary><p>Да. GigaAM и Whisper работают локально, аудио не покидает машину. Никаких API-ключей для распознавания не нужно.</p></details>
+      <details><summary>Какие лимиты у словаря?</summary><p>До 400 слов и фраз (каждое до 64 символов), замены — без жёсткого счётчика, при сканировании проекта берутся до 150 терминов. Подсказка Whisper использует первые 60 терминов.</p></details>
+      <details><summary>Нужен ли Homebrew для Whisper?</summary><p>Нет: установщик кладёт встроенный prebuilt-бинарь. Если он недоступен — попробует Homebrew, а если и его нет, останется GigaAM.</p></details>
+      <details><summary>Что с приватностью?</summary><p>Локально по умолчанию: перевод — статический пакет, распознавание — локальные движки. В сеть уходят только скачивания при установке.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>dsh-locale-russian · MIT · сделано для DeepSeek Harness</div>
+    <div style="display:flex; gap:18px; flex-wrap:wrap">
+      <a href="https://github.com/nemezida1337/dsh-locale-russian" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.npmjs.com/package/dsh-locale-russian" target="_blank" rel="noopener">npm</a>
+      <a href="https://nemezida1337.github.io/dsh-locale-russian/index.json" target="_blank" rel="noopener">Индекс плагинов</a>
+      <a href="https://nemezida1337.github.io/dsh-locale-russian/dashboard.html" target="_blank" rel="noopener">Покрытие</a>
+      <a href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/docs/FAQ.md" target="_blank" rel="noopener">FAQ</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Скопировано</div>
+<script>
+  const toast = document.getElementById('toast');
+  document.querySelectorAll('[data-copy]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy);
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1400);
+      } catch {
+        toast.textContent = 'Не удалось скопировать';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1600);
+      }
+    });
+  });
+</script>
+</body>
+</html>

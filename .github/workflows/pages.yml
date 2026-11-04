@@ -5,7 +5,7 @@ name: market index
 on:
   push:
     branches: [main]
-    paths: ['market/**', 'icon.svg']
+    paths: ['market/**', 'site/**', 'icon.svg']
   workflow_dispatch:
 
 permissions:
@@ -28,10 +28,16 @@ jobs:
       - name: Пересобрать индекс из манифеста
         run: node tools/build-market.mjs
       - name: Собрать дашборд покрытия
-        run: node tools/build-dashboard.mjs
+        run: node tools/build-dashboard.mjs --out market/dashboard.html
+      - name: Собрать сайт
+        run: |
+          mkdir -p _site
+          cp market/index.json market/history.json market/icon.svg _site/
+          cp market/dashboard.html _site/dashboard.html
+          cp -r site/. _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: market
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

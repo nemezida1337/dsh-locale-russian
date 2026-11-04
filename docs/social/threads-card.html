@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #0b0e14; color: #f4f7ff;
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    position: relative;
+  }
+  .bg { position: absolute; inset: 0;
+    background:
+      radial-gradient(760px 520px at 6% 8%, rgba(96, 122, 255, .30), transparent 70%),
+      radial-gradient(680px 540px at 96% 96%, rgba(87, 210, 160, .16), transparent 70%);
+  }
+  .grid { position: absolute; inset: 0; opacity: .16;
+    background-image: linear-gradient(rgba(255,255,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(90deg, #000, transparent 72%);
+  }
+  .content { position: absolute; left: 64px; top: 52px; width: 650px; }
+  .brand { display: flex; align-items: center; gap: 13px; margin-bottom: 30px; }
+  .brand svg { width: 44px; height: 44px; border-radius: 11px; }
+  .brand b { font-size: 23px; letter-spacing: -.02em; }
+  .brand span { color: #9aa4b8; font-size: 13px; border: 1px solid #303747; border-radius: 999px; padding: 4px 10px; margin-left: 2px; }
+  h1 { font-size: 64px; line-height: 1.03; letter-spacing: -.045em; font-weight: 850; }
+  h1 em { color: #8ba3ff; font-style: normal; }
+  .lead { margin-top: 20px; font-size: 21px; line-height: 1.45; color: #b6c0d2; max-width: 620px; }
+  .tags { display: flex; gap: 9px; margin-top: 26px; flex-wrap: wrap; }
+  .tag { font-size: 14px; color: #d7deec; border: 1px solid #303747; background: rgba(255,255,255,.03); border-radius: 999px; padding: 7px 12px; }
+  .tag.accent { border-color: rgba(139,163,255,.55); color: #b8c8ff; }
+  .metrics { display: flex; gap: 26px; margin-top: 22px; color: #93a0b8; font-size: 16px; }
+  .metrics b { color: #8ba3ff; font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
+  .url { position: absolute; left: 64px; bottom: 44px; color: #7f91ad; font-size: 15px; }
+  .url b { color: #c8d5ef; font-weight: 600; }
+
+  /* мокап приложения */
+  .mock { position: absolute; right: 54px; top: 56px; width: 420px; transform: rotate(2deg); filter: drop-shadow(0 34px 60px rgba(0,0,0,.6)); }
+  .win { background: #11141b; border: 1px solid #2b3242; border-radius: 18px; overflow: hidden; }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #1f2532; background: #141821; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a4152; }
+  .dot.r { background: #ff6b5e; } .dot.y { background: #ffbd4a; } .dot.g { background: #4ade80; }
+  .bar span { margin-left: 8px; color: #8b96ac; font-size: 12px; }
+  .chat { padding: 16px 14px 10px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { background: #1c222e; border: 1px solid #2b3446; border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.55; color: #e8ecf5; }
+  .hl { background: rgba(96, 140, 255, .30); border-radius: 5px; padding: 1px 5px; color: #cfe0ff; }
+  .sug { border-bottom: 2px dashed #f0c45a; padding-bottom: 1px; }
+  .caption { color: #6f7c94; font-size: 11.5px; margin-top: 2px; }
+  .composer { margin: 4px 12px 14px; background: #171c26; border: 1px solid #2a3242; border-radius: 14px; padding: 12px 14px; }
+  .composer .ph { color: #67748c; font-size: 14px; }
+  .composer .row { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .mic { width: 40px; height: 40px; border-radius: 50%; background: #2f6bf5; display: grid; place-items: center; box-shadow: 0 6px 18px rgba(47,107,245,.45); }
+  .mic svg { width: 18px; height: 18px; }
+  .tools { display: flex; gap: 10px; color: #55617a; font-size: 12px; align-items: center; }
+
+  .note { position: absolute; right: 320px; bottom: 34px; width: 268px; background: rgba(23,28,38,.92); border: 1px solid #2d3547; border-radius: 16px; padding: 13px 15px; font-size: 14px; color: #aeb8ca; backdrop-filter: blur(6px); }
+  .note b { display: block; color: #f2f6ff; font-size: 15px; margin-bottom: 3px; }
+  .note .kbd { border: 1px solid #3a4457; border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; font-size: 12px; color: #c9d6ee; background: #1b2230; }
+</style>
+</head>
+<body>
+  <div class="bg"></div><div class="grid"></div>
+
+  <div class="content">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" role="img" aria-label="Русская локализация">
+        <rect width="64" height="64" rx="14" fill="#1f6feb"/>
+        <path d="M14 20h16M22 14v6c0 9-4 16-10 20" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 30c3 5 7 9 12 11" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M38 18h14M38 26h14M38 34h9" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <b>Русская локализация</b><span>0.23.0</span>
+    </div>
+    <h1>Гибридная диктовка<br><em>по-русски.</em></h1>
+    <p class="lead">GigaAM и Whisper работают вместе: русский текст — от GigaAM, термины — от Whisper.<br>Словарь своей терминологии — прямо в интерфейсе.</p>
+    <div class="tags">
+      <span class="tag accent">GigaAM + Whisper</span>
+      <span class="tag">словарь</span>
+      <span class="tag">обучение через агента</span>
+      <span class="tag">одна команда</span>
+    </div>
+    <div class="metrics">
+      <span><b>8,6%</b> ошибок в словах</span>
+      <span><b>97%</b> верных терминов</span>
+      <span><b>2</b> движка в гибриде</span>
+    </div>
+  </div>
+
+  <div class="mock">
+    <div class="win">
+      <div class="bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span>Новая сессия</span></div>
+      <div class="chat">
+        <div class="msg">
+          Проверь PR в <span class="hl">GitHub</span> и напиши в <span class="sug">слэк</span>
+          <div class="caption">синие — заменённые · жёлтым — подсказки</div>
+        </div>
+      </div>
+      <div class="composer">
+        <div class="ph">Сообщение или задача; / — команды, @ — файлы</div>
+        <div class="row">
+          <div class="tools">＋&nbsp;&nbsp;Полный доступ</div>
+          <div class="mic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+              <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>Словарь · <span class="kbd">⌘⇧D</span></b>слова, замены и автоподсказки терминов</div>
+  <div class="url"><b>github.com/nemezida1337/dsh-locale-russian</b> · npm</div>
+</body>
+</html>

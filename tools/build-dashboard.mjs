@@ -6,7 +6,7 @@
  * the shipped dictionary.
  *
  * Usage:
- *   node tools/build-dashboard.mjs [--out market/index.html]
+ *   node tools/build-dashboard.mjs [--out market/dashboard.html]
  */
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -16,7 +16,7 @@ import { createArgs } from './lib/cli.mjs'
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const { option } = createArgs()
-const outPath = resolve(root, option('out', 'market/index.html'))
+const outPath = resolve(root, option('out', 'market/dashboard.html'))
 
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
 
