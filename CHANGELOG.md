@@ -1,5 +1,16 @@
 # История изменений
 
+## 0.24.0
+
+**Тайминги слов для внешних клиентов (Chronoflow)**
+
+- `GET /last-transcription` теперь отдаёт `words[] {word, start, end, confidence}` — секунды от начала аудио, — а также `gigaamText`, `audioDurationSeconds` и `wordsSource: "gigaam"`. GigaAM всегда возвращал тайминги, но провайдер их выбрасывал.
+- Результат `transcribe` получил необязательное поле `words` (DSH его не валидирует; старые клиенты не затронуты).
+- Тайминги сбрасываются перед каждой диктовкой: whisper-режим, сбой GigaAM и hybrid не перетекают из предыдущего распознавания.
+- Whisper-ветка отдаёт `words: []`; в hybrid тайминги всегда от GigaAM-ветки (`wordsSource: "gigaam"`), итоговый текст может отличаться — клиентам важны границы окон речи.
+- Зафиксированы интеграционные контракты для Chronoflow: порты `47118–47122`, CORS `*`, `at` (epoch ms), `[data-voice-activity]` (`recording`/`transcribing`/`feedback`/`idle`), keep-alive диктовки, идемпотентность патчей `MediaRecorder`/`EventTarget`.
+- Тесты: слова и тайминги в endpoint, whisper/hybrid, отбрасывание невалидных слов (`start == end` сохраняется), неизменность старых полей.
+
 ## Unreleased
 
 - **Сайт плагина:** https://nemezida1337.github.io/dsh-locale-russian/ — возможности, установка, гайды; дашборд покрытия переехал на `/dashboard.html`.

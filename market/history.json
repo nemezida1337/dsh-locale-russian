@@ -329,6 +329,13 @@
       "strings": 3929,
       "namespaces": 75,
       "pluginDescriptions": 556
+    },
+    {
+      "version": "0.24.0",
+      "date": "2026-11-04",
+      "strings": 3929,
+      "namespaces": 75,
+      "pluginDescriptions": 556
     }
   ]
 }

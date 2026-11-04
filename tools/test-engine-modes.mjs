@@ -270,8 +270,62 @@ console.log('last-transcription отдаёт применённые замены
   check('замена применилась', result.text === 'Проверка GitHub', result.text)
   const info = await fetch(`http://127.0.0.1:${freePort}/last-transcription`).then((response) => response.json())
   check('endpoint вернул применённые замены', Array.isArray(info?.applied) && info.applied.some((pair) => pair.heard === 'гитхаб' && pair.chosen === 'GitHub'), JSON.stringify(info))
+  // Тайминги слов для Chronoflow: start/end — секунды от начала аудио.
+  check('слова с таймингами в endpoint', Array.isArray(info?.words) && info.words.length === 2
+    && info.words.every((word) => typeof word.word === 'string' && Number.isFinite(word.start) && Number.isFinite(word.end)), JSON.stringify(info?.words))
+  check('слова совпадают с gigaamText', Array.isArray(info?.words) && info.words.map((word) => word.word).join(' ') === info.gigaamText, JSON.stringify({ words: info?.words, gigaamText: info?.gigaamText }))
+  check('длительность аудио в endpoint', info?.audioDurationSeconds === 1, String(info?.audioDurationSeconds))
+  check('старые поля не изменились', typeof info?.at === 'number' && info.raw === 'Проверка гитхаб' && info.text === 'Проверка GitHub' && info.mode === 'gigaam', JSON.stringify({ at: info?.at, raw: info?.raw, text: info?.text, mode: info?.mode }))
+  check('слова в результате провайдера', Array.isArray(result.words) && result.words.length === 2, JSON.stringify(result.words))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
+}
+
+console.log('last-transcription: whisper и hybrid')
+{
+  const freePort = () => new Promise((resolve) => {
+    const probe = createServer()
+    probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+  })
+  // whisper: словарей нет, words пустой, gigaamText отсутствует.
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи'
+  const whisperPort = await freePort()
+  const whisperRun = setup({ engine: 'whisper', port: whisperPort })
+  const whisperResult = await whisperRun.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const whisperInfo = await fetch(`http://127.0.0.1:${whisperPort}/last-transcription`).then((response) => response.json())
+  check('whisper: words пустой', Array.isArray(whisperInfo?.words) && whisperInfo.words.length === 0, JSON.stringify(whisperInfo?.words))
+  check('whisper: gigaamText отсутствует', whisperInfo?.gigaamText === undefined, String(whisperInfo?.gigaamText))
+  check('whisper: mode сохранён', whisperInfo?.mode === 'whisper' && whisperResult.text === 'Проверка связи', JSON.stringify({ mode: whisperInfo?.mode, text: whisperResult.text }))
+  for (const cleanup of whisperRun.cleanups.reverse()) await cleanup()
+
+  // hybrid: тайминги от GigaAM-ветки, итоговый текст может отличаться.
+  process.env.FAKE_TRANSCRIPT = 'Проверка гигаам'
+  const hybridPort = await freePort()
+  const hybridRun = setup({ engine: 'hybrid', port: hybridPort })
+  const hybridResult = await hybridRun.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const hybridInfo = await fetch(`http://127.0.0.1:${hybridPort}/last-transcription`).then((response) => response.json())
+  check('hybrid: слова от GigaAM', Array.isArray(hybridInfo?.words) && hybridInfo.words.length === 2 && hybridInfo.gigaamText === 'Проверка гигаам', JSON.stringify({ words: hybridInfo?.words, gigaamText: hybridInfo?.gigaamText }))
+  check('hybrid: mode сохранён', hybridInfo?.mode === 'hybrid', String(hybridInfo?.mode))
+  check('hybrid: текст получен', typeof hybridResult.text === 'string' && hybridResult.text.length > 0, hybridResult.text)
+  for (const cleanup of hybridRun.cleanups.reverse()) await cleanup()
+
+  // Невалидные слова отбрасываются, а start == end сохраняется.
+  process.env.FAKE_TRANSCRIPT = 'Привет'
+  process.env.FAKE_WORDS_JSON = JSON.stringify([
+    { word: 'Привет', start: 0.1, end: 0.1, confidence: 0.5 },
+    { word: '', start: 0.2, end: 0.3 },
+    { word: 'мусор', start: 'нет', end: 1 },
+  ])
+  const wordsPort = await freePort()
+  const wordsRun = setup({ engine: 'gigaam', port: wordsPort })
+  await wordsRun.service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const wordsInfo = await fetch(`http://127.0.0.1:${wordsPort}/last-transcription`).then((response) => response.json())
+  check('невалидные слова отброшены', Array.isArray(wordsInfo?.words) && wordsInfo.words.length === 1 && wordsInfo.words[0].start === 0.1 && wordsInfo.words[0].end === 0.1, JSON.stringify(wordsInfo?.words))
+  for (const cleanup of wordsRun.cleanups.reverse()) await cleanup()
+
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WORDS_JSON
 }
 
 console.log('whisper не установлен — понятная ошибка')

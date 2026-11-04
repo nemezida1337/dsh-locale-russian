@@ -53,6 +53,18 @@
 - Авто-обучение: клиент запоминает текст до диктовки и вставку (общий префикс/суффикс), затем через 900 мс после правок сравнивает слова; пары уходят в `POST /learn`. Пары с похожестью ≥0.8 учатся сразу, ниже — после подтверждения в плашке.
 - Движки: `engine` (`gigaam`/`whisper`/`hybrid`), `merge` (`sentences` — по умолчанию, посентенционная оценка; `text`, `auto`, `words`), `debugTranscripts` (пишет `transcripts.json` для разбора). Whisper получает словарь через `--prompt`, GigaAM — через hotwords-файл.
 - Корпус и стенд: `test/corpus/dictation.json` (10 смешанных фраз), `npm run harness:dictation -- --corpus test/corpus/dictation.json --json report.json` — WER, точность терминов и задержка по каждой стратегии; по умолчанию sentences выигрывает (8.6% против 11.3% у Whisper и 27.7% у GigaAM; термины 97%)
+### Контракты для внешних клиентов (Chronoflow)
+
+Эти вещи проверены на живом Chronoflow и ломать их нельзя:
+
+- `GET /last-transcription` слушает порты **47118–47122** и отдаёт CORS `*`.
+- `at` — epoch ms момента окончания распознавания: клиенты отсеивают по нему устаревшие ответы.
+- Поля `raw`, `text`, `applied`, `mode` не меняются; новые поля добавляются только аддитивно.
+- `words[] {word, start, end, confidence}` — тайминги GigaAM в секундах от начала аудио; `wordsSource: "gigaam"`; `gigaamText` — текст GigaAM до замен (в hybrid итоговый текст может отличаться); `audioDurationSeconds`.
+- `[data-voice-activity]` принимает значения `recording` / `transcribing` / `feedback` / `idle`.
+- Keep-alive: диктовка не отменяется по blur/visibilitychange.
+- Патчи `window.MediaRecorder` (Proxy) и `EventTarget` идемпотентны — Chronoflow патчит `MediaRecorder.prototype`, патчи должны сосуществовать и восстанавливаться.
+
 - Стенд диктовки: `npm run harness:dictation -- --text "..."` — TTS (`say`/`afconvert`), реальные движки, WER по словам; требует macOS и установленные GigaAM/Whisper, в npm test не входит, `whisperBinaryPath`, `whisperModelPath`, `whisperLanguage`. Гибрид запускает оба параллельно и сливает пословно: LCS по нормализованным словам, латинские термины из Whisper, остальное из GigaAM; страховка — сравнение по `termHits` (если слияние потеряло термины, берётся лучший исходный текст).
 - Фоновый перезапуск движка: вотчер `hotwordsWatchMs` (по умолчанию 2000 мс) сравнивает mtime словаря и перезапускает движок, когда диктовка не идёт. Шум (ссылки, числа, код, переписанные фразы) отфильтрован. Работает только в окне 60 секунд после вставки.
 

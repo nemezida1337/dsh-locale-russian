@@ -23,8 +23,19 @@ const server = createServer((request, response) => {
   }
   request.on('data', () => {})
   request.on('end', () => {
+    const text = process.env.FAKE_TRANSCRIPT ?? 'Проверка связи'
+    // Синтетические тайминги: 0.4 с на слово, как у настоящего GigaAM.
+    const words = process.env.FAKE_WORDS_JSON !== undefined
+      ? JSON.parse(process.env.FAKE_WORDS_JSON)
+      : text.split(/\s+/u).filter(Boolean).map((word, index) => ({
+          word,
+          start: Number((index * 0.4).toFixed(2)),
+          end: Number((index * 0.4 + 0.35).toFixed(2)),
+          confidence: 0.95,
+        }))
+    const duration = Number(process.env.FAKE_AUDIO_DURATION ?? 1)
     response.writeHead(200, { 'content-type': 'application/json' })
-    response.end(JSON.stringify({ text: process.env.FAKE_TRANSCRIPT ?? 'Проверка связи', duration: 1 }))
+    response.end(JSON.stringify({ text, duration, words }))
   })
 })
 server.listen(port, '127.0.0.1')

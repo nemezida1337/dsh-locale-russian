@@ -113,7 +113,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.23.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.24.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
@@ -243,6 +243,8 @@ npx dsh-locale-russian-install --hotwords-from .              # собрать �
 3. **Голосовой ввод:** «Плагины → Голосовой ввод → Сервис распознавания» — в списке есть `GigaAM v3 (локально, RU)`, статус «Готов». Кнопка микрофона записывает и вставляет текст.
 
 ## Диагностика
+
+`GET http://127.0.0.1:47118/last-transcription` отдаёт последнюю диктовку: `raw`, `text`, `applied`, `mode`, а также `words[]` с таймингами слов (`{word, start, end, confidence}`, секунды от начала аудио), `gigaamText` и `audioDurationSeconds` — по ним внешние клиенты (например, Chronoflow) привязывают пометки к моменту речи.
 
 | Симптом | Причина | Что сделать |
 |---|---|---|
