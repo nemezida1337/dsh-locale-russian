@@ -153,9 +153,42 @@ Object.defineProperty(globalThis, 'navigator', {
 })
 let dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
 let autoLearnSetting = true
+let profilesState = {
+  active: 'default',
+  autoSwitch: true,
+  profiles: [
+    { id: 'default', name: 'Основной', words: 3, replacements: 1, updatedAt: 1 },
+    { id: 'project', name: 'Проект', words: 10, replacements: 2, updatedAt: 2 },
+  ],
+  suggestion: null,
+}
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  if (url.endsWith('/profiles')) {
+    return { ok: true, json: async () => ({ ...profilesState }) }
+  }
+  if (url.endsWith('/profiles/switch')) {
+    try {
+      const body = JSON.parse(options.body ?? '{}')
+      profilesState.active = body.id
+      return { ok: true, json: async () => ({ ok: true, active: body.id }) }
+    } catch {
+      return { ok: true, json: async () => ({ ok: true }) }
+    }
+  }
+  if (url.endsWith('/profiles/create')) {
+    const body = JSON.parse(options.body ?? '{}')
+    const id = `new-${profilesState.profiles.length}`
+    profilesState.profiles.push({ id, name: String(body.name ?? ''), words: 3, replacements: 1, updatedAt: Date.now() })
+    profilesState.active = id
+    return { ok: true, json: async () => ({ ok: true, id, name: body.name }) }
+  }
+  if (url.endsWith('/profiles/delete')) {
+    const body = JSON.parse(options.body ?? '{}')
+    profilesState.profiles = profilesState.profiles.filter((profile) => profile.id !== body.id)
+    return { ok: true, json: async () => ({ ok: true }) }
+  }
   if (url.endsWith('/settings')) {
     if ((options.method ?? 'GET') === 'POST') {
       const body = JSON.parse(options.body ?? '{}')
@@ -654,6 +687,33 @@ console.log('окно настроек диктовки')
   toggleLine.dispatch('click')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
   check('авто-обучение выключено', autoLearnSetting === false && requests.some((request) => request.url.endsWith('/settings') && request.method === 'POST'), JSON.stringify(requests))
+  // Динамические словари.
+  const profileTexts = settingsTexts()
+  check('секция «Динамические словари»', profileTexts.some((text) => text.includes('Динамические словари')), JSON.stringify(profileTexts))
+  check('список словарей', profileTexts.some((text) => text.includes('Основной')) && profileTexts.some((text) => text.includes('Проект')), JSON.stringify(profileTexts))
+  requests.length = 0
+  const switchButton = findInSettings('Переключить')
+  check('кнопка переключения словаря', switchButton !== undefined)
+  switchButton.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('переключение словаря отправлено', requests.some((request) => request.url.endsWith('/profiles/switch')), JSON.stringify(requests))
+  // Создание словаря.
+  const findInput = (element) => {
+    if (element === undefined) return undefined
+    if (element.tagName === 'INPUT' && String(element.getAttribute('placeholder') ?? '').includes('Новый словарь')) return element
+    for (const child of element.children ?? []) {
+      const found = findInput(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  const createInput = findInput(settingsPanel())
+  check('поле нового словаря', createInput !== undefined)
+  createInput.value = 'Работа'
+  requests.length = 0
+  findInSettings('Создать').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('создание словаря отправлено', requests.some((request) => request.url.endsWith('/profiles/create') && JSON.parse(request.body).name === 'Работа'), JSON.stringify(requests))
   // Доктор.
   requests.length = 0
   findInSettings('Проверить диктовку').dispatch('click')

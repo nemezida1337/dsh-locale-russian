@@ -1311,6 +1311,118 @@ window.__ModuleLoader__.load({
 			return undefined;
 		}
 
+		/** Fetches dynamic dictionary profiles. */
+		async function fetchProfiles() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/profiles`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Switches the active dynamic dictionary. */
+		async function switchProfileById(id) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/profiles/switch`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ id }),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Creates a dynamic dictionary from the current one. */
+		async function createProfileByName(name) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/profiles/create`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ name }),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Deletes a dynamic dictionary. */
+		async function deleteProfileById(id) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/profiles/delete`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ id }),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Saves one boolean setting (autoLearn / autoSwitch). */
+		async function saveSetting(partial) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/settings`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify(partial),
+						signal: AbortSignal.timeout(1500),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Suggests a matching dynamic dictionary after a dictation. */
+		let lastProfileSuggestionAt = 0;
+		async function checkProfileSuggestion() {
+			if (Date.now() - lastProfileSuggestionAt < 30000) return;
+			const payload = await fetchProfiles();
+			const suggestion = payload?.suggestion;
+			if (payload?.autoSwitch === false || suggestion === undefined || suggestion === null) return;
+			lastProfileSuggestionAt = Date.now();
+			showToast(`Похоже, словарь «${suggestion.name}» — переключить?`, true, {
+				label: "Переключить",
+				onClick: async () => {
+					const result = await switchProfileById(suggestion.id);
+					if (result !== undefined && result.ok) {
+						dictionaryCache.at = 0;
+						showToast(`Словарь «${suggestion.name}» включён`, true);
+					} else {
+						showToast("Не удалось переключить словарь", false);
+					}
+				},
+			});
+		}
+
 		/** Fetches the voice-input status (engine, model, preparation). */
 		async function fetchVoiceStatus() {
 			for (const port of DICTIONARY_PORTS) {
@@ -1451,6 +1563,96 @@ window.__ModuleLoader__.load({
 			});
 			body.appendChild(toggle);
 
+			// Динамические словари: контекстные наборы вместо одного лимита.
+			section("Динамические словари");
+			const profilesPayload = voiceSettingsModal.profiles;
+			if (profilesPayload === undefined) {
+				body.appendChild(modalElement("div", "padding:4px 10px 6px;color:#8a8a95;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Загрузка…"));
+			} else {
+				const activeId = profilesPayload.active;
+				for (const profile of profilesPayload.profiles ?? []) {
+					const activeProfile = profile.id === activeId;
+					const row = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;background:"
+						+ (activeProfile ? "rgba(40,60,110,.55)" : "rgba(30,34,44,.7)") + ";color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+					row.appendChild(modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", `${profile.name} · ${profile.words} слов · ${profile.replacements} замен`));
+					const actions = modalElement("div", "display:flex;gap:10px;flex:none;align-items:center");
+					if (activeProfile) {
+						actions.appendChild(modalElement("span", "color:#9fe6b4;font-weight:700;font-size:11px", "активен"));
+					} else {
+						const pick = modalElement("span", "cursor:pointer;color:#9fe6b4;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Переключить");
+						pick.setAttribute("role", "button");
+						pick.addEventListener("click", async () => {
+							const result = await switchProfileById(profile.id);
+							if (result !== undefined && result.ok) {
+								dictionaryCache.at = 0;
+								voiceSettingsModal.profiles = await fetchProfiles();
+								renderVoiceSettingsModal();
+								showToast(`Словарь «${profile.name}» включён`, true);
+							} else {
+								showToast("Не удалось переключить словарь", false);
+							}
+						});
+						const drop = modalElement("span", "cursor:pointer;color:#e69f9f;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Удалить");
+						drop.setAttribute("role", "button");
+						drop.addEventListener("click", async () => {
+							const result = await deleteProfileById(profile.id);
+							if (result !== undefined && result.ok) {
+								voiceSettingsModal.profiles = await fetchProfiles();
+								renderVoiceSettingsModal();
+								showToast(`Словарь «${profile.name}» удалён`, true);
+							} else {
+								showToast("Не удалось удалить словарь", false);
+							}
+						});
+						actions.appendChild(pick);
+						actions.appendChild(drop);
+					}
+					row.appendChild(actions);
+					body.appendChild(row);
+				}
+				const createRow = modalElement("div", "display:flex;gap:6px;padding:4px 8px 4px");
+				const nameInput = modalElement("input", "flex:1;min-width:0;padding:6px 9px;border-radius:8px;border:1px solid rgba(122,162,255,.3);"
+					+ "background:rgba(10,10,12,.9);color:#f2f2f5;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none");
+				nameInput.setAttribute("placeholder", "Новый словарь, например «Проект X»");
+				const createButton = modalElement("div", "cursor:pointer;padding:6px 12px;border-radius:8px;background:rgba(28,92,58,.95);color:#fff;font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Создать");
+				createButton.setAttribute("role", "button");
+				createButton.addEventListener("click", async () => {
+					const name = String(nameInput.value ?? "").trim();
+					if (name === "") {
+						showToast("Введите название словаря", false);
+						return;
+					}
+					const result = await createProfileByName(name);
+					if (result !== undefined && result.ok) {
+						dictionaryCache.at = 0;
+						voiceSettingsModal.profiles = await fetchProfiles();
+						renderVoiceSettingsModal();
+						showToast(`Словарь «${result.name}» создан`, true);
+					} else {
+						showToast("Не удалось создать словарь", false);
+					}
+				});
+				createRow.appendChild(nameInput);
+				createRow.appendChild(createButton);
+				body.appendChild(createRow);
+				const autoSwitch = profilesPayload.autoSwitch !== false;
+				const switchToggle = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(30,34,44,.9);cursor:pointer;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+				switchToggle.appendChild(modalElement("span", "", "Подсказывать словарь по контексту"));
+				switchToggle.appendChild(modalElement("span", "flex:none;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:" + (autoSwitch ? "rgba(28,92,58,.9)" : "rgba(60,60,66,.9)"), autoSwitch ? "включено" : "выключено"));
+				switchToggle.setAttribute("role", "button");
+				switchToggle.addEventListener("click", async () => {
+					const result = await saveSetting({ autoSwitch: !autoSwitch });
+					if (result !== undefined && result.ok) {
+						voiceSettingsModal.profiles = await fetchProfiles();
+						renderVoiceSettingsModal();
+						showToast(result.settings.autoSwitch ? "Подсказки включены" : "Подсказки выключены", true);
+					} else {
+						showToast("Не удалось сохранить настройку", false);
+					}
+				});
+				body.appendChild(switchToggle);
+			}
+
 			// Модель и подготовка.
 			section("Модель");
 			body.appendChild(line("Движок GigaAM", status?.gigaam?.binary === true));
@@ -1503,7 +1705,7 @@ window.__ModuleLoader__.load({
 		/** Opens the settings window. */
 		async function openVoiceSettingsModal() {
 			if (voiceSettingsModal !== undefined) return;
-			const status = await fetchVoiceStatus();
+			const [status, profiles] = await Promise.all([fetchVoiceStatus(), fetchProfiles()]);
 			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
 			const panel = modalElement("div", "width:min(540px,92vw);max-height:80vh;display:flex;flex-direction:column;"
 				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
@@ -1540,7 +1742,7 @@ window.__ModuleLoader__.load({
 			panel.appendChild(footer);
 			backdrop.appendChild(panel);
 			if (document.body !== undefined) document.body.appendChild(backdrop);
-			voiceSettingsModal = { backdrop, panel, body, status, doctor: undefined, poll: undefined };
+			voiceSettingsModal = { backdrop, panel, body, status, profiles, doctor: undefined, poll: undefined };
 			renderVoiceSettingsModal();
 			// Пока идёт подготовка — обновляем статус.
 			voiceSettingsModal.poll = setInterval(async () => {
@@ -1594,6 +1796,7 @@ window.__ModuleLoader__.load({
 				open: openVoiceSettingsModal,
 				toggle: toggleVoiceSettingsModal,
 			};
+			globalThis.__dshLocaleRuProfiles = { suggest: checkProfileSuggestion };
 		} catch (error) {
 			// среда без globalThis
 		}
@@ -2426,6 +2629,7 @@ window.__ModuleLoader__.load({
 					}
 					void notifyReplacements(target);
 					void highlightDictationResult(target);
+					void globalThis.__dshLocaleRuProfiles?.suggest?.();
 					scheduleLearn(target);
 				}, 0);
 			});

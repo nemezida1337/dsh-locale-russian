@@ -413,6 +413,29 @@ console.log('prompt Whisper обновляется вместе со слова�
   delete process.env.FAKE_WHISPER_ARGS
 }
 
+console.log('подсказка динамического словаря по контексту')
+{
+  process.env.FAKE_TRANSCRIPT = 'Kubernetes и Podman'
+  const port = await new Promise((resolve) => {
+    const probe = createServer()
+    probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+  })
+  const { service, cleanups } = setup({ engine: 'gigaam', port })
+  const api = (path, options = {}) => fetch(`http://127.0.0.1:${port}${path}`, options)
+  await api('/hotwords', { method: 'POST', body: 'Kubernetes' })
+  await api('/hotwords', { method: 'POST', body: 'Podman' })
+  await api('/profiles/create', { method: 'POST', body: JSON.stringify({ name: 'Проект' }) })
+  const afterCreate = await api('/profiles').then((response) => response.json())
+  const projectId = afterCreate.active
+  const defaultId = afterCreate.profiles.find((profile) => profile.id !== projectId)?.id
+  await api('/profiles/switch', { method: 'POST', body: JSON.stringify({ id: defaultId }) })
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const after = await api('/profiles').then((response) => response.json())
+  check('подсказка указывает на словарь проекта', after.suggestion?.id === projectId && after.suggestion?.hits >= 2, JSON.stringify({ suggestion: after.suggestion, projectId }))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+}
+
 console.log('whisper не установлен — понятная ошибка')
 {
   const { service, cleanups } = setup({ engine: 'whisper', whisper: false })
