@@ -100,6 +100,8 @@ const common = {
   replacementsFile: DSH_HOME + '/speech-ru/replacements.json',
   whisperBinaryPath: '/opt/homebrew/bin/whisper-cli',
   whisperModelPath: DSH_HOME + '/speech-ru/whisper/ggml-large-v3-turbo-q5_0.bin',
+  // Для чистоты замера — CLI без тёплого сервера.
+  whisperServerPath: '',
   prewarm: false,
   dictionaryPort: 0,
   hotwordsWatchMs: 10,
@@ -119,6 +121,7 @@ async function run(audio, mode, merge) {
 }
 
 const strategies = [
+  { id: 'auto', mode: 'auto' },
   { id: 'gigaam', mode: 'gigaam' },
   { id: 'whisper', mode: 'whisper' },
   { id: 'hybrid-text', mode: 'hybrid', merge: 'text' },

@@ -60,6 +60,34 @@ function makeWav({ silenceSeconds = 1, toneSeconds = 0.5, sampleRate = 16000, am
   return Buffer.concat([header, data])
 }
 
+/** Builds a long WAV (tone bursts with quiet gaps) for chunking tests. */
+function makeLongWav({ seconds = 45, sampleRate = 16000 } = {}) {
+  const samples = []
+  const burst = Math.round(4.7 * sampleRate)
+  const gap = Math.round(0.3 * sampleRate)
+  while (samples.length < seconds * sampleRate) {
+    for (let index = 0; index < burst && samples.length < seconds * sampleRate; index += 1) samples.push(Math.round(Math.sin((2 * Math.PI * 440 * index) / sampleRate) * 8000))
+    for (let index = 0; index < gap && samples.length < seconds * sampleRate; index += 1) samples.push(0)
+  }
+  const data = Buffer.alloc(samples.length * 2)
+  samples.forEach((value, index) => data.writeInt16LE(Math.max(-32768, Math.min(32767, value)), index * 2))
+  const header = Buffer.alloc(44)
+  header.write('RIFF', 0, 'ascii')
+  header.writeUInt32LE(36 + data.length, 4)
+  header.write('WAVE', 8, 'ascii')
+  header.write('fmt ', 12, 'ascii')
+  header.writeUInt32LE(16, 16)
+  header.writeUInt16LE(1, 20)
+  header.writeUInt16LE(1, 22)
+  header.writeUInt32LE(sampleRate, 24)
+  header.writeUInt32LE(sampleRate * 2, 28)
+  header.writeUInt16LE(2, 32)
+  header.writeUInt16LE(16, 34)
+  header.write('data', 36, 'ascii')
+  header.writeUInt32LE(data.length, 40)
+  return Buffer.concat([header, data])
+}
+
 const whisperModel = join(workspace, 'whisper-model.bin')
 writeFileSync(whisperModel, 'x')
 
@@ -909,6 +937,36 @@ console.log('auto: кириллическая транслитерация те�
   delete process.env.FAKE_TRANSCRIPT
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_WHISPER_ARGS
+}
+
+console.log('длинная диктовка: Whisper режется на куски (пунктуация)')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи. Вторая фраза.'
+  const marker = join(workspace, 'long-chunks.log')
+  process.env.FAKE_SERVER_MARKER = marker
+  const longWav = makeLongWav({ seconds: 45 })
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  const result = await service.provider.transcribe({ audio: longWav }, AbortSignal.timeout(60_000))
+  const requests = readFileSync(marker, 'utf8').trim().split('\n').filter(Boolean).length
+  check('длинное аудио разрезано на куски', requests >= 2, String(requests))
+  check('текст склеен из кусков', (result.text.match(/Проверка связи/gu) ?? []).length >= 2, result.text)
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_MARKER
+  for (const cleanup of cleanups.reverse()) await cleanup()
+}
+
+console.log('короткая диктовка: Whisper не режется')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка связи.'
+  const marker = join(workspace, 'short-chunks.log')
+  process.env.FAKE_SERVER_MARKER = marker
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const requests = readFileSync(marker, 'utf8').trim().split('\n').filter(Boolean).length
+  check('короткое аудио — один запрос', requests === 1, String(requests))
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_MARKER
+  for (const cleanup of cleanups.reverse()) await cleanup()
 }
 
 console.log('whisper не установлен — понятная ошибка')
