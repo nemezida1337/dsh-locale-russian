@@ -520,19 +520,30 @@ try {
     console.log('Отменено.')
     process.exit(0)
   }
-  const engine = value('--engine')
-  const merge = value('--merge')
+  const rawEngine = value('--engine')
+  const engine = rawEngine !== undefined && !['auto', 'gigaam', 'whisper', 'hybrid'].includes(rawEngine)
+    ? (() => { throw new Error(`неизвестный движок «${rawEngine}»: auto|gigaam|whisper|hybrid`) })()
+    : rawEngine
+  const rawMerge = value('--merge')
+  const merge = rawMerge !== undefined && !['sentences', 'text', 'auto', 'words'].includes(rawMerge)
+    ? (() => { throw new Error(`неизвестная стратегия «${rawMerge}»: sentences|text|auto|words`) })()
+    : rawMerge
+  const noWhisper = flag('--no-whisper')
+  const effectiveEngine = engine === 'auto' && noWhisper ? 'gigaam' : engine
+  if (engine === 'auto' && noWhisper) {
+    console.log('Предупреждение: режим auto требует Whisper; использую gigaam.')
+  }
   const result = await installDesktop({
     dshHome,
     version,
     dryRun,
     appPath: defaultAppPath(),
     log: console.log,
-    engine,
+    engine: effectiveEngine,
     merge,
-    whisper: !flag('--no-whisper'),
+    whisper: !noWhisper,
     whisperModelPath: value('--whisper-model'),
-    debugTranscripts: flag('--debug-transcripts') === true,
+    debugTranscripts: flag('--debug-transcripts') === true ? true : undefined,
   })
   if (result.dryRun === true) {
     console.log('Dry-run: файлы не изменены. Запустите без --dry-run, чтобы применить.')

@@ -293,7 +293,20 @@ function removeEngineBlock(lines) {
  * @param options - engine, merge, whisper paths.
  * @returns whether the file changed.
  */
-export function writeProfileConfig(profileDir, { engine = 'hybrid', merge, whisperBinaryPath, whisperModelPath: modelPath, debugTranscripts } = {}) {
+/** Reads the engine of the existing locale-ru block (keeps the user choice). */
+export function readProfileEngine(profileDir) {
+  try {
+    const text = readFileSync(join(profileDir, 'cordis.patch.yml'), 'utf8')
+    const block = text.match(/- id: locale-ru[\s\S]*?(?=\n- id:|\s*$)/u)
+    if (block === null) return undefined
+    const engine = block[0].match(/^\s{4}engine:\s*(\S+)/mu)
+    return engine === null ? undefined : engine[1]
+  } catch {
+    return undefined
+  }
+}
+
+export function writeProfileConfig(profileDir, { engine = 'auto', merge, whisperBinaryPath, whisperServerPath, whisperModelPath: modelPath, debugTranscripts } = {}) {
   const path = join(profileDir, 'cordis.patch.yml')
   if (!existsSync(path)) throw new Error(`в профиле нет cordis.patch.yml: ${path}`)
   const lines = readFileSync(path, 'utf8').split('\n')
@@ -305,6 +318,7 @@ export function writeProfileConfig(profileDir, { engine = 'hybrid', merge, whisp
   if (merge !== undefined) block.push(`    merge: ${merge}`)
   if (debugTranscripts === true) block.push('    debugTranscripts: true')
   if (whisperBinaryPath !== undefined) block.push(`    whisperBinaryPath: ${whisperBinaryPath}`)
+  if (whisperServerPath !== undefined) block.push(`    whisperServerPath: ${whisperServerPath}`)
   if (modelPath !== undefined) block.push(`    whisperModelPath: ${modelPath}`)
   const next = `${cleaned.join('\n').replace(/\n+$/u, '')}\n\n${block.join('\n')}\n`
   const previous = readFileSync(path, 'utf8')
@@ -353,15 +367,22 @@ export async function installDesktop({
   if (dryRun) {
     if (changes.length === 0) log(`  пакет уже установлен: ${PACKAGE_NAME}`)
     const whisperPlan = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: true, modelPath, fetchImpl })
-    const plannedEngine = engine ?? (whisperPlan.binary !== undefined ? 'hybrid' : 'gigaam')
+    const plannedEngine = engine ?? readProfileEngine(profileDir) ?? (whisperPlan.binary !== undefined ? 'auto' : 'gigaam')
     log(`  движок: ${plannedEngine}`)
     return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: false, dryRun: true, engine: plannedEngine, whisper: whisperPlan }
   }
   if (changes.length === 0) {
     // Пакет уже стоит: всё равно настраиваем движок и докачиваем Whisper.
     const whisperResult = whisper === false ? { binary: undefined, modelPath: undefined } : await installWhisper({ dshHome, log, dryRun: false, modelPath, fetchImpl })
-    const chosenEngine = engine ?? (whisperResult.binary !== undefined ? 'hybrid' : 'gigaam')
-    writeProfileConfig(profileDir, { engine: chosenEngine, merge, debugTranscripts: debugTranscripts ?? true, whisperBinaryPath: whisperResult.binary, whisperModelPath: whisperResult.modelPath })
+    const chosenEngine = engine ?? readProfileEngine(profileDir) ?? (whisperResult.binary !== undefined ? 'auto' : 'gigaam')
+    writeProfileConfig(profileDir, {
+      engine: chosenEngine,
+      merge,
+      debugTranscripts: debugTranscripts ?? true,
+      whisperBinaryPath: whisperResult.binary,
+      whisperServerPath: whisperResult.binary === undefined ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
+      whisperModelPath: whisperResult.modelPath,
+    })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)
     return { profileDir, changes, backupDir: undefined, pnpm: undefined, verified: verifyInstalled(profileDir, manifest), engine: chosenEngine, whisper: whisperResult, alreadyInstalled: true }
   }
@@ -400,6 +421,7 @@ export async function installDesktop({
       merge,
       debugTranscripts: debugTranscripts ?? true,
       whisperBinaryPath: whisperResult.binary,
+      whisperServerPath: whisperResult.binary === undefined ? undefined : join(dirname(whisperResult.binary), 'whisper-server'),
       whisperModelPath: whisperResult.modelPath,
     })
     log(`  движок: ${chosenEngine}${whisperResult.binary === undefined ? ' (Whisper недоступен)' : ''}`)

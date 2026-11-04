@@ -25,6 +25,11 @@ const server = createServer((request, response) => {
   request.on('data', (chunk) => chunks.push(chunk))
   request.on('end', () => {
     if (process.env.FAKE_AUDIO_OUT) writeFileSync(process.env.FAKE_AUDIO_OUT, Buffer.concat(chunks))
+    if (process.env.FAKE_FAIL === '1') {
+      response.writeHead(500, { 'content-type': 'application/json' })
+      response.end(JSON.stringify({ error: 'fake failure' }))
+      return
+    }
     const text = process.env.FAKE_TRANSCRIPT ?? 'Проверка связи'
     // Синтетические тайминги: 0.4 с на слово, как у настоящего GigaAM.
     const words = process.env.FAKE_WORDS_JSON !== undefined

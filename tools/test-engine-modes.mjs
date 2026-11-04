@@ -92,8 +92,8 @@ function setup({ engine, words = ['GitHub'], replacements = {}, whisper = true, 
     ...(merge === undefined ? {} : { merge }),
     whisperBinaryPath: whisper ? fakeWhisper : join(workspace, 'нет-бинаря'),
     whisperModelPath: whisperModel,
-    // По умолчанию тёплый сервер отключён: проверяем CLI-путь и auto-режим.
-    whisperServerPath: whisperServer ? fakeWhisperServer : join(workspace, 'нет-whisper-server'),
+    // По умолчанию тёплый сервер выключен пустой строкой: быстро и без сети.
+    whisperServerPath: whisperServer ? fakeWhisperServer : '',
     prewarm: false,
     dictionaryPort: port,
     hotwordsWatchMs: 10,
@@ -507,6 +507,123 @@ console.log('тёплый whisper-server')
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_SERVER_MARKER
+}
+
+console.log('auto без Whisper работает как GigaAM')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка связи'
+  const { service, cleanups } = setup({ engine: 'auto', whisper: false })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto без Whisper: текст есть', result.text === 'Проверка связи', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+}
+
+console.log('auto: падение GigaAM перехватывается Whisper')
+{
+  process.env.FAKE_FAIL = '1'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const { service, cleanups } = setup({ engine: 'auto', words: ['GitHub'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: Whisper спас диктовку', result.text === 'Проверка GitHub', result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_FAIL
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('auto: разное число предложений — берём лучший текст')
+{
+  process.env.FAKE_TRANSCRIPT = 'Проверка gighab'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub. Вторая фраза.'
+  const { service, cleanups } = setup({ engine: 'auto', words: ['GitHub'] })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('auto: лучший целый текст при разном делении', result.text.startsWith('Проверка GitHub'), result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('тёплый сервер: prompt полем и single-flight')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка GitHub'
+  const bodyFile = join(workspace, 'whisper-server-body.log')
+  const pidFile = join(workspace, 'whisper-server-pid.log')
+  process.env.FAKE_SERVER_BODY = bodyFile
+  process.env.FAKE_SERVER_PID = pidFile
+  process.env.FAKE_SERVER_DELAY = '400'
+  const { service, cleanups } = setup({ engine: 'whisper', words: ['GitHub'], whisperServer: true })
+  const [first, second] = await Promise.all([
+    service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000)),
+    service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000)),
+  ])
+  const body = readFileSync(bodyFile, 'utf8')
+  check('prompt уходит полем запроса', body.includes('name="prompt"') && body.includes('GitHub'), body.slice(0, 120))
+  check('single-flight: оба ответа', first.text === 'Проверка GitHub' && second.text === 'Проверка GitHub')
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_BODY
+  delete process.env.FAKE_SERVER_PID
+  delete process.env.FAKE_SERVER_DELAY
+}
+
+console.log('тёплый сервер: выгрузка во время старта не оставляет процесс')
+{
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Проверка'
+  const pidFile = join(workspace, 'whisper-server-pid-dispose.log')
+  process.env.FAKE_SERVER_PID = pidFile
+  process.env.FAKE_SERVER_DELAY = '1500'
+  const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
+  const pending = service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000)).catch(() => undefined)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  await pending
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
+  const pid = Number(readFileSync(pidFile, 'utf8'))
+  let alive = true
+  try {
+    process.kill(pid, 0)
+  } catch {
+    alive = false
+  }
+  check('сервер не пережил выгрузку', alive === false, String(pid))
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+  delete process.env.FAKE_SERVER_PID
+  delete process.env.FAKE_SERVER_DELAY
+}
+
+console.log('/engine сохраняет остальные ключи конфига')
+{
+  const dshHome = mkdtempSync(join(tmpdir(), 'dsh-engine-config-'))
+  const profileDir = join(dshHome, 'profiles', 'desktop')
+  mkdirSync(profileDir, { recursive: true })
+  const patchFile = join(profileDir, 'cordis.patch.yml')
+  writeFileSync(patchFile, [
+    '- id: locale-ru',
+    '  config:',
+    '    engine: hybrid',
+    '    merge: sentences',
+    '    debugTranscripts: true',
+    '    whisperServerPath: /custom/whisper-server',
+    '    whisperBinaryPath: /custom/whisper-cli',
+    '',
+  ].join('\n'))
+  const previousHome = process.env.DSH_HOME
+  process.env.DSH_HOME = dshHome
+  const port = await freePort()
+  const { service, cleanups } = setup({ engine: 'hybrid', port })
+  const response = await fetch(`http://127.0.0.1:${port}/engine`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ engine: 'auto', merge: 'sentences' }),
+  }).then((answer) => answer.json())
+  const patch = readFileSync(patchFile, 'utf8')
+  check('движок обновлён', response.ok === true && patch.includes('engine: auto'), JSON.stringify(response))
+  check('debugTranscripts сохранён', patch.includes('debugTranscripts: true'), patch)
+  check('whisperServerPath сохранён', patch.includes('whisperServerPath: /custom/whisper-server'), patch)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  if (previousHome === undefined) delete process.env.DSH_HOME
+  else process.env.DSH_HOME = previousHome
+  rmSync(dshHome, { recursive: true, force: true })
 }
 
 console.log('whisper не установлен — понятная ошибка')

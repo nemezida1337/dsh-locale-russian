@@ -200,6 +200,7 @@ const manifest = {
   files: [
     'lib',
     'bin',
+    'vendor',
     'locale/*.json',
     'cordis.patch.yml',
     'install.sh',

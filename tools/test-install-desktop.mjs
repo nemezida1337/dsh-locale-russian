@@ -9,7 +9,8 @@
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import {
   ensureWhisperModel,
@@ -17,6 +18,7 @@ import {
   installWhisper,
   latestBackup,
   planInstall,
+  readProfileEngine,
   removeProfileConfig,
   revertDesktop,
   verifyInstalled,
@@ -286,6 +288,31 @@ console.log('откат без копий')
 }
 
 rmSync(workspace, { recursive: true, force: true })
+console.log('P0: дефолты установщика и пакет')
+{
+  const here = dirname(fileURLToPath(import.meta.url))
+  const pkg = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8'))
+  check('vendor в files пакета', Array.isArray(pkg.files) && pkg.files.includes('vendor'), JSON.stringify(pkg.files))
+  const build = readFileSync(join(here, 'build-package.mjs'), 'utf8')
+  check('vendor в build-package', /files:\s*\[[^\]]*'vendor'/su.test(build))
+  check('whisper-server в vendor', existsSync(join(here, '..', 'vendor', 'whisper', 'arm64', 'whisper-server')))
+  // dry-run без Whisper → gigaam, а не hybrid.
+  const home = mkdtempSync(join(tmpdir(), 'dsh-install-auto-'))
+  mkdirSync(join(home, 'profiles', 'desktop'), { recursive: true })
+  writeFileSync(join(home, 'profiles', 'desktop', 'package.json'), JSON.stringify({ name: 'p', private: true, dependencies: {}, dsh: { profile: { bundles: [voiceBundle] } } }))
+  writeFileSync(join(home, 'profiles', 'desktop', 'cordis.patch.yml'), '- id: test\n')
+  const dry = await installDesktop({ dshHome: home, version: '1.2.3', dryRun: true, appPath: join(home, 'fake-app'), log: silent, whisper: false })
+  check('dry-run без Whisper: gigaam', dry.engine === 'gigaam', JSON.stringify(dry.engine))
+  rmSync(home, { recursive: true, force: true })
+  // Повторная установка сохраняет выбранный движок.
+  const home2 = mkdtempSync(join(tmpdir(), 'dsh-install-keep-'))
+  mkdirSync(join(home2, 'profiles', 'desktop'), { recursive: true })
+  writeFileSync(join(home2, 'profiles', 'desktop', 'cordis.patch.yml'), '- id: test\n')
+  writeProfileConfig(join(home2, 'profiles', 'desktop'), { engine: 'auto', merge: 'sentences', debugTranscripts: true })
+  check('движок читается из профиля', readProfileEngine(join(home2, 'profiles', 'desktop')) === 'auto')
+  rmSync(home2, { recursive: true, force: true })
+}
+
 if (failures.length > 0) {
   console.error(`провалено проверок: ${failures.length}`)
   process.exit(1)

@@ -103,7 +103,7 @@ dsh plugin --profile web add file:/абсолютный/путь/к/рабоче
 npx dsh-locale-russian-install --desktop
 ```
 
-Флаги: `--engine gigaam|whisper|hybrid` (по умолчанию hybrid, если Whisper доступен), `--merge auto|sentences|text|words`, `--no-whisper` (остаться на GigaAM), `--whisper-model <путь>`.
+Флаги: `--engine auto|gigaam|whisper|hybrid` (по умолчанию `auto`: GigaAM отвечает сразу, Whisper подключается только на английских терминах), `--merge auto|sentences|text|words`, `--no-whisper` (остаться на GigaAM), `--whisper-model <путь>`.
 
 ```sh
 npx dsh-locale-russian-install --desktop
