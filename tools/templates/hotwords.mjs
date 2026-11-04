@@ -65,6 +65,13 @@ function render(before, personal) {
  */
 export function addPersonalHotword(text, phrase) {
   const cleaned = normalizePhrase(phrase)
+  // Маркеры секции и управляющие символы ломают файл и скрывают слова.
+  if (cleaned.startsWith('#') || /[\u0000-\u001f\u007f]/u.test(cleaned)) {
+    return { ok: false, reason: 'bad-phrase' }
+  }
+  if (cleaned.includes(PERSONAL_MARKER) || cleaned.includes(PERSONAL_END)) {
+    return { ok: false, reason: 'bad-phrase' }
+  }
   if (cleaned === '' || cleaned.length > MAX_HOTWORD_LENGTH) return { ok: false, reason: 'bad-phrase' }
   const { before, personal } = splitPersonal(text)
   // «GitHub» и «github» — одно и то же слово: дубликат без учёта регистра.

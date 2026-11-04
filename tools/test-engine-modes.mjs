@@ -997,14 +997,20 @@ console.log('мерж: лишняя фраза Whisper не теряется')
 
 console.log('статистика использования словаря')
 {
-  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб'
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб и Slack'
   const port = await freePort()
-  const { service, cleanups } = setup({ engine: 'gigaam', port, words: ['GitHub'], replacements: { 'гитхаб': 'GitHub' } })
+  const { service, cleanups } = setup({ engine: 'gigaam', port, words: ['GitHub', 'Max'], replacements: { 'гитхаб': 'GitHub', 'слаг': 'Slack' } })
+  await fetch(`http://127.0.0.1:${port}/stats/reset`, { method: 'POST' })
   await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   const stats = await fetch(`http://127.0.0.1:${port}/stats`).then((response) => response.json())
   check('статистика: диктовка учтена', stats.dictations >= 1, JSON.stringify(stats.dictations))
   check('статистика: термин засчитан', (stats.words ?? []).some((entry) => entry.word === 'GitHub' && entry.hits >= 1), JSON.stringify(stats.words))
-  check('статистика: замена засчитана', (stats.replacements ?? []).some((entry) => entry.heard === 'гитхаб' && entry.applied >= 1), JSON.stringify(stats.replacements))
+  const appliedPair = (stats.replacements ?? []).find((entry) => entry.heard === 'гитхаб')
+  const falsePair = (stats.replacements ?? []).find((entry) => entry.heard === 'слаг')
+  check('статистика: замена засчитана', appliedPair !== undefined && appliedPair.applied === 1, JSON.stringify(stats.replacements))
+  check('статистика: несработавшая замена не засчитана', falsePair === undefined || falsePair.applied === 0, JSON.stringify(stats.replacements))
+  const maxWord = (stats.words ?? []).find((entry) => entry.word === 'Max')
+  check('статистика: hits по границам слова', maxWord === undefined || maxWord.hits === 0, JSON.stringify(maxWord))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT
 }
@@ -1019,14 +1025,18 @@ console.log('автопереключение словаря по контекс
   const api = (path, options = {}) => fetch(`http://127.0.0.1:${port}${path}`, options)
   const post = (path, body) => api(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then((response) => response.json())
   await api('/profiles').then((response) => response.json()) // создаёт default
+  const created = await post('/profiles/create', { name: 'Проект' })
+  // Термины добавляем только в активный профиль проекта.
   await api('/hotwords', { method: 'POST', body: 'Kubernetes' })
   await api('/hotwords', { method: 'POST', body: 'Podman' })
-  const created = await post('/profiles/create', { name: 'Проект' })
   const before = await api('/profiles').then((response) => response.json())
   const defaultId = before.profiles.find((profile) => profile.id !== created.id)?.id
   await post('/profiles/switch', { id: defaultId })
   await post('/settings', { autoSwitchMode: 'auto' })
-  process.env.FAKE_TRANSCRIPT = 'Kubernetes Podman'
+  process.env.FAKE_TRANSCRIPT = 'Kubernetes, Podman.'
+  await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  // Вторая диктовка без чтения /profiles: уведомление не должно потеряться.
+  process.env.FAKE_TRANSCRIPT = 'Kubernetes и Podman.'
   await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   const profiles = await api('/profiles').then((response) => response.json())
   check('автопереключение: активен словарь проекта', profiles.active === created.id, JSON.stringify({ active: profiles.active, expected: created.id }))

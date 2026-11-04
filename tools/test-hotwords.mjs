@@ -255,12 +255,13 @@ console.log('endpoint хоста')
   const profiles0 = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
   check('словари: активный по умолчанию', typeof profiles0.active === 'string' && profiles0.profiles.length >= 1, JSON.stringify(profiles0))
   const defaultId = profiles0.active
-  await post('Kubernetes')
-  await post('Podman')
+  // Создаём профиль до добавления терминов: словари должны быть изолированы.
   const created = await fetch(`http://127.0.0.1:${port}/profiles/create`, { method: 'POST', body: JSON.stringify({ name: 'Проект' }) }).then((response) => response.json())
   check('словарь создан', created.ok === true && created.id !== undefined, JSON.stringify(created))
   const profilesAfterCreate = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
   check('новый словарь активен', profilesAfterCreate.active === created.id && profilesAfterCreate.profiles.length >= 2, JSON.stringify(profilesAfterCreate))
+  await post('Kubernetes')
+  await post('Podman')
   const switched = await fetch(`http://127.0.0.1:${port}/profiles/switch`, { method: 'POST', body: JSON.stringify({ id: defaultId }) }).then((response) => response.json())
   check('переключение на другой словарь', switched.ok === true && switched.active === defaultId, JSON.stringify(switched))
   const dictionaryDefault = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
@@ -301,9 +302,35 @@ console.log('endpoint хоста')
   })
   check('same-site запрос разрешён', sameSite.status === 200, String(sameSite.status))
   const electronNull = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'cross-site', origin: 'null', 'user-agent': 'Mozilla/5.0 Electron/39.0.0' },
+  })
+  check('запрос Electron (Origin: null) разрешён', electronNull.status === 200, String(electronNull.status))
+  const opaqueOrigin = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
     headers: { 'sec-fetch-site': 'cross-site', origin: 'null' },
   })
-  check('запрос приложения (Origin: null) разрешён', electronNull.status === 200, String(electronNull.status))
+  check('opaque-origin без Electron отклонён', opaqueOrigin.status === 403, String(opaqueOrigin.status))
+  // CSRF: мутирующий POST из браузера требует клиентский заголовок.
+  const csrfNoHeader = await fetch(`http://127.0.0.1:${port}/stats/reset`, {
+    method: 'POST',
+    headers: { origin: `http://127.0.0.1:${port}`, 'content-type': 'application/json' },
+  })
+  check('POST без клиентского заголовка отклонён', csrfNoHeader.status === 403, String(csrfNoHeader.status))
+  const csrfWithHeader = await fetch(`http://127.0.0.1:${port}/stats/reset`, {
+    method: 'POST',
+    headers: { origin: `http://127.0.0.1:${port}`, 'content-type': 'application/json', 'x-dsh-locale-client': '1' },
+  })
+  check('POST с клиентским заголовком разрешён', csrfWithHeader.status === 200, String(csrfWithHeader.status))
+  // Path traversal в id профиля.
+  const traversalDelete = await fetch(`http://127.0.0.1:${port}/profiles/delete`, {
+    method: 'POST',
+    body: JSON.stringify({ id: '../victim' }),
+  })
+  check('path traversal удаления профиля отклонён', traversalDelete.status === 400, String(traversalDelete.status))
+  const traversalSwitch = await fetch(`http://127.0.0.1:${port}/profiles/switch`, {
+    method: 'POST',
+    body: JSON.stringify({ id: '../victim' }),
+  })
+  check('path traversal переключения отклонён', traversalSwitch.status === 400, String(traversalSwitch.status))
   const badHost = await new Promise((resolve) => {
     const request = httpRequest({ hostname: '127.0.0.1', port, path: '/health', headers: { host: 'evil.example' } }, (response) => {
       response.resume()
