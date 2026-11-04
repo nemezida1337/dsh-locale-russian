@@ -11,7 +11,7 @@
  * the first transcription, plus explicit model preparation with download progress.
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { createServer } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
@@ -29,6 +29,7 @@ import {
   readReplacements,
   removeReplacement,
   renderReplacements,
+  normalizePhrase,
   upsertReplacement,
 } from './hotwords.mjs'
 
@@ -529,7 +530,56 @@ export function apply(ctx, config = {}) {
         }
         const replacements = readReplacementsFile()
         response.writeHead(200, { 'content-type': 'application/json' })
-        response.end(JSON.stringify({ words, replacements }))
+        response.end(JSON.stringify({ words, replacements, sources: readDictionarySources(words, replacements) }))
+        return
+      }
+      if (request.method === 'GET' && request.url === '/review') {
+        const pairs = readLearnedQueue()
+        response.writeHead(200, { 'content-type': 'application/json' })
+        response.end(JSON.stringify({ pairs, corrupt: learnedCorrupt }))
+        return
+      }
+      if (request.method === 'POST' && request.url === '/review/keep') {
+        let body = ''
+        request.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 2048) request.destroy()
+        })
+        request.on('end', () => {
+          let heard = body
+          try {
+            const parsed = JSON.parse(body)
+            if (typeof parsed === 'string') heard = parsed
+            else if (parsed !== null && typeof parsed === 'object' && typeof parsed.heard === 'string') heard = parsed.heard
+          } catch {
+            // оставляем как есть
+          }
+          const ok = !learnedCorrupt && removeLearnedPair(heard)
+          response.writeHead(ok ? 200 : 400, { 'content-type': 'application/json' })
+          response.end(JSON.stringify({ ok, reason: learnedCorrupt ? 'corrupt' : undefined }))
+        })
+        return
+      }
+      if (request.method === 'POST' && request.url === '/review/forget') {
+        let body = ''
+        request.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 2048) request.destroy()
+        })
+        request.on('end', () => {
+          let heard = body
+          try {
+            const parsed = JSON.parse(body)
+            if (typeof parsed === 'string') heard = parsed
+            else if (parsed !== null && typeof parsed === 'object' && typeof parsed.heard === 'string') heard = parsed.heard
+          } catch {
+            // оставляем как есть
+          }
+          const result = forgetReplacementAnyCase(heard)
+          removeLearnedPair(heard)
+          response.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' })
+          response.end(JSON.stringify({ ok: result.ok, removed: result.removed }))
+        })
         return
       }
       if (request.method === 'POST' && request.url === '/forget-pair') {
@@ -547,23 +597,8 @@ export function apply(ctx, config = {}) {
           } catch {
             // оставляем как есть
           }
-          let current = ''
-          try {
-            current = readFileSync(replacementsFile, 'utf8')
-          } catch {
-            current = ''
-          }
-          const result = removeReplacement(current, heard)
-          if (result.ok) {
-            try {
-              writeFileSync(replacementsFile, result.text)
-            } catch (error) {
-              log('cannot write replacements', error)
-              response.writeHead(400, { 'content-type': 'application/json' })
-              response.end(JSON.stringify({ ok: false, reason: 'write-failed' }))
-              return
-            }
-          }
+          const result = forgetReplacementAnyCase(heard)
+          if (result.ok) removeLearnedPair(heard)
           response.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' })
           response.end(JSON.stringify(result))
         })
@@ -620,7 +655,7 @@ export function apply(ctx, config = {}) {
             response.end(JSON.stringify({ ok: false, reason: 'bad-json' }))
             return
           }
-          const result = learnCorrection(payload?.heard, payload?.chosen)
+          const result = learnCorrection(payload?.heard, payload?.chosen, payload?.source)
           response.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' })
           response.end(JSON.stringify(result))
         })
@@ -703,7 +738,126 @@ export function apply(ctx, config = {}) {
    * @param chosen - phrase the user picked.
    * @returns counts for both stores.
    */
-  function learnCorrection(heard, chosen) {
+  /** Path of the auto-learned pairs awaiting review. */
+  function learnedFilePath() {
+    return join(dirname(hotwordsFile), 'learned.json')
+  }
+
+  /** True when learned.json exists but cannot be parsed: never overwrite it. */
+  let learnedCorrupt = false
+
+  /** Reads the auto-learned pairs awaiting review. */
+  function readLearnedQueue() {
+    try {
+      const parsed = JSON.parse(readFileSync(learnedFilePath(), 'utf8'))
+      learnedCorrupt = false
+      return Array.isArray(parsed?.pairs)
+        ? parsed.pairs
+            .filter((pair) => typeof pair?.heard === 'string' && typeof pair?.chosen === 'string')
+            .map((pair) => ({ heard: normalizePhrase(pair.heard), chosen: normalizePhrase(pair.chosen), at: Number(pair.at) || 0 }))
+            .filter((pair) => pair.heard !== '' && pair.chosen !== '')
+        : []
+    } catch (error) {
+      // Отсутствие файла — норма, повреждение — нет: молча затирать нельзя.
+      learnedCorrupt = !(error !== null && typeof error === 'object' && error.code === 'ENOENT')
+      if (learnedCorrupt) log('learned.json is corrupt; keeping it untouched', error instanceof Error ? error.message : String(error))
+      return []
+    }
+  }
+
+  /** Writes the review queue atomically (temp file + rename). */
+  function writeLearnedQueue(pairs) {
+    if (learnedCorrupt) return false
+    try {
+      const file = learnedFilePath()
+      const temp = `${file}.tmp-${process.pid}`
+      writeFileSync(temp, `${JSON.stringify({ pairs }, null, 2)}\n`)
+      renameSync(temp, file)
+      return true
+    } catch (error) {
+      log('cannot write learned queue', error)
+      return false
+    }
+  }
+
+  /** Adds an auto-learned pair to the review queue (deduplicated by heard). */
+  function addLearnedPair(heard, chosen) {
+    const cleanHeard = normalizePhrase(heard)
+    const cleanChosen = normalizePhrase(chosen)
+    if (cleanHeard === '' || cleanChosen === '') return false
+    const lower = cleanHeard.toLowerCase()
+    const pairs = readLearnedQueue().filter((pair) => pair.heard.toLowerCase() !== lower)
+    pairs.push({ heard: cleanHeard, chosen: cleanChosen, at: Date.now() })
+    return writeLearnedQueue(pairs)
+  }
+
+  /** Removes a pair from the review queue. */
+  function removeLearnedPair(heard) {
+    const lower = String(heard).toLowerCase()
+    return writeLearnedQueue(readLearnedQueue().filter((pair) => pair.heard.toLowerCase() !== lower))
+  }
+
+  /** Updates the chosen spelling of a queued pair (manual re-learn wins). */
+  function updateLearnedPair(heard, chosen) {
+    const lower = String(heard).toLowerCase()
+    const pairs = readLearnedQueue()
+    let changed = false
+    for (const pair of pairs) {
+      if (pair.heard.toLowerCase() === lower && pair.chosen !== chosen) {
+        pair.chosen = chosen
+        pair.at = Date.now()
+        changed = true
+      }
+    }
+    if (changed) writeLearnedQueue(pairs)
+    return changed
+  }
+
+  /** Removes a replacement key case-insensitively; returns the removed keys. */
+  function forgetReplacementAnyCase(heard) {
+    const lower = String(heard).toLowerCase()
+    const replacements = readReplacementsFile()
+    const removed = Object.keys(replacements).filter((key) => key.toLowerCase() === lower)
+    if (removed.length === 0) return { ok: false, removed: [] }
+    for (const key of removed) delete replacements[key]
+    try {
+      writeFileSync(replacementsFile, renderReplacements(replacements))
+    } catch (error) {
+      log('cannot write replacements', error)
+      return { ok: false, removed: [], reason: 'write-failed' }
+    }
+    return { ok: true, removed }
+  }
+
+  /** Words that came from the last project scan, for source labels. */
+  function readProjectWords() {
+    try {
+      const manifest = JSON.parse(readFileSync(join(dirname(hotwordsFile), 'projects.json'), 'utf8'))
+      const words = new Set()
+      for (const value of Object.values(manifest)) {
+        if (Array.isArray(value)) for (const word of value) if (typeof word === 'string') words.add(word.toLowerCase())
+      }
+      return words
+    } catch {
+      return new Set()
+    }
+  }
+
+  /** Sources of the current dictionary entries: project/manual, auto/manual. */
+  function readDictionarySources(words, replacements) {
+    const projectWords = readProjectWords()
+    const learned = new Set(readLearnedQueue().map((pair) => pair.heard.toLowerCase()))
+    return {
+      words: Object.fromEntries(words.map((word) => [word, projectWords.has(word.toLowerCase()) ? 'project' : 'manual'])),
+      replacements: Object.fromEntries(Object.keys(replacements).map((heard) => [heard, learned.has(heard.toLowerCase()) ? 'auto' : 'manual'])),
+    }
+  }
+
+  function learnCorrection(heard, chosen, source) {
+    const trimmedHeard = typeof heard === 'string' ? heard.trim() : ''
+    const trimmedChosen = typeof chosen === 'string' ? chosen.trim() : ''
+    // Односимвольные замены («я» → «I») портят обычный текст.
+    if (trimmedHeard.length < 2 || trimmedChosen.length < 2) return { ok: false, reason: 'too-short' }
     const replacements = readReplacementsFile()
     const updated = upsertReplacement(JSON.stringify({ replacements }), heard, chosen)
     if (!updated.ok) return { ok: false, reason: updated.reason }
@@ -713,6 +867,10 @@ export function apply(ctx, config = {}) {
       log('cannot write replacements', error)
       return { ok: false, reason: 'write-failed' }
     }
+    // Авто-обучение попадает в очередь проверки: пользователь может оставить
+    // пару или убрать её из окна словаря.
+    if (source === 'auto') addLearnedPair(trimmedHeard, trimmedChosen)
+    else updateLearnedPair(trimmedHeard, trimmedChosen)
     const added = addPersonalHotword(chosen)
     return {
       ok: true,

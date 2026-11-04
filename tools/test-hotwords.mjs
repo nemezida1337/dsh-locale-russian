@@ -197,6 +197,58 @@ console.log('endpoint хоста')
   await post('engine')
   const suggestions = await fetch(`http://127.0.0.1:${port}/suggestions`).then((response) => response.json())
   check('предложение искажённого термина', Array.isArray(suggestions.suggestions) && suggestions.suggestions.some((entry) => entry.heard === 'ngine' && entry.chosen === 'engine'), JSON.stringify(suggestions))
+  // Очередь авто-обучения: авто-пары попадают в /review, пользователь решает.
+  const learnAuto = await fetch(`http://127.0.0.1:${port}/learn`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ heard: 'нгіне', chosen: 'engine', source: 'auto' }),
+  }).then((response) => response.json())
+  check('авто-пара выучена', learnAuto.ok === true, JSON.stringify(learnAuto))
+  const review1 = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('авто-пара в очереди проверки', Array.isArray(review1.pairs) && review1.pairs.some((pair) => pair.heard === 'нгіне' && pair.chosen === 'engine'), JSON.stringify(review1))
+  const dictionaryAuto = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
+  check('источник замены — auto', dictionaryAuto.sources?.replacements?.['нгіне'] === 'auto', JSON.stringify(dictionaryAuto.sources))
+  const keepAuto = await fetch(`http://127.0.0.1:${port}/review/keep`, { method: 'POST', body: JSON.stringify({ heard: 'нгіне' }) }).then((response) => response.json())
+  const review2 = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('«Оставить» убирает пару из очереди', keepAuto.ok === true && review2.pairs.length === 0, JSON.stringify(review2))
+  check('«Оставить» сохраняет замену', readFileSync(join(workspace, 'endpoint-replacements.json'), 'utf8').includes('engine'))
+  await fetch(`http://127.0.0.1:${port}/learn`, { method: 'POST', body: JSON.stringify({ heard: 'другой', chosen: 'engine', source: 'auto' }) })
+  const forgetAuto = await fetch(`http://127.0.0.1:${port}/review/forget`, { method: 'POST', body: JSON.stringify({ heard: 'другой' }) }).then((response) => response.json())
+  check('«Убрать» удаляет замену и очередь', forgetAuto.ok === true && !readFileSync(join(workspace, 'endpoint-replacements.json'), 'utf8').includes('"другой"'))
+  const manualLearn = await fetch(`http://127.0.0.1:${port}/learn`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ heard: 'вручную', chosen: 'engine' }),
+  }).then((response) => response.json())
+  const reviewAfterManual = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('ручное обучение не попадает в очередь', manualLearn.ok === true && !reviewAfterManual.pairs.some((pair) => pair.heard === 'вручную'), JSON.stringify(reviewAfterManual))
+  // Источники слов: слово из манифеста проекта помечается как project.
+  writeFileSync(join(workspace, 'projects.json'), JSON.stringify({ '/tmp/project': ['configHotwords'] }))
+  const dictionarySources = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
+  check('источник слова — project', dictionarySources.sources?.words?.configHotwords === 'project', JSON.stringify(dictionarySources.sources?.words))
+  // Повреждённый learned.json не затирается и не роняет endpoint'ы.
+  writeFileSync(join(workspace, 'learned.json'), '{ broken')
+  const reviewCorrupt = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('битый learned.json: corrupt-флаг', reviewCorrupt.corrupt === true && reviewCorrupt.pairs.length === 0, JSON.stringify(reviewCorrupt))
+  const keepCorrupt = await fetch(`http://127.0.0.1:${port}/review/keep`, { method: 'POST', body: JSON.stringify({ heard: 'x' }) })
+  check('keep при битом файле — 400', keepCorrupt.status === 400, String(keepCorrupt.status))
+  check('битый learned.json не перезаписан', readFileSync(join(workspace, 'learned.json'), 'utf8').startsWith('{ broken'))
+  writeFileSync(join(workspace, 'learned.json'), JSON.stringify({ pairs: [] }))
+  // Ручное переобучение обновляет chosen в очереди.
+  await fetch(`http://127.0.0.1:${port}/learn`, { method: 'POST', body: JSON.stringify({ heard: 'термин', chosen: 'first', source: 'auto' }) })
+  await fetch(`http://127.0.0.1:${port}/learn`, { method: 'POST', body: JSON.stringify({ heard: 'термин', chosen: 'second' }) })
+  const reviewUpdated = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('ручное обучение обновило очередь', reviewUpdated.pairs.some((pair) => pair.heard === 'термин' && pair.chosen === 'second'), JSON.stringify(reviewUpdated.pairs))
+  // Удаление пары чистит и очередь.
+  await fetch(`http://127.0.0.1:${port}/learn`, { method: 'POST', body: JSON.stringify({ heard: 'пара', chosen: 'engine', source: 'auto' }) })
+  await fetch(`http://127.0.0.1:${port}/forget-pair`, { method: 'POST', body: JSON.stringify({ heard: 'пара' }) })
+  const reviewAfterForget = await fetch(`http://127.0.0.1:${port}/review`).then((response) => response.json())
+  check('/forget-pair чистит очередь', !reviewAfterForget.pairs.some((pair) => pair.heard === 'пара'), JSON.stringify(reviewAfterForget.pairs))
+  // Односимвольные замены и удаление отсутствующей пары — 400.
+  const tooShort = await fetch(`http://127.0.0.1:${port}/learn`, { method: 'POST', body: JSON.stringify({ heard: 'я', chosen: 'I' }) })
+  check('односимвольная замена — 400', tooShort.status === 400, String(tooShort.status))
+  const forgetMissingPair = await fetch(`http://127.0.0.1:${port}/review/forget`, { method: 'POST', body: JSON.stringify({ heard: 'нет-такой' }) })
+  check('удаление отсутствующей пары — 400', forgetMissingPair.status === 400, String(forgetMissingPair.status))
   const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
   check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'auto', JSON.stringify(engineGet))
   const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {

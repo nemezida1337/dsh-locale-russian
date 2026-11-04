@@ -151,17 +151,41 @@ Object.defineProperty(globalThis, 'navigator', {
   } },
   configurable: true,
 })
+let dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
+let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  if (url.endsWith('/review/keep') || url.endsWith('/review/forget')) {
+    try {
+      const heard = JSON.parse(options.body ?? '{}').heard
+      reviewPairs = reviewPairs.filter((pair) => pair.heard !== heard)
+    } catch {
+      // оставляем очередь как есть
+    }
+    return { ok: true, json: async () => ({ ok: true }) }
+  }
+  if (url.endsWith('/review')) {
+    return { ok: true, json: async () => ({ pairs: reviewPairs }) }
+  }
   if (url.endsWith('/suggestions')) {
-    return { ok: true, json: async () => ({ suggestions: [{ heard: 'ngine', chosen: 'engine', score: 0.83, count: 2 }] }) }
+    return { ok: true, json: async () => ({ suggestions: [
+      { heard: 'ngine', chosen: 'engine', score: 0.83, count: 2 },
+      { heard: 'gighab', chosen: 'GitHub', score: 0.72, count: 1 },
+    ] }) }
   }
   if (url.endsWith('/engine')) {
     if ((options.method ?? 'GET') === 'POST') return { ok: true, json: async () => ({ ok: true, restartRequired: true }) }
     return { ok: true, json: async () => ({ engine: 'gigaam', merge: 'auto', whisper: true }) }
   }
   if (url.endsWith('/dictionary')) {
-    return { ok: true, json: async () => ({ words: ['GitHub', 'Lifeshare', 'GigaAM'], replacements: { 'гитхаб': 'GitHub' } }) }
+    return { ok: true, json: async () => ({
+      words: dictionaryWords,
+      replacements: { 'гитхаб': 'GitHub' },
+      sources: {
+        words: Object.fromEntries(dictionaryWords.map((word) => [word, word === 'GitHub' ? 'project' : 'manual'])),
+        replacements: { 'гитхаб': 'auto' },
+      },
+    }) }
   }
   return { ok: true, json: async () => ({ ok: true, count: 1 }) }
 }
@@ -343,6 +367,10 @@ console.log('секция движка в модалке')
   check('выбор движка отправлен', saved !== undefined && JSON.parse(saved.body).engine === 'hybrid', JSON.stringify(requests))
 }
 
+const toastAction = (label) => documentStub.body.children
+  .flatMap((element) => element.children ?? [])
+  .find((child) => String(child.textContent ?? '').includes(label))
+
 console.log('предложения терминов и агент')
 {
   const texts = modalTexts()
@@ -353,10 +381,187 @@ console.log('предложения терминов и агент')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
   const learned = requests.find((request) => request.url.endsWith('/learn') && request.method === 'POST')
   check('предложение запомнено', learned !== undefined && JSON.parse(learned.body).heard === 'ngine' && JSON.parse(learned.body).chosen === 'engine', JSON.stringify(requests))
+  requests.length = 0
+  const rememberAll = modalTexts().find((text) => text.startsWith('Запомнить все'))
+  check('есть «Запомнить все»', rememberAll !== undefined, JSON.stringify(modalTexts()))
+  findByText(rememberAll).dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  const allLearned = requests.filter((request) => request.url.endsWith('/learn') && request.method === 'POST')
+  check('«Запомнить все» учит все подсказки', allLearned.length === 2, JSON.stringify(requests))
   clipboardWrites.length = 0
   findByText('Попросить агента дообучить').dispatch('click')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 50))
   check('запрос агенту скопирован', clipboardWrites.length === 1 && clipboardWrites[0].includes('transcripts.json'), JSON.stringify(clipboardWrites))
+}
+
+console.log('очередь авто-обучения')
+{
+  closeModal()
+  await openModal()
+  check('секция «Авто-выучено»', modalTexts().some((text) => text.includes('Авто-выучено')), JSON.stringify(modalTexts()))
+  requests.length = 0
+  findByText('Оставить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('«Оставить» шлёт /review/keep', requests.some((request) => request.url.endsWith('/review/keep')), JSON.stringify(requests))
+  reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
+  closeModal()
+  await openModal()
+  requests.length = 0
+  findByText('Убрать').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('«Убрать» шлёт /review/forget', requests.some((request) => request.url.endsWith('/review/forget')), JSON.stringify(requests))
+  reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
+}
+
+console.log('фильтр по источнику')
+{
+  closeModal()
+  await openModal()
+  findByText('Из проекта').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+  check('фильтр оставил слово из проекта', findRow('GitHub') !== undefined, JSON.stringify(modalTexts()))
+  check('фильтр скрыл ручное слово', findRow('Lifeshare') === undefined, JSON.stringify(modalTexts()))
+  findByText('Все').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+}
+
+console.log('предупреждение об обрывках')
+{
+  closeModal()
+  dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM', 'Harness', 'DeepSeek Harness']
+  await openModal()
+  // Сбрасываем 30-секундный кэш словаря: «Запомнить» инвалидирует его и перечитывает.
+  findByText('Запомнить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('секция «Похожие слова»', modalTexts().some((text) => text.includes('Похожие слова')), JSON.stringify(modalTexts()))
+  check('обрывок показан', modalTexts().some((text) => text.includes('Harness ⊂ DeepSeek Harness')), JSON.stringify(modalTexts()))
+  closeModal()
+  dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
+}
+
+console.log('редактирование замены')
+{
+  await openModal()
+  const pairRow = findRow('гитхаб → GitHub')
+  pairRow.children[0].dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const input = pairRow.children.find((child) => child.tagName === 'INPUT')
+  check('появилось поле редактирования', input !== undefined, JSON.stringify(pairRow.children.map((child) => child.tagName)))
+  input.value = 'GitHub Enterprise'
+  requests.length = 0
+  input.dispatch('keydown', { key: 'Enter', preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('изменение пары отправлено', requests.some((request) => request.url.endsWith('/learn') && JSON.parse(request.body).chosen === 'GitHub Enterprise'), JSON.stringify(requests))
+}
+
+console.log('Escape в inline-редактировании')
+{
+  closeModal()
+  await openModal()
+  const pairRow = findRow('гитхаб → GitHub')
+  pairRow.children[0].dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const input = pairRow.children.find((child) => child.tagName === 'INPUT')
+  input.value = 'Другое'
+  requests.length = 0
+  input.dispatch('keydown', { key: 'Escape', preventDefault() {}, stopPropagation() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('Escape не закрывает модалку', modalPanel() !== undefined)
+  check('Escape не сохраняет замену', !requests.some((request) => request.url.endsWith('/learn')), JSON.stringify(requests))
+  closeModal()
+  await openModal()
+  const again = findRow('гитхаб → GitHub')
+  again.children[0].dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const input2 = again.children.find((child) => child.tagName === 'INPUT')
+  input2.value = 'GitHub Enterprise'
+  requests.length = 0
+  input2.dispatch('keydown', { key: 'Enter', preventDefault() {} })
+  input2.dispatch('blur')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  const saves = requests.filter((request) => request.url.endsWith('/learn') && JSON.parse(request.body).chosen === 'GitHub Enterprise')
+  check('Enter+blur сохраняют один раз', saves.length === 1, String(saves.length))
+}
+
+console.log('некорректный JSON при импорте')
+{
+  closeModal()
+  class BadReader {
+    readAsText() { this.result = '{"words": ['; this.onload?.() }
+  }
+  const original = globalThis.FileReader
+  globalThis.FileReader = BadReader
+  await openModal()
+  requests.length = 0
+  findByText('Импорт').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const fileInput = documentStub.body.children.find((element) => element.tagName === 'INPUT' && element.type === 'file')
+  fileInput.files = [{ name: 'broken.json', size: 20 }]
+  fileInput.dispatch('change', { target: fileInput })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('битый JSON не импортируется', !requests.some((request) => request.url.endsWith('/hotwords')), JSON.stringify(requests))
+  check('показан тост об ошибке JSON', documentStub.body.children.some((element) => String(element.textContent ?? '').includes('Некорректный JSON')))
+  globalThis.FileReader = original
+}
+
+console.log('лимит импорта')
+{
+  closeModal()
+  class ManyReader {
+    readAsText() { this.result = JSON.stringify({ words: Array.from({ length: 150 }, (_, index) => `Слово${index}`) }); this.onload?.() }
+  }
+  const original = globalThis.FileReader
+  globalThis.FileReader = ManyReader
+  await openModal()
+  requests.length = 0
+  findByText('Импорт').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const fileInput = documentStub.body.children.find((element) => element.tagName === 'INPUT' && element.type === 'file')
+  fileInput.files = [{ name: 'many.json', size: 4000 }]
+  fileInput.dispatch('change', { target: fileInput })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 400))
+  const added = requests.filter((request) => request.url.endsWith('/hotwords'))
+  check('импорт ограничен 100 словами', added.length === 100, String(added.length))
+  globalThis.FileReader = original
+}
+
+console.log('обрывки: составные термины не считаются обрывками')
+{
+  closeModal()
+  dictionaryWords = ['GitHub', 'GitHub Actions', 'DeepSeek', 'DeepSeek Harness', 'Harness']
+  await openModal()
+  findByText('Запомнить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const texts = modalTexts()
+  check('нет ложного обрывка GitHub ⊂ GitHub Actions', !texts.some((text) => text.includes('GitHub ⊂ GitHub Actions')), JSON.stringify(texts))
+  check('настоящий обрывок Harness найден', texts.some((text) => text.includes('Harness ⊂ DeepSeek Harness')), JSON.stringify(texts))
+  closeModal()
+  dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
+}
+
+console.log('импорт из файла')
+{
+  closeModal()
+  class FakeFileReader {
+    readAsText() {
+      this.result = JSON.stringify({ words: ['Kubernetes'], replacements: { 'куб': 'Kubernetes' } })
+      this.onload?.()
+    }
+  }
+  const originalFileReader = globalThis.FileReader
+  globalThis.FileReader = FakeFileReader
+  await openModal()
+  requests.length = 0
+  findByText('Импорт').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 30))
+  const fileInput = documentStub.body.children.find((element) => element.tagName === 'INPUT' && element.type === 'file')
+  check('поле выбора файла создано', fileInput !== undefined)
+  fileInput.files = [{ name: 'terms.json' }]
+  fileInput.dispatch('change', { target: fileInput })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 150))
+  check('слова импортированы', requests.some((request) => request.url.endsWith('/hotwords') && JSON.parse(request.body) === 'Kubernetes'), JSON.stringify(requests))
+  check('замены импортированы', requests.some((request) => request.url.endsWith('/learn') && JSON.parse(request.body).heard === 'куб'), JSON.stringify(requests))
+  globalThis.FileReader = originalFileReader
 }
 
 console.log('добавление слова через поле')
@@ -389,16 +594,41 @@ console.log('удаление слова и пары из модалки')
 {
   requests.length = 0
   const wordRow = findRow('GitHub')
-  const removeButton = wordRow.children[1]
+  const removeButton = wordRow.children[wordRow.children.length - 1]
   removeButton.dispatch('click')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
   check('удаление слова', requests.some((request) => request.url.endsWith('/forget')), JSON.stringify(requests))
+  const undoWord = toastAction('Вернуть')
+  check('тост с «Вернуть» после удаления', undoWord !== undefined)
+  requests.length = 0
+  undoWord.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('слово возвращено', requests.some((request) => request.url.endsWith('/hotwords') && JSON.parse(request.body) === 'GitHub'), JSON.stringify(requests))
   requests.length = 0
   const pairRow = findRow('гитхаб → GitHub')
   check('строка замены найдена', pairRow !== undefined, JSON.stringify(modalTexts()))
-  pairRow.children[1].dispatch('click')
+  pairRow.children[pairRow.children.length - 1].dispatch('click')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
   check('удаление пары', requests.some((request) => request.url.endsWith('/forget-pair')), JSON.stringify(requests))
+  const undoPair = toastAction('Вернуть')
+  check('тост с «Вернуть» после удаления пары', undoPair !== undefined)
+  requests.length = 0
+  undoPair.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('пара возвращена', requests.some((request) => request.url.endsWith('/learn') && JSON.parse(request.body).heard === 'гитхаб'), JSON.stringify(requests))
+}
+
+console.log('экспорт словаря')
+{
+  // В тестовом окружении нет DOM-скачивания — проверяем clipboard-fallback.
+  const originalCreate = URL.createObjectURL
+  URL.createObjectURL = undefined
+  clipboardWrites.length = 0
+  findByText('Экспорт').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
+  const exported = clipboardWrites.find((text) => text.includes('"words"') && text.includes('"replacements"'))
+  check('словарь экспортирован в буфер (fallback)', exported !== undefined, JSON.stringify(clipboardWrites.map((text) => text.slice(0, 40))))
+  URL.createObjectURL = originalCreate
 }
 
 console.log('буфер обмена в модалке')
