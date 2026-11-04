@@ -161,12 +161,36 @@ let profilesState = {
     { id: 'project', name: 'Проект', words: 10, replacements: 2, updatedAt: 2 },
   ],
   suggestion: null,
+  mode: 'suggest',
+  switched: null,
+}
+let statsState = {
+  dictations: 40,
+  minDictations: 30,
+  words: [{ word: 'GitHub', hits: 3, lastAt: Date.now() }],
+  replacements: [{ heard: 'гитхаб', chosen: 'GitHub', applied: 2, lastAt: Date.now() }],
+  stale: [{ word: 'Мёртвое', hits: 0, lastAt: 0 }],
 }
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body })
   if (url.endsWith('/profiles')) {
     return { ok: true, json: async () => ({ ...profilesState }) }
+  }
+  if (url.endsWith('/stats')) {
+    return { ok: true, json: async () => ({ ...statsState }) }
+  }
+  if (url.endsWith('/stats/prune')) {
+    const body = JSON.parse(options.body ?? '{}')
+    if (body.dryRun === false) {
+      const removed = statsState.stale.map((entry) => entry.word)
+      statsState = { ...statsState, stale: [] }
+      return { ok: true, json: async () => ({ ok: true, removed }) }
+    }
+    return { ok: true, json: async () => ({ ok: true, dryRun: true, stale: statsState.stale }) }
+  }
+  if (url.endsWith('/dictionary/import-url')) {
+    return { ok: true, json: async () => ({ ok: true, words: 2, replacements: 1, total: 3 }) }
   }
   if (url.endsWith('/profiles/switch')) {
     try {
@@ -730,6 +754,58 @@ console.log('горячая клавиша настроек')
   documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
   check('Cmd+Shift+, открывает настройки', settingsPanel() !== undefined)
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+}
+
+console.log('словарь: профиль, статистика, ретенция, импорт по URL')
+{
+  closeModal()
+  await openModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  const texts = modalTexts()
+  const activeName = profilesState.profiles.find((profile) => profile.id === profilesState.active)?.name ?? ''
+  check('профиль виден в окне словаря', activeName !== '' && texts.some((text) => text.includes(activeName)), JSON.stringify(texts.filter((text) => text.includes(activeName))))
+  check('счётчики статистики видны', texts.some((text) => text.includes('×3')) || requests.some((request) => request.url.endsWith('/stats')), JSON.stringify(texts.filter((text) => text.includes('×'))))
+  // Переключение профиля прямо из окна словаря.
+  requests.length = 0
+  findByText('Сменить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const pick = findByText('Включить')
+  check('список профилей раскрылся', pick !== undefined)
+  pick.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('переключение профиля из словаря отправлено', requests.some((request) => request.url.endsWith('/profiles/switch')), JSON.stringify(requests))
+  // Retention: предпросмотр и удаление.
+  requests.length = 0
+  findByText('Неиспользуемые').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const removeAction = toastAction('Удалить')
+  check('ретенция показала кандидатов', removeAction !== undefined, JSON.stringify(modalTexts()))
+  removeAction.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('ретенция удалила слова', requests.some((request) => request.url.endsWith('/stats/prune') && JSON.parse(request.body).dryRun === false), JSON.stringify(requests))
+  // Импорт по URL.
+  const urlInput = modalInputs().find((input) => String(input.getAttribute('placeholder') ?? '').includes('URL словаря'))
+  check('поле URL импорта', urlInput !== undefined)
+  urlInput.value = 'https://example.com/dict.json'
+  requests.length = 0
+  findByText('Импорт по URL').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('импорт по URL отправлен', requests.some((request) => request.url.endsWith('/dictionary/import-url') && JSON.parse(request.body).url === 'https://example.com/dict.json'), JSON.stringify(requests))
+  closeModal()
+}
+
+console.log('настройки: автопереключение словаря')
+{
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  const modeLine = findLineWithChild('Переключать словарь без вопроса')
+  check('строка автопереключения есть', modeLine !== undefined)
+  requests.length = 0
+  modeLine.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('режим авто отправлен', requests.some((request) => request.url.endsWith('/settings') && JSON.parse(request.body).autoSwitchMode === 'auto'), JSON.stringify(requests))
   documentStub.dispatch('keydown', { key: 'Escape' })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
 }

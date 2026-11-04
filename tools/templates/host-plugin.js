@@ -534,10 +534,11 @@ export function apply(ctx, config = {}) {
       return {
         autoLearn: parsed?.autoLearn !== false,
         autoSwitch: parsed?.autoSwitch !== false,
+        autoSwitchMode: parsed?.autoSwitchMode === 'auto' ? 'auto' : 'suggest',
         activeProfile: typeof parsed?.activeProfile === 'string' && parsed.activeProfile !== '' ? parsed.activeProfile : 'default',
       }
     } catch {
-      return { autoLearn: true, autoSwitch: true, activeProfile: 'default' }
+      return { autoLearn: true, autoSwitch: true, autoSwitchMode: 'suggest', activeProfile: 'default' }
     }
   }
 
@@ -552,6 +553,103 @@ export function apply(ctx, config = {}) {
     } catch (error) {
       log('cannot write settings', error)
       return false
+    }
+  }
+
+  /** Path of the dictionary usage statistics file. */
+  function statsFilePath() {
+    return join(dirname(hotwordsFile), 'stats.json')
+  }
+
+  /** Reads usage statistics; never fails the caller. */
+  function readStats() {
+    const empty = { dictations: 0, terms: {}, pairs: {}, enabledAt: Date.now(), updatedAt: 0 }
+    try {
+      const parsed = JSON.parse(readFileSync(statsFilePath(), 'utf8'))
+      return {
+        dictations: Number(parsed?.dictations) || 0,
+        terms: parsed?.terms !== null && typeof parsed.terms === 'object' ? parsed.terms : {},
+        pairs: parsed?.pairs !== null && typeof parsed.pairs === 'object' ? parsed.pairs : {},
+        enabledAt: Number(parsed?.enabledAt) || Date.now(),
+        updatedAt: Number(parsed?.updatedAt) || 0,
+      }
+    } catch {
+      return empty
+    }
+  }
+
+  /** Writes usage statistics atomically. */
+  function writeStats(stats) {
+    try {
+      const file = statsFilePath()
+      const temp = `${file}.tmp-${process.pid}`
+      writeFileSync(temp, `${JSON.stringify({ ...stats, updatedAt: Date.now() }, null, 2)}\n`)
+      renameSync(temp, file)
+    } catch (error) {
+      log('cannot write stats', error)
+    }
+  }
+
+  /** Bumps term and replacement counters after a dictation. */
+  function bumpStats(applied, text) {
+    const stats = readStats()
+    stats.dictations += 1
+    const haystack = ` ${String(text ?? '').toLowerCase()} `
+    const terms = new Set([...readHotwords(), ...Object.values(readReplacementsFile())])
+    for (const term of terms) {
+      if (typeof term !== 'string' || term.length < 2) continue
+      const key = term
+      const entry = stats.terms[key] ?? { hits: 0, lastAt: 0, sinceDictation: stats.dictations }
+      if (haystack.includes(term.toLowerCase())) {
+        entry.hits = (entry.hits ?? 0) + 1
+        entry.lastAt = Date.now()
+      }
+      stats.terms[key] = entry
+    }
+    for (const pair of applied ?? []) {
+      if (typeof pair?.heard !== 'string') continue
+      const entry = stats.pairs[pair.heard] ?? { applied: 0, lastAt: 0 }
+      entry.applied = (entry.applied ?? 0) + 1
+      entry.lastAt = Date.now()
+      stats.pairs[pair.heard] = entry
+    }
+    writeStats(stats)
+  }
+
+  /** Personal hotwords that never helped after enough dictations. */
+  function staleHotwords(stats, minDictations) {
+    let personal = []
+    try {
+      personal = readPersonalHotwords(readFileSync(hotwordsFile, 'utf8'))
+    } catch {
+      personal = []
+    }
+    const stale = []
+    for (const word of personal) {
+      const entry = stats.terms[word]
+      // Отсчёт начинается с момента, когда слово попало в статистику.
+      if (entry === undefined) continue
+      const since = Number.isFinite(Number(entry.sinceDictation)) ? Number(entry.sinceDictation) : stats.dictations
+      if ((Number(entry.hits) || 0) > 0) continue
+      if (stats.dictations - since < minDictations) continue
+      stale.push({ word, hits: 0, lastAt: Number(entry.lastAt) || 0 })
+    }
+    return stale
+  }
+
+  /** Rejects imports from private hosts (simple SSRF guard). */
+  function safeImportUrl(value) {
+    try {
+      const url = new URL(String(value ?? ''))
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return undefined
+      const host = url.hostname.toLowerCase()
+      if (host === 'localhost' || host === '::1' || /^127\./u.test(host) || /^10\./u.test(host)
+        || /^192\.168\./u.test(host) || /^172\.(1[6-9]|2\d|3[01])\./u.test(host)) {
+        if (config.allowLocalDictionaryImport !== true) return undefined
+      }
+      return url
+    } catch {
+      return undefined
     }
   }
 
@@ -654,7 +752,9 @@ export function apply(ctx, config = {}) {
     if (target === undefined) return { ok: false, reason: 'not-found' }
     const settings = readSettings()
     if (settings.activeProfile !== id) {
-      const current = snapshotActiveDictionary(settings.activeProfile, settings.activeProfile)
+      // Имя профиля человекочитаемое: при сохранении не заменяем его id.
+      const previous = readProfileFile(settings.activeProfile)
+      const current = snapshotActiveDictionary(settings.activeProfile, previous?.name ?? settings.activeProfile)
       if (current !== undefined) writeProfileFile(current)
     }
     if (!writeActiveDictionary(target.words, target.replacements)) return { ok: false, reason: 'write-failed' }
@@ -703,6 +803,8 @@ export function apply(ctx, config = {}) {
 
   /** Last hint: which non-active dictionary matches the recognized text. */
   let profileSuggestion
+  /** Profile switched automatically after the last dictation. */
+  let profileAutoSwitched
 
   /** Updates the dynamic-dictionary hint after a transcription. */
   function updateProfileSuggestion(text) {
@@ -726,6 +828,14 @@ export function apply(ctx, config = {}) {
       if (hits >= 2 && (best === undefined || hits > best.hits)) best = { id: profile.id, name: profile.name, hits }
     }
     profileSuggestion = best
+    profileAutoSwitched = undefined
+    if (best !== undefined && settings.autoSwitchMode === 'auto') {
+      const switched = switchProfile(best.id)
+      if (switched.ok === true) {
+        profileAutoSwitched = { id: best.id, name: best.name }
+        profileSuggestion = undefined
+      }
+    }
   }
 
   /** Health checks for the settings window («доктор»). */
@@ -889,9 +999,13 @@ export function apply(ctx, config = {}) {
         const settings = readSettings()
         const profiles = readProfiles()
         response.writeHead(200, { 'content-type': 'application/json' })
+        const switched = profileAutoSwitched
+        profileAutoSwitched = undefined
         response.end(JSON.stringify({
           active: settings.activeProfile,
           autoSwitch: settings.autoSwitch,
+          mode: settings.autoSwitchMode,
+          switched,
           profiles: profiles.map((profile) => ({
             id: profile.id,
             name: profile.name,
@@ -988,7 +1102,8 @@ export function apply(ctx, config = {}) {
           }
           const hasAutoLearn = typeof payload?.autoLearn === 'boolean'
           const hasAutoSwitch = typeof payload?.autoSwitch === 'boolean'
-          if (!hasAutoLearn && !hasAutoSwitch) {
+          const hasAutoSwitchMode = payload?.autoSwitchMode === 'auto' || payload?.autoSwitchMode === 'suggest'
+          if (!hasAutoLearn && !hasAutoSwitch && !hasAutoSwitchMode) {
             response.writeHead(400, { 'content-type': 'application/json' })
             response.end(JSON.stringify({ ok: false, reason: 'bad-settings' }))
             return
@@ -996,6 +1111,7 @@ export function apply(ctx, config = {}) {
           const settings = { ...readSettings() }
           if (hasAutoLearn) settings.autoLearn = payload.autoLearn
           if (hasAutoSwitch) settings.autoSwitch = payload.autoSwitch
+          if (hasAutoSwitchMode) settings.autoSwitchMode = payload.autoSwitchMode
           const ok = writeSettings(settings)
           response.writeHead(ok ? 200 : 400, { 'content-type': 'application/json' })
           response.end(JSON.stringify({ ok, settings }))
@@ -1179,6 +1295,166 @@ export function apply(ctx, config = {}) {
           const result = addPersonalHotword(phrase)
           response.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' })
           response.end(JSON.stringify(result))
+        })
+        return
+      }
+      if (request.method === 'GET' && request.url === '/stats') {
+        const stats = readStats()
+        const minDictations = Number.isFinite(Number(config.retentionMinDictations)) ? Number(config.retentionMinDictations) : 30
+        let personal = []
+        try {
+          personal = readPersonalHotwords(readFileSync(hotwordsFile, 'utf8'))
+        } catch {
+          personal = []
+        }
+        const replacements = readReplacementsFile()
+        response.writeHead(200, { 'content-type': 'application/json' })
+        response.end(JSON.stringify({
+          dictations: stats.dictations,
+          enabledAt: stats.enabledAt,
+          updatedAt: stats.updatedAt,
+          minDictations,
+          words: personal.map((word) => {
+            const entry = stats.terms[word] ?? {}
+            return { word, hits: Number(entry.hits) || 0, lastAt: Number(entry.lastAt) || 0 }
+          }),
+          replacements: Object.entries(replacements).map(([heard, chosen]) => {
+            const entry = stats.pairs[heard] ?? {}
+            return { heard, chosen, applied: Number(entry.applied) || 0, lastAt: Number(entry.lastAt) || 0 }
+          }),
+          stale: staleHotwords(stats, minDictations),
+        }))
+        return
+      }
+      if (request.method === 'POST' && request.url === '/stats/prune') {
+        let body = ''
+        request.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 4096) request.destroy()
+        })
+        request.on('end', () => {
+          let payload = {}
+          try {
+            payload = JSON.parse(body)
+          } catch {
+            payload = {}
+          }
+          const stats = readStats()
+          const minDictations = Number(payload?.minDictations) || 30
+          const stale = staleHotwords(stats, minDictations)
+          if (payload?.dryRun !== false) {
+            response.writeHead(200, { 'content-type': 'application/json' })
+            response.end(JSON.stringify({ ok: true, dryRun: true, stale }))
+            return
+          }
+          let current
+          try {
+            current = readFileSync(hotwordsFile, 'utf8')
+          } catch {
+            current = SEED_HOTWORDS
+          }
+          const removed = []
+          for (const entry of stale) {
+            const result = forgetPersonalPhrase(current, entry.word)
+            if (result.ok !== true) continue
+            current = result.text
+            removed.push(entry.word)
+            delete stats.terms[entry.word]
+          }
+          if (removed.length > 0) {
+            try {
+              writeFileSync(hotwordsFile, current)
+              writeStats(stats)
+              void reloadHotwordsInBackground()
+            } catch (error) {
+              log('cannot prune dictionary', error)
+              response.writeHead(500, { 'content-type': 'application/json' })
+              response.end(JSON.stringify({ ok: false, reason: 'write-failed' }))
+              return
+            }
+          }
+          response.writeHead(200, { 'content-type': 'application/json' })
+          response.end(JSON.stringify({ ok: true, removed }))
+        })
+        return
+      }
+      if (request.method === 'POST' && request.url === '/stats/reset') {
+        writeStats({ dictations: 0, terms: {}, pairs: {}, enabledAt: Date.now(), updatedAt: 0 })
+        response.writeHead(200, { 'content-type': 'application/json' })
+        response.end(JSON.stringify({ ok: true }))
+        return
+      }
+      if (request.method === 'POST' && request.url === '/dictionary/import-url') {
+        let body = ''
+        request.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 8192) request.destroy()
+        })
+        request.on('end', async () => {
+          let payload
+          try {
+            payload = JSON.parse(body)
+          } catch {
+            response.writeHead(400, { 'content-type': 'application/json' })
+            response.end(JSON.stringify({ ok: false, reason: 'bad-json' }))
+            return
+          }
+          const url = safeImportUrl(payload?.url)
+          if (url === undefined) {
+            response.writeHead(400, { 'content-type': 'application/json' })
+            response.end(JSON.stringify({ ok: false, reason: 'bad-url' }))
+            return
+          }
+          let text
+          try {
+            const answer = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json, text/plain' } })
+            if (!answer.ok) {
+              response.writeHead(400, { 'content-type': 'application/json' })
+              response.end(JSON.stringify({ ok: false, reason: `http-${answer.status}` }))
+              return
+            }
+            text = (await answer.text()).slice(0, 512 * 1024)
+          } catch (error) {
+            log('dictionary import failed', error instanceof Error ? error.message : String(error))
+            response.writeHead(400, { 'content-type': 'application/json' })
+            response.end(JSON.stringify({ ok: false, reason: 'fetch-failed' }))
+            return
+          }
+          const trimmed = String(text).trim()
+          let words = []
+          let pairs = []
+          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            let parsed
+            try {
+              parsed = JSON.parse(trimmed)
+            } catch {
+              response.writeHead(400, { 'content-type': 'application/json' })
+              response.end(JSON.stringify({ ok: false, reason: 'bad-json-body' }))
+              return
+            }
+            words = Array.isArray(parsed?.words) ? parsed.words.filter((word) => typeof word === 'string') : []
+            pairs = parsed?.replacements !== null && typeof parsed?.replacements === 'object'
+              ? Object.entries(parsed.replacements).filter(([heard, chosen]) => typeof heard === 'string' && typeof chosen === 'string')
+              : []
+          } else {
+            words = trimmed.split(/[\n,;]+/u).map((word) => word.trim()).filter((word) => word !== '')
+          }
+          const limit = 100
+          words = words.slice(0, limit)
+          pairs = pairs.slice(0, Math.max(0, limit - words.length))
+          let wordsAdded = 0
+          let pairsAdded = 0
+          for (const word of words) {
+            const result = addPersonalHotword(word)
+            if (result.ok === true && result.duplicate !== true) wordsAdded += 1
+          }
+          for (const [heard, chosen] of pairs) {
+            if (Number(heard.length) > MAX_HOTWORD_LENGTH || Number(chosen.length) > MAX_HOTWORD_LENGTH) continue
+            const result = learnCorrection(heard, chosen, 'manual')
+            if (result.ok === true) pairsAdded += 1
+          }
+          response.writeHead(200, { 'content-type': 'application/json' })
+          response.end(JSON.stringify({ ok: true, words: wordsAdded, replacements: pairsAdded, total: words.length + pairs.length }))
         })
         return
       }
@@ -2546,6 +2822,7 @@ export function apply(ctx, config = {}) {
     autoWhisperTried = false
     autoWhisperFailed = false
     lastWhisperText = ''
+    profileAutoSwitched = undefined
     // Обрезаем тишину: короче аудио — быстрее и точнее; слова сдвигаем назад.
     const prepared = trimSilenceWav(input.audio, {
       enabled: config.trimSilence !== false,
@@ -2760,6 +3037,7 @@ export function apply(ctx, config = {}) {
           log('cannot write transcript debug', error)
         }
       }
+      bumpStats(applied, text)
       updateProfileSuggestion(text)
       lastTranscription = {
         at: Date.now(),
@@ -2779,6 +3057,8 @@ export function apply(ctx, config = {}) {
         autoFallback,
         autoWhisperTried,
         autoWhisperFailed,
+        // Если режим auto переключил словарь — клиент покажет уведомление.
+        autoProfileSwitch: profileAutoSwitched,
       }
       log('transcribed', raw.length, 'chars; mode:', engineMode, '; replaced:', text === raw ? 0 : 'yes')
       return {

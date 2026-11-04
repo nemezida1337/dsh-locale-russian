@@ -1406,8 +1406,13 @@ window.__ModuleLoader__.load({
 		async function checkProfileSuggestion() {
 			if (Date.now() - lastProfileSuggestionAt < 30000) return;
 			const payload = await fetchProfiles();
+			if (payload?.switched !== undefined && payload.switched !== null) {
+				lastProfileSuggestionAt = Date.now();
+				showToast(`Словарь «${payload.switched.name}» включён автоматически`, true);
+				return;
+			}
 			const suggestion = payload?.suggestion;
-			if (payload?.autoSwitch === false || suggestion === undefined || suggestion === null) return;
+			if (payload?.autoSwitch === false || payload?.mode === "auto" || suggestion === undefined || suggestion === null) return;
 			lastProfileSuggestionAt = Date.now();
 			showToast(`Похоже, словарь «${suggestion.name}» — переключить?`, true, {
 				label: "Переключить",
@@ -1428,6 +1433,58 @@ window.__ModuleLoader__.load({
 			for (const port of DICTIONARY_PORTS) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/status`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Fetches dictionary usage statistics. */
+		async function fetchStats() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/stats`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Removes never-used dictionary words (preview with dryRun). */
+		async function pruneDictionary(dryRun = true) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/stats/prune`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ dryRun }),
+						signal: AbortSignal.timeout(2000),
+					});
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Imports a dictionary from a URL. */
+		async function importDictionaryUrl(url) {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/dictionary/import-url`, {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({ url }),
+						signal: AbortSignal.timeout(15000),
+					});
 					if (!response.ok) continue;
 					return await response.json();
 				} catch (error) {
@@ -1637,6 +1694,22 @@ window.__ModuleLoader__.load({
 				createRow.appendChild(createButton);
 				body.appendChild(createRow);
 				const autoSwitch = profilesPayload.autoSwitch !== false;
+				const autoMode = profilesPayload.mode === "auto";
+				const modeToggle = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(30,34,44,.9);cursor:pointer;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+				modeToggle.appendChild(modalElement("span", "", "Переключать словарь без вопроса"));
+				modeToggle.appendChild(modalElement("span", "flex:none;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:" + (autoMode ? "rgba(28,92,58,.9)" : "rgba(60,60,66,.9)"), autoMode ? "авто" : "подсказка"));
+				modeToggle.setAttribute("role", "button");
+				modeToggle.addEventListener("click", async () => {
+					const result = await saveSetting({ autoSwitchMode: autoMode ? "suggest" : "auto" });
+					if (result !== undefined && result.ok) {
+						voiceSettingsModal.profiles = await fetchProfiles();
+						renderVoiceSettingsModal();
+						showToast(autoMode ? "Буду спрашивать перед переключением" : "Буду переключать автоматически", true);
+					} else {
+						showToast("Не удалось сохранить настройку", false);
+					}
+				});
+				body.appendChild(modeToggle);
 				const switchToggle = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:rgba(30,34,44,.9);cursor:pointer;color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
 				switchToggle.appendChild(modalElement("span", "", "Подсказывать словарь по контексту"));
 				switchToggle.appendChild(modalElement("span", "flex:none;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:" + (autoSwitch ? "rgba(28,92,58,.9)" : "rgba(60,60,66,.9)"), autoSwitch ? "включено" : "выключено"));
@@ -1838,6 +1911,52 @@ window.__ModuleLoader__.load({
 				return line;
 			};
 
+			const wordStats = (word) => (dictionaryModal.stats?.words ?? []).find((entry) => entry.word === word) ?? { hits: 0 };
+			const pairStats = (heard) => (dictionaryModal.stats?.replacements ?? []).find((entry) => entry.heard === heard) ?? { applied: 0 };
+
+			// Активный словарь и быстрое переключение прямо из окна.
+			const profilesPayload = dictionaryModal.profiles;
+			if (profilesPayload !== undefined) {
+				section("Словарь", (profilesPayload.profiles ?? []).length);
+				const activeProfile = (profilesPayload.profiles ?? []).find((profile) => profile.id === profilesPayload.active);
+				const profileRow = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:8px;background:rgba(40,60,110,.45);color:#f2f2f5;font:500 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+				profileRow.appendChild(modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", activeProfile === undefined ? "—" : `${activeProfile.name} · ${activeProfile.words} слов`));
+				const toggle = modalElement("span", "cursor:pointer;color:#9fe6b4;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;flex:none", dictionaryModal.profilesOpen === true ? "Скрыть" : "Сменить");
+				toggle.setAttribute("role", "button");
+				toggle.addEventListener("click", () => {
+					dictionaryModal.profilesOpen = dictionaryModal.profilesOpen !== true;
+					renderDictionaryModal();
+				});
+				profileRow.appendChild(toggle);
+				body.appendChild(profileRow);
+				if (dictionaryModal.profilesOpen === true) {
+					for (const profile of profilesPayload.profiles ?? []) {
+						if (profile.id === profilesPayload.active) continue;
+						const line = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:8px;color:#f2f2f5;font:500 12.5px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+						line.appendChild(modalElement("span", "overflow:hidden;text-overflow:ellipsis;white-space:nowrap", `${profile.name} · ${profile.words} слов · ${profile.replacements} замен`));
+						const pick = modalElement("span", "cursor:pointer;color:#9fe6b4;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;flex:none", "Включить");
+						pick.setAttribute("role", "button");
+						pick.addEventListener("click", async () => {
+							const result = await switchProfileById(profile.id);
+							if (result !== undefined && result.ok) {
+								dictionaryCache.at = 0;
+								dictionaryModal.dictionary = await fetchDictionary();
+								dictionaryModal.stats = await fetchStats();
+								dictionaryModal.profiles = await fetchProfiles();
+								if (dictionaryModal === undefined) return;
+								dictionaryModal.profilesOpen = false;
+								renderDictionaryModal();
+								showToast(`Словарь «${profile.name}» включён`, true);
+							} else {
+								showToast("Не удалось переключить словарь", false);
+							}
+						});
+						line.appendChild(pick);
+						body.appendChild(line);
+					}
+				}
+			}
+
 			// Движок и стратегия: настройка гибрида «для продвинутых».
 			const engineInfo = dictionaryModal.engineInfo;
 			if (engineInfo !== undefined) {
@@ -2016,7 +2135,7 @@ window.__ModuleLoader__.load({
 					} else {
 						showToast("Не удалось удалить", false);
 					}
-				}, { hint: sourceOfWord(word) === "project" ? "проект" : "" }));
+				}, { hint: [sourceOfWord(word) === "project" ? "проект" : "", wordStats(word).hits > 0 ? `×${wordStats(word).hits}` : ""].filter(Boolean).join(" · ") }));
 			}
 			// Обрывки: слово входит в другое слово — частый источник ошибок.
 			const fragments = findFragmentWords(dictionary.words ?? []).filter((item) => (wordFilter === "all" || sourceOfWord(item.word) === wordFilter)
@@ -2063,7 +2182,7 @@ window.__ModuleLoader__.load({
 							showToast("Не удалось удалить замену", false);
 						}
 					}, {
-						hint: sourceOfPair(heard) === "auto" ? "авто" : "",
+						hint: [sourceOfPair(heard) === "auto" ? "авто" : "", pairStats(heard).applied > 0 ? `×${pairStats(heard).applied}` : ""].filter(Boolean).join(" · "),
 						onEdit: (text, line) => {
 							const input = modalElement("input", "flex:1;min-width:0;padding:5px 8px;border-radius:7px;border:1px solid rgba(122,162,255,.4);"
 								+ "background:rgba(10,10,12,.9);color:#f2f2f5;font:500 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none");
@@ -2111,7 +2230,14 @@ window.__ModuleLoader__.load({
 		/** Opens the dictionary modal: search, add field and both lists. */
 		async function openDictionaryModal() {
 			if (dictionaryModal !== undefined) return;
-			const [dictionary, engineInfo, suggestions, review] = await Promise.all([fetchDictionary(), fetchEngineInfo(), fetchSuggestions(), fetchReview()]);
+			const [dictionary, engineInfo, suggestions, review, stats, profiles] = await Promise.all([
+				fetchDictionary(),
+				fetchEngineInfo(),
+				fetchSuggestions(),
+				fetchReview(),
+				fetchStats(),
+				fetchProfiles(),
+			]);
 			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
 			const panel = modalElement("div", "width:min(520px,92vw);max-height:76vh;display:flex;flex-direction:column;"
 				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
@@ -2158,6 +2284,37 @@ window.__ModuleLoader__.load({
 			searchInput.setAttribute("placeholder", "Поиск по словарю и заменам");
 			searchInput.addEventListener("input", () => renderDictionaryModal());
 			panel.appendChild(searchInput);
+
+			// Импорт словаря по URL (командный словарь из GitHub и т.п.).
+			const urlRow = modalElement("div", "display:flex;gap:6px;margin:0 16px 8px");
+			const urlInput = modalElement("input", "flex:1;min-width:0;padding:6px 9px;border-radius:8px;border:1px solid rgba(122,162,255,.22);"
+				+ "background:rgba(10,10,12,.7);color:#f2f2f5;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;outline:none");
+			urlInput.setAttribute("placeholder", "URL словаря (https://…/.json)");
+			const urlButton = modalElement("div", "cursor:pointer;padding:6px 11px;border-radius:8px;background:rgba(60,60,66,.9);color:#f2f2f5;"
+				+ "font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;flex:none", "Импорт по URL");
+			urlButton.setAttribute("role", "button");
+			urlButton.addEventListener("click", async () => {
+				const url = String(urlInput.value ?? "").trim();
+				if (url === "") {
+					showToast("Введите URL словаря", false);
+					return;
+				}
+				const result = await importDictionaryUrl(url);
+				if (result !== undefined && result.ok === true) {
+					dictionaryCache.at = 0;
+					dictionaryModal.dictionary = await fetchDictionary();
+					dictionaryModal.suggestions = await fetchSuggestions();
+					dictionaryModal.stats = await fetchStats();
+					if (dictionaryModal === undefined) return;
+					renderDictionaryModal();
+					showToast(`Импортировано по URL: слов ${result.words}, замен ${result.replacements}`, true);
+				} else {
+					showToast("Не удалось импортировать по URL", false);
+				}
+			});
+			urlRow.appendChild(urlInput);
+			urlRow.appendChild(urlButton);
+			panel.appendChild(urlRow);
 
 			const body = modalElement("div", "flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 12px 12px;display:flex;flex-direction:column;gap:2px");
 			body.addEventListener("wheel", (event) => event.stopPropagation(), { passive: true });
@@ -2292,6 +2449,39 @@ window.__ModuleLoader__.load({
 				+ "font:600 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Готово");
 			doneButton.setAttribute("role", "button");
 			doneButton.addEventListener("click", () => closeDictionaryModal());
+			const retentionButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(60,60,66,.9);color:#f2f2f5;"
+				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Неиспользуемые");
+			retentionButton.setAttribute("role", "button");
+			retentionButton.addEventListener("click", async () => {
+				const stats = dictionaryModal?.stats ?? await fetchStats();
+				const dictations = Number(stats?.dictations ?? 0);
+				const min = Number(stats?.minDictations ?? 30);
+				if (dictations < min) {
+					showToast(`Данных пока мало: ${dictations} из ${min} диктовок`, false);
+					return;
+				}
+				const stale = Array.isArray(stats?.stale) ? stats.stale : [];
+				if (stale.length === 0) {
+					showToast("Неиспользуемых слов нет", true);
+					return;
+				}
+				showToast(`Неиспользуемых слов: ${stale.length}`, true, {
+					label: "Удалить",
+					onClick: async () => {
+						const result = await pruneDictionary(false);
+						if (result !== undefined && result.ok === true) {
+							dictionaryCache.at = 0;
+							dictionaryModal.dictionary = await fetchDictionary();
+							dictionaryModal.stats = await fetchStats();
+							if (dictionaryModal === undefined) return;
+							renderDictionaryModal();
+							showToast(`Удалено: ${(result.removed ?? []).length}`, true);
+						} else {
+							showToast("Не удалось почистить словарь", false);
+						}
+					},
+				});
+			});
 			const settingsButton = modalElement("div", "cursor:pointer;padding:7px 12px;border-radius:9px;background:rgba(40,60,110,.95);color:#fff;"
 				+ "font:500 12px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Настройки диктовки");
 			settingsButton.setAttribute("role", "button");
@@ -2299,6 +2489,7 @@ window.__ModuleLoader__.load({
 				closeDictionaryModal();
 				void globalThis.__dshLocaleRuSettings?.open?.();
 			});
+			footer.appendChild(retentionButton);
 			footer.appendChild(settingsButton);
 			footer.appendChild(agentButton);
 			footer.appendChild(importButton);
@@ -2309,7 +2500,7 @@ window.__ModuleLoader__.load({
 
 			backdrop.appendChild(panel);
 			if (document.body !== undefined) document.body.appendChild(backdrop);
-			dictionaryModal = { backdrop, panel, body, addInput, searchInput, dictionary, engineInfo, suggestions, review };
+			dictionaryModal = { backdrop, panel, body, addInput, searchInput, dictionary, engineInfo, suggestions, review, stats, profiles, wordFilter: "all", profilesOpen: false };
 			renderDictionaryModal();
 			addInput.focus?.();
 		}

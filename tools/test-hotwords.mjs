@@ -8,7 +8,7 @@
  */
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
-import { request as httpRequest } from 'node:http'
+import { createServer as createHttpServer, request as httpRequest } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -155,6 +155,7 @@ console.log('endpoint хоста')
     hotwordsFile: file,
     replacementsFile: join(workspace, 'endpoint-replacements.json'),
     dictionaryPort: port,
+    allowLocalDictionaryImport: true,
   })
   await new Promise((resolve) => setTimeout(resolve, 250))
   const post = (body) => fetch(`http://127.0.0.1:${port}/hotwords`, { method: 'POST', body }).then((response) => response.json())
@@ -312,6 +313,48 @@ console.log('endpoint хоста')
     request.end()
   })
   check('чужой Host отклонён', badHost === 403, String(badHost))
+  // Статистика и ретенция.
+  const statsInitial = await fetch(`http://127.0.0.1:${port}/stats`).then((response) => response.json())
+  check('статистика: начальная форма', typeof statsInitial.dictations === 'number' && Array.isArray(statsInitial.words) && Array.isArray(statsInitial.stale), JSON.stringify(statsInitial))
+  await post('НеиспользуемоеСлово')
+  const statsFile = join(workspace, 'stats.json')
+  writeFileSync(statsFile, JSON.stringify({
+    dictations: 40,
+    enabledAt: Date.now() - 90 * 24 * 3600 * 1000,
+    terms: { НеиспользуемоеСлово: { hits: 0, lastAt: 0, sinceDictation: 0 } },
+    pairs: {},
+  }))
+  const statsStale = await fetch(`http://127.0.0.1:${port}/stats`).then((response) => response.json())
+  check('ретенция: слово помечено неиспользуемым', statsStale.stale.some((entry) => entry.word === 'НеиспользуемоеСлово'), JSON.stringify(statsStale.stale))
+  const prunePreview = await fetch(`http://127.0.0.1:${port}/stats/prune`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dryRun: true }) }).then((response) => response.json())
+  check('ретенция: dry-run показывает кандидатов', prunePreview.ok === true && prunePreview.stale.some((entry) => entry.word === 'НеиспользуемоеСлово'), JSON.stringify(prunePreview))
+  const pruned = await fetch(`http://127.0.0.1:${port}/stats/prune`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ dryRun: false }) }).then((response) => response.json())
+  check('ретенция: слово удалено', pruned.ok === true && pruned.removed.includes('НеиспользуемоеСлово'), JSON.stringify(pruned))
+  const afterPrune = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
+  check('после ретенции слова нет', !afterPrune.words.includes('НеиспользуемоеСлово'), JSON.stringify(afterPrune.words))
+  // Импорт по URL.
+  const importedBody = JSON.stringify({ words: ['СловоИзURL'], replacements: { 'фром': 'from' } })
+  const importServer = createHttpServer((request, response) => {
+    response.writeHead(200, { 'content-type': 'application/json' })
+    response.end(importedBody)
+  })
+  const importPort = await new Promise((resolve) => {
+    importServer.listen(0, '127.0.0.1', () => {
+      const value = importServer.address().port
+      resolve(value)
+    })
+  })
+  const imported = await fetch(`http://127.0.0.1:${port}/dictionary/import-url`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ url: `http://127.0.0.1:${importPort}/dict.json` }),
+  }).then((response) => response.json())
+  await new Promise((resolve) => importServer.close(resolve))
+  check('импорт по URL: слова и замены', imported.ok === true && imported.words >= 1 && imported.replacements >= 1, JSON.stringify(imported))
+  const afterImport = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
+  check('импорт по URL: слово в словаре', afterImport.words.includes('СловоИзURL'), JSON.stringify(afterImport.words))
+  const badUrl = await fetch(`http://127.0.0.1:${port}/dictionary/import-url`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: 'file:///etc/passwd' }) }).then((response) => response.status)
+  check('импорт по URL: неверная схема отклонена', badUrl === 400, String(badUrl))
   const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
   check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'sentences', JSON.stringify(engineGet))
   const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {
