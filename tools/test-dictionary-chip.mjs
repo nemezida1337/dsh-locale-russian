@@ -172,8 +172,9 @@ let statsState = {
   stale: [{ word: 'Мёртвое', hits: 0, lastAt: 0 }],
 }
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
+let modelReady = true
 globalThis.fetch = async (url, options = {}) => {
-  requests.push({ url, method: options.method ?? 'GET', body: options.body })
+  requests.push({ url, method: options.method ?? 'GET', body: options.body, headers: options.headers ?? {} })
   if (url.endsWith('/profiles')) {
     return { ok: true, json: async () => ({ ...profilesState }) }
   }
@@ -225,7 +226,7 @@ globalThis.fetch = async (url, options = {}) => {
     return { ok: true, json: async () => ({
       engine: 'gigaam',
       merge: 'sentences',
-      gigaam: { binary: true, model: true, modelDir: '/tmp/models' },
+      gigaam: { binary: true, model: modelReady, modelDir: '/tmp/models' },
       whisper: { binary: true, model: true },
       dictionary: { words: 3, replacements: 1, review: 1, corrupt: false },
       settings: { autoLearn: autoLearnSetting },
@@ -794,6 +795,21 @@ console.log('словарь: профиль, статистика, ретенц�
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
   check('импорт по URL отправлен', requests.some((request) => request.url.endsWith('/dictionary/import-url') && JSON.parse(request.body).url === 'https://example.com/dict.json'), JSON.stringify(requests))
   closeModal()
+}
+
+console.log('настройки: двойное открытие и подготовка модели')
+{
+  closeModal()
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 150))
+  let panels = 0
+  for (const child of documentStub.body.children) {
+    if ((child.children ?? []).some((entry) => entry.getAttribute('data-dsh-locale-ru-settings') !== null)) panels += 1
+  }
+  check('одно окно настроек при двойном нажатии', panels === 1, String(panels))
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
 }
 
 console.log('настройки: автопереключение словаря')

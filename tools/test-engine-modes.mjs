@@ -997,7 +997,7 @@ console.log('мерж: лишняя фраза Whisper не теряется')
 
 console.log('статистика использования словаря')
 {
-  process.env.FAKE_TRANSCRIPT = 'Проверка гитхаб и Slack'
+  process.env.FAKE_TRANSCRIPT = 'Проверка гитхабе и Slack'
   const port = await freePort()
   const { service, cleanups } = setup({ engine: 'gigaam', port, words: ['GitHub', 'Max'], replacements: { 'гитхаб': 'GitHub', 'слаг': 'Slack' } })
   await fetch(`http://127.0.0.1:${port}/stats/reset`, { method: 'POST' })

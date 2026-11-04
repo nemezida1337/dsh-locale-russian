@@ -205,6 +205,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  *   hotwordsDefault?: boolean, dictionaryPort?: number, replacementsFile?: string,
  *   hotwordsWatchMs?: number, engine?: 'gigaam' | 'whisper' | 'hybrid',
  *   merge?: 'text' | 'words', debugTranscripts?: boolean,
+ *   retentionMinDictations?: number, allowLocalDictionaryImport?: boolean,
+ *   whisperChunkSeconds?: number, whisperChunkThresholdSeconds?: number,
  *   whisperBinaryPath?: string, whisperModelPath?: string, whisperLanguage?: string,
  * }} [config] - local paths and recognition tuning.
  */
@@ -544,9 +546,10 @@ export function apply(ctx, config = {}) {
         autoSwitch: parsed?.autoSwitch !== false,
         autoSwitchMode: parsed?.autoSwitchMode === 'auto' ? 'auto' : 'suggest',
         activeProfile: typeof parsed?.activeProfile === 'string' && parsed.activeProfile !== '' ? parsed.activeProfile : 'default',
+        profilesBootstrapped: parsed?.profilesBootstrapped === true,
       }
     } catch {
-      return { autoLearn: true, autoSwitch: true, autoSwitchMode: 'suggest', activeProfile: 'default' }
+      return { autoLearn: true, autoSwitch: true, autoSwitchMode: 'suggest', activeProfile: 'default', profilesBootstrapped: false }
     }
   }
 
@@ -582,8 +585,12 @@ export function apply(ctx, config = {}) {
       const parsed = JSON.parse(readFileSync(statsFilePath(), 'utf8'))
       return {
         dictations: Number.isFinite(Number(parsed?.dictations)) && Number(parsed.dictations) >= 0 ? Number(parsed.dictations) : 0,
-        terms: parsed?.terms !== null && typeof parsed.terms === 'object' ? parsed.terms : {},
-        pairs: parsed?.pairs !== null && typeof parsed.pairs === 'object' ? parsed.pairs : {},
+        terms: parsed?.terms !== null && typeof parsed.terms === 'object'
+          ? Object.fromEntries(Object.entries(parsed.terms).filter(([, value]) => value !== null && typeof value === 'object'))
+          : {},
+        pairs: parsed?.pairs !== null && typeof parsed.pairs === 'object'
+          ? Object.fromEntries(Object.entries(parsed.pairs).filter(([, value]) => value !== null && typeof value === 'object'))
+          : {},
         enabledAt: Number(parsed?.enabledAt) || Date.now(),
         updatedAt: Number(parsed?.updatedAt) || 0,
       }
@@ -602,6 +609,16 @@ export function apply(ctx, config = {}) {
       renameSync(temp, file)
     } catch (error) {
       log('cannot write stats', error)
+    }
+  }
+
+  /** Term match that respects Russian endings (same rules as replacements). */
+  function containsTerm(text, term) {
+    if (typeof term !== 'string' || term.length < 2) return false
+    try {
+      return applyReplacements(String(text ?? ''), { [term]: '\u0000match\u0000' }) !== String(text ?? '')
+    } catch {
+      return String(text ?? '').toLowerCase().includes(term.toLowerCase())
     }
   }
 
@@ -627,7 +644,7 @@ export function apply(ctx, config = {}) {
       if (typeof term !== 'string' || term.length < 2) continue
       const key = term
       const entry = stats.terms[key] ?? { hits: 0, lastAt: 0, sinceDictation: stats.dictations }
-      if (containsWord(rawHaystack, term) || containsWord(haystack, term)) {
+      if (containsTerm(rawHaystack, term) || containsTerm(haystack, term)) {
         entry.hits = (entry.hits ?? 0) + 1
         entry.lastAt = Date.now()
       }
@@ -655,7 +672,7 @@ export function apply(ctx, config = {}) {
     for (const word of personal) {
       const entry = stats.terms[word]
       // Отсчёт начинается с момента, когда слово попало в статистику.
-      if (entry === undefined) continue
+      if (entry === undefined || entry === null || typeof entry !== 'object') continue
       const since = Number.isFinite(Number(entry.sinceDictation)) ? Number(entry.sinceDictation) : stats.dictations
       if ((Number(entry.hits) || 0) > 0) continue
       if (stats.dictations - since < minDictations) continue
@@ -717,8 +734,9 @@ export function apply(ctx, config = {}) {
     if (host === 'localhost' || host === 'localhost.localdomain') {
       return localAllowed ? url : undefined
     }
-    if (isIP(host) !== 0) return isPrivateAddress(host) && !localAllowed ? undefined : isPrivateAddress(host) || localAllowed ? url : undefined
-    if (await resolvesToPrivate(host)) return localAllowed ? url : undefined
+    const address = host.replace(/^\[|\]$/gu, '')
+    if (isIP(address) !== 0) return isPrivateAddress(address) && !localAllowed ? undefined : url
+    if (await resolvesToPrivate(address)) return localAllowed ? url : undefined
     return url
   }
 
@@ -829,7 +847,7 @@ export function apply(ctx, config = {}) {
   }
 
   /** Lists profiles; creates the default one from the active dictionary. */
-  function readProfiles() {
+  function readProfiles({ create = true } = {}) {
     let files = []
     try {
       mkdirSync(profilesDir(), { recursive: true })
@@ -838,11 +856,12 @@ export function apply(ctx, config = {}) {
       files = []
     }
     let profiles = files.map((name) => readProfileFile(name.slice(0, -5))).filter((profile) => profile !== undefined)
-    if (profiles.length === 0) {
+    if (profiles.length === 0 && create === true && readSettings().profilesBootstrapped !== true) {
       const settings = readSettings()
       const snapshot = snapshotActiveDictionary(settings.activeProfile ?? 'default', settings.activeProfile ?? 'default')
       if (snapshot !== undefined) {
         writeProfileFile(snapshot)
+        writeSettings({ ...settings, profilesBootstrapped: true })
         profiles = [snapshot]
       }
     }
@@ -925,7 +944,7 @@ export function apply(ctx, config = {}) {
     if (current !== undefined) writeProfileFile(current)
     const profile = snapshotActiveDictionary(id, clean)
     if (!writeProfileFile(profile)) return { ok: false, reason: 'write-failed' }
-    writeSettings({ ...settings, activeProfile: id })
+    writeSettings({ ...settings, activeProfile: id, profilesBootstrapped: true })
     return { ok: true, id, name: clean }
   }
 
@@ -941,7 +960,7 @@ export function apply(ctx, config = {}) {
       return { ok: false, reason: 'delete-failed' }
     }
     if (settings.activeProfile === id) {
-      const remaining = readProfiles().filter((profile) => profile.id !== id)
+      const remaining = readProfiles({ create: false }).filter((profile) => profile.id !== id)
       const target = remaining[0]
       if (target !== undefined) {
         // Напрямую, без snapshot: иначе удалённый профиль воскреснет.
@@ -949,7 +968,7 @@ export function apply(ctx, config = {}) {
         writeSettings({ ...settings, activeProfile: target.id })
       } else {
         writeActiveDictionary([], {})
-        writeSettings({ ...settings, activeProfile: 'default' })
+        writeSettings({ ...settings, activeProfile: 'default', profilesBootstrapped: true })
       }
     }
     return { ok: true }
@@ -974,10 +993,10 @@ export function apply(ctx, config = {}) {
       let hits = 0
       for (const word of profile.words) {
         if (word.trim() === '') continue
-        if (containsWord(haystack, word)) hits += 1
+        if (containsTerm(haystack, word)) hits += 1
       }
       for (const heard of Object.keys(profile.replacements)) {
-        if (containsWord(haystack, heard)) hits += 1
+        if (containsTerm(haystack, heard)) hits += 1
       }
       if (hits >= 2 && (best === undefined || hits > best.hits)) best = { id: profile.id, name: profile.name, hits }
     }
@@ -3189,7 +3208,7 @@ export function apply(ctx, config = {}) {
       const applied = []
       if (text !== raw) {
         for (const [heard, chosen] of Object.entries(replacements)) {
-          if (containsWord(raw, heard) && containsWord(text, chosen) && raw.toLowerCase() !== text.toLowerCase()) applied.push({ heard, chosen })
+          if (containsTerm(raw, heard) && containsTerm(text, chosen) && raw !== text) applied.push({ heard, chosen })
         }
       }
       if (config.debugTranscripts === true) {

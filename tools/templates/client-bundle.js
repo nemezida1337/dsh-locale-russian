@@ -1164,7 +1164,9 @@ window.__ModuleLoader__.load({
 			}
 			dictionaryCache.at = 0;
 			if (dictionaryModal !== undefined) {
-				dictionaryModal.dictionary = await fetchDictionary();
+				const nextField1 = await fetchDictionary();
+				if (dictionaryModal === undefined) return;
+				dictionaryModal.dictionary = nextField1;
 				renderDictionaryModal();
 			}
 			showToast(added > 0 ? `Добавлено: ${added}` : "Не удалось добавить", added > 0);
@@ -1518,7 +1520,11 @@ window.__ModuleLoader__.load({
 		async function prepareModel() {
 			for (const port of DICTIONARY_PORTS) {
 				try {
-					const response = await fetch(`http://127.0.0.1:${port}/model/prepare`, { method: "POST", signal: AbortSignal.timeout(2000) });
+					const response = await fetch(`http://127.0.0.1:${port}/model/prepare`, {
+						method: "POST",
+						headers: { "x-dsh-locale-client": "1" },
+						signal: AbortSignal.timeout(2000),
+					});
 					if (!response.ok) continue;
 					return await response.json();
 				} catch (error) {
@@ -1578,7 +1584,9 @@ window.__ModuleLoader__.load({
 				button.addEventListener("click", async () => {
 					const result = await saveEngineChoice(engine.id, status?.merge ?? "sentences");
 					if (result !== undefined && result.ok) {
-						voiceSettingsModal.status = await fetchVoiceStatus();
+						const nextField2 = await fetchVoiceStatus();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.status = nextField2;
 						renderVoiceSettingsModal();
 						showToast(`Движок: ${engine.id} — перезапустите приложение`, true);
 					} else {
@@ -1597,7 +1605,9 @@ window.__ModuleLoader__.load({
 				button.addEventListener("click", async () => {
 					const result = await saveEngineChoice(status?.engine ?? "hybrid", merge);
 					if (result !== undefined && result.ok) {
-						voiceSettingsModal.status = await fetchVoiceStatus();
+						const nextField3 = await fetchVoiceStatus();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.status = nextField3;
 						renderVoiceSettingsModal();
 						showToast(`Стратегия: ${merge} — перезапустите приложение`, true);
 					} else {
@@ -1618,7 +1628,9 @@ window.__ModuleLoader__.load({
 			toggle.addEventListener("click", async () => {
 				const result = await saveAutoLearn(!autoLearn);
 				if (result !== undefined && result.ok) {
-					voiceSettingsModal.status = await fetchVoiceStatus();
+					const nextField4 = await fetchVoiceStatus();
+					if (voiceSettingsModal === undefined) return;
+					voiceSettingsModal.status = nextField4;
 					renderVoiceSettingsModal();
 					showToast(result.settings.autoLearn ? "Авто-обучение включено" : "Авто-обучение выключено", true);
 				} else {
@@ -1649,7 +1661,9 @@ window.__ModuleLoader__.load({
 							const result = await switchProfileById(profile.id);
 							if (result !== undefined && result.ok) {
 								dictionaryCache.at = 0;
-								voiceSettingsModal.profiles = await fetchProfiles();
+								const nextField5 = await fetchProfiles();
+								if (voiceSettingsModal === undefined) return;
+								voiceSettingsModal.profiles = nextField5;
 								renderVoiceSettingsModal();
 								showToast(`Словарь «${profile.name}» включён`, true);
 							} else {
@@ -1661,7 +1675,9 @@ window.__ModuleLoader__.load({
 						drop.addEventListener("click", async () => {
 							const result = await deleteProfileById(profile.id);
 							if (result !== undefined && result.ok) {
-								voiceSettingsModal.profiles = await fetchProfiles();
+								const nextField6 = await fetchProfiles();
+								if (voiceSettingsModal === undefined) return;
+								voiceSettingsModal.profiles = nextField6;
 								renderVoiceSettingsModal();
 								showToast(`Словарь «${profile.name}» удалён`, true);
 							} else {
@@ -1689,7 +1705,9 @@ window.__ModuleLoader__.load({
 					const result = await createProfileByName(name);
 					if (result !== undefined && result.ok) {
 						dictionaryCache.at = 0;
-						voiceSettingsModal.profiles = await fetchProfiles();
+						const nextField7 = await fetchProfiles();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.profiles = nextField7;
 						renderVoiceSettingsModal();
 						showToast(`Словарь «${result.name}» создан`, true);
 					} else {
@@ -1708,7 +1726,9 @@ window.__ModuleLoader__.load({
 				modeToggle.addEventListener("click", async () => {
 					const result = await saveSetting({ autoSwitchMode: autoMode ? "suggest" : "auto" });
 					if (result !== undefined && result.ok) {
-						voiceSettingsModal.profiles = await fetchProfiles();
+						const nextField8 = await fetchProfiles();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.profiles = nextField8;
 						renderVoiceSettingsModal();
 						showToast(autoMode ? "Буду спрашивать перед переключением" : "Буду переключать автоматически", true);
 					} else {
@@ -1723,7 +1743,9 @@ window.__ModuleLoader__.load({
 				switchToggle.addEventListener("click", async () => {
 					const result = await saveSetting({ autoSwitch: !autoSwitch });
 					if (result !== undefined && result.ok) {
-						voiceSettingsModal.profiles = await fetchProfiles();
+						const nextField9 = await fetchProfiles();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.profiles = nextField9;
 						renderVoiceSettingsModal();
 						showToast(result.settings.autoSwitch ? "Подсказки включены" : "Подсказки выключены", true);
 					} else {
@@ -1750,7 +1772,9 @@ window.__ModuleLoader__.load({
 					const result = await prepareModel();
 					if (result !== undefined && result.ok) {
 						showToast("Подготовка началась", true);
-						voiceSettingsModal.status = await fetchVoiceStatus();
+						const nextField10 = await fetchVoiceStatus();
+						if (voiceSettingsModal === undefined) return;
+						voiceSettingsModal.status = nextField10;
 						renderVoiceSettingsModal();
 					} else {
 						showToast("Не удалось запустить подготовку", false);
@@ -1783,9 +1807,12 @@ window.__ModuleLoader__.load({
 		}
 
 		/** Opens the settings window. */
+		let voiceSettingsOpening = false;
 		async function openVoiceSettingsModal() {
-			if (voiceSettingsModal !== undefined) return;
+			if (voiceSettingsModal !== undefined || voiceSettingsOpening === true) return;
+			voiceSettingsOpening = true;
 			const [status, profiles] = await Promise.all([fetchVoiceStatus(), fetchProfiles()]);
+			voiceSettingsOpening = false;
 			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
 			const panel = modalElement("div", "width:min(540px,92vw);max-height:80vh;display:flex;flex-direction:column;"
 				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
@@ -1946,9 +1973,15 @@ window.__ModuleLoader__.load({
 							const result = await switchProfileById(profile.id);
 							if (result !== undefined && result.ok) {
 								dictionaryCache.at = 0;
-								dictionaryModal.dictionary = await fetchDictionary();
-								dictionaryModal.stats = await fetchStats();
-								dictionaryModal.profiles = await fetchProfiles();
+								const nextField11 = await fetchDictionary();
+								if (dictionaryModal === undefined) return;
+								dictionaryModal.dictionary = nextField11;
+								const nextField12 = await fetchStats();
+								if (dictionaryModal === undefined) return;
+								dictionaryModal.stats = nextField12;
+								const nextField13 = await fetchProfiles();
+								if (dictionaryModal === undefined) return;
+								dictionaryModal.profiles = nextField13;
 								if (dictionaryModal === undefined) return;
 								dictionaryModal.profilesOpen = false;
 								renderDictionaryModal();
@@ -2032,7 +2065,9 @@ window.__ModuleLoader__.load({
 						const result = await postDictionary("/review/keep", { heard: pair.heard });
 						if (result !== undefined && result.ok) {
 							dictionaryCache.at = 0;
-							dictionaryModal.review = await fetchReview();
+							const nextField14 = await fetchReview();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.review = nextField14;
 							if (dictionaryModal === undefined) return;
 							renderDictionaryModal();
 							showToast(`Оставлено: ${pair.heard}`, true);
@@ -2044,8 +2079,12 @@ window.__ModuleLoader__.load({
 						const result = await postDictionary("/review/forget", { heard: pair.heard });
 						if (result !== undefined && result.ok) {
 							dictionaryCache.at = 0;
-							dictionaryModal.dictionary = await fetchDictionary();
-							dictionaryModal.review = await fetchReview();
+							const nextField15 = await fetchDictionary();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.dictionary = nextField15;
+							const nextField16 = await fetchReview();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.review = nextField16;
 							if (dictionaryModal === undefined) return;
 							renderDictionaryModal();
 							showToast(`Убрано: ${pair.heard}`, true);
@@ -2061,7 +2100,9 @@ window.__ModuleLoader__.load({
 				keepAll.addEventListener("click", async () => {
 					for (const pair of review) await postDictionary("/review/keep", { heard: pair.heard });
 					dictionaryCache.at = 0;
-					dictionaryModal.review = await fetchReview();
+					const nextField17 = await fetchReview();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.review = nextField17;
 					if (dictionaryModal === undefined) return;
 					renderDictionaryModal();
 					showToast(`Оставлено: ${review.length}`, true);
@@ -2081,8 +2122,12 @@ window.__ModuleLoader__.load({
 						const result = await postDictionary("/learn", { heard: suggestion.heard, chosen: suggestion.chosen });
 						if (result !== undefined && result.ok) {
 							dictionaryCache.at = 0;
-							dictionaryModal.dictionary = await fetchDictionary();
-							dictionaryModal.suggestions = await fetchSuggestions();
+							const nextField18 = await fetchDictionary();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.dictionary = nextField18;
+							const nextField19 = await fetchSuggestions();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.suggestions = nextField19;
 							renderDictionaryModal();
 							showToast(`Запомнено: ${suggestion.heard} → ${suggestion.chosen}`, true);
 						} else {
@@ -2101,8 +2146,12 @@ window.__ModuleLoader__.load({
 						if (result !== undefined && result.ok) learned += 1;
 					}
 					dictionaryCache.at = 0;
-					dictionaryModal.dictionary = await fetchDictionary();
-					dictionaryModal.suggestions = await fetchSuggestions();
+					const nextField20 = await fetchDictionary();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.dictionary = nextField20;
+					const nextField21 = await fetchSuggestions();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.suggestions = nextField21;
 					renderDictionaryModal();
 					showToast(learned > 0 ? `Запомнено: ${learned}` : "Не удалось запомнить", learned > 0);
 				});
@@ -2135,7 +2184,9 @@ window.__ModuleLoader__.load({
 					const result = await postDictionary("/forget", word);
 					if (result !== undefined && result.ok) {
 						dictionaryCache.at = 0;
-						dictionaryModal.dictionary = await fetchDictionary();
+						const nextField22 = await fetchDictionary();
+						if (dictionaryModal === undefined) return;
+						dictionaryModal.dictionary = nextField22;
 						renderDictionaryModal();
 						showToast(`Убрано: ${word}`, true, { label: "Вернуть", onClick: () => void addWordsToList(word) });
 					} else {
@@ -2154,7 +2205,9 @@ window.__ModuleLoader__.load({
 						const result = await postDictionary("/forget", fragment.word);
 						if (result !== undefined && result.ok) {
 							dictionaryCache.at = 0;
-							dictionaryModal.dictionary = await fetchDictionary();
+							const nextField23 = await fetchDictionary();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.dictionary = nextField23;
 							renderDictionaryModal();
 							showToast(`Убрано: ${fragment.word}`, true, { label: "Вернуть", onClick: () => void addWordsToList(fragment.word) });
 						} else {
@@ -2170,15 +2223,21 @@ window.__ModuleLoader__.load({
 						const result = await postDictionary("/forget-pair", { heard });
 						if (result !== undefined && result.ok) {
 							dictionaryCache.at = 0;
-							dictionaryModal.dictionary = await fetchDictionary();
+							const nextField24 = await fetchDictionary();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.dictionary = nextField24;
 							renderDictionaryModal();
 							showToast(`Убрана замена: ${heard}`, true, {
 								label: "Вернуть",
 								onClick: async () => {
 									await postDictionary("/learn", { heard, chosen });
 									dictionaryCache.at = 0;
-									dictionaryModal.dictionary = await fetchDictionary();
-									dictionaryModal.suggestions = await fetchSuggestions();
+									const nextField25 = await fetchDictionary();
+									if (dictionaryModal === undefined) return;
+									dictionaryModal.dictionary = nextField25;
+									const nextField26 = await fetchSuggestions();
+									if (dictionaryModal === undefined) return;
+									dictionaryModal.suggestions = nextField26;
 									if (dictionaryModal === undefined) return;
 									renderDictionaryModal();
 									showToast(`Возвращена замена: ${heard}`, true);
@@ -2208,7 +2267,9 @@ window.__ModuleLoader__.load({
 								const result = await postDictionary("/learn", { heard, chosen: next });
 								if (result !== undefined && result.ok) {
 									dictionaryCache.at = 0;
-									dictionaryModal.dictionary = await fetchDictionary();
+									const nextField27 = await fetchDictionary();
+									if (dictionaryModal === undefined) return;
+									dictionaryModal.dictionary = nextField27;
 									if (dictionaryModal === undefined) return;
 									renderDictionaryModal();
 									showToast(`Замена обновлена: ${heard} → ${next}`, true);
@@ -2312,14 +2373,20 @@ window.__ModuleLoader__.load({
 				const result = await importDictionaryUrl(url);
 				if (result !== undefined && result.ok === true) {
 					dictionaryCache.at = 0;
-					dictionaryModal.dictionary = await fetchDictionary();
-					dictionaryModal.suggestions = await fetchSuggestions();
-					dictionaryModal.stats = await fetchStats();
+					const nextField28 = await fetchDictionary();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.dictionary = nextField28;
+					const nextField29 = await fetchSuggestions();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.suggestions = nextField29;
+					const nextField30 = await fetchStats();
+					if (dictionaryModal === undefined) return;
+					dictionaryModal.stats = nextField30;
 					if (dictionaryModal === undefined) return;
 					renderDictionaryModal();
 					showToast(`Импортировано по URL: слов ${result.words}, замен ${result.replacements}`, true);
 				} else {
-					showToast("Не удалось импортировать по URL", false);
+					showToast(`Не удалось импортировать: ${result?.reason ?? "ошибка"}`, false);
 				}
 			});
 			urlRow.appendChild(urlInput);
@@ -2373,7 +2440,9 @@ window.__ModuleLoader__.load({
 									showToast("Некорректный JSON — импорт отменён", false);
 									return;
 								}
-								wordsToAdd = Array.isArray(parsed?.words) ? parsed.words.filter((word) => typeof word === "string") : [];
+								wordsToAdd = Array.isArray(parsed)
+									? parsed.filter((word) => typeof word === "string")
+									: Array.isArray(parsed?.words) ? parsed.words.filter((word) => typeof word === "string") : [];
 								pairsToAdd = parsed?.replacements !== null && typeof parsed?.replacements === "object"
 									? Object.entries(parsed.replacements).filter(([heard, chosen]) => typeof heard === "string" && typeof chosen === "string")
 									: [];
@@ -2400,9 +2469,15 @@ window.__ModuleLoader__.load({
 							}
 							if (dictionaryModal === undefined) return;
 							dictionaryCache.at = 0;
-							dictionaryModal.dictionary = await fetchDictionary();
-							dictionaryModal.suggestions = await fetchSuggestions();
-							dictionaryModal.review = await fetchReview();
+							const nextField31 = await fetchDictionary();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.dictionary = nextField31;
+							const nextField32 = await fetchSuggestions();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.suggestions = nextField32;
+							const nextField33 = await fetchReview();
+							if (dictionaryModal === undefined) return;
+							dictionaryModal.review = nextField33;
 							if (dictionaryModal === undefined) return;
 							renderDictionaryModal();
 							const added = wordsOk + pairsOk;
@@ -2505,7 +2580,9 @@ window.__ModuleLoader__.load({
 									const restored = await fetchDictionary();
 									if (dictionaryModal === undefined) return;
 									dictionaryModal.dictionary = restored;
-									dictionaryModal.stats = await fetchStats();
+									const nextField34 = await fetchStats();
+									if (dictionaryModal === undefined) return;
+									dictionaryModal.stats = nextField34;
 									renderDictionaryModal();
 									showToast(`Возвращено: ${removed.length}`, true);
 								},
@@ -2714,6 +2791,7 @@ window.__ModuleLoader__.load({
 			const onHotkey = (event) => {
 				if (event === null || event === undefined) return;
 				if (!(event.metaKey || event.ctrlKey) || !event.shiftKey) return;
+				if (event.repeat === true) return;
 				const key = String(event.key ?? "").toLowerCase();
 				if (key !== "d" && key !== ",") return;
 				if (typeof event.preventDefault === "function") event.preventDefault();
@@ -3038,6 +3116,19 @@ window.__ModuleLoader__.load({
 			};
 		}
 
+		function closeAllModalWindows() {
+			try {
+				closeDictionaryModal();
+			} catch (error) {
+				// окно уже закрыто
+			}
+			try {
+				closeVoiceSettingsModal();
+			} catch (error) {
+				// окно уже закрыто
+			}
+		}
+
 		function apply(ctx) {
 			// Патч диктовки ставится сразу: он должен успеть до монтирования
 			// интерфейса голосового ввода. Локаль регистрируем на следующем тике.
@@ -3045,6 +3136,7 @@ window.__ModuleLoader__.load({
 			const restoreChip = installDictionaryChip();
 			const restoreCaret = installDictationCaretFix();
 			const restoreHighlights = installHighlightMaintenance();
+			ctx.effect(() => () => closeAllModalWindows());
 			// Функция онбординга живёт в том же модуле, но вызываем через
 			// globalThis: так её видно из apply независимо от порядка объявлений.
 			setTimeout(() => {

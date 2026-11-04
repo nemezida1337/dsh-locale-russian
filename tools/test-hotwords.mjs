@@ -359,6 +359,23 @@ console.log('endpoint хоста')
   check('ретенция: слово удалено', pruned.ok === true && pruned.removed.includes('НеиспользуемоеСлово'), JSON.stringify(pruned))
   const afterPrune = await fetch(`http://127.0.0.1:${port}/dictionary`).then((response) => response.json())
   check('после ретенции слова нет', !afterPrune.words.includes('НеиспользуемоеСлово'), JSON.stringify(afterPrune.words))
+  // Подготовка модели из браузера требует CSRF-заголовок.
+  const prepareNoHeader = await fetch(`http://127.0.0.1:${port}/model/prepare`, {
+    method: 'POST',
+    headers: { origin: `http://127.0.0.1:${port}`, 'content-type': 'application/json' },
+  })
+  check('prepare без клиентского заголовка отклонён', prepareNoHeader.status === 403, String(prepareNoHeader.status))
+  // Битый stats.json с null-записью не роняет статистику.
+  writeFileSync(statsFile, JSON.stringify({ dictations: 40, terms: { 'Сломанное': null }, pairs: {} }))
+  const statsNull = await fetch(`http://127.0.0.1:${port}/stats`)
+  check('stats с null-записью не падает', statsNull.status === 200, String(statsNull.status))
+  writeFileSync(statsFile, JSON.stringify({ dictations: 40, terms: {}, pairs: {} }))
+  // Удаление последнего активного профиля не воскрешает его.
+  const profilesBeforeDelete = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
+  const activeProfileId = profilesBeforeDelete.active
+  const deletedActive = await fetch(`http://127.0.0.1:${port}/profiles/delete`, { method: 'POST', body: JSON.stringify({ id: activeProfileId }) }).then((response) => response.json())
+  const profilesAfterDelete = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
+  check('удаление последнего профиля не воскрешает файл', deletedActive.ok === true && !(profilesAfterDelete.profiles ?? []).some((profile) => profile.id === activeProfileId), JSON.stringify(profilesAfterDelete))
   // Импорт по URL.
   const importedBody = JSON.stringify({ words: ['СловоИзURL'], replacements: { 'фром': 'from' } })
   const importServer = createHttpServer((request, response) => {
