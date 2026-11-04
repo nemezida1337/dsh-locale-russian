@@ -969,6 +969,32 @@ console.log('короткая диктовка: Whisper не режется')
   for (const cleanup of cleanups.reverse()) await cleanup()
 }
 
+console.log('мерж: перепутанный порядок предложений не ломает текст')
+{
+  process.env.FAKE_TRANSCRIPT = 'Первое уникальное предложение. Второе общее предложение.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Второе общее предложение. Первое уникальное предложение.'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('мерж: обе мысли на месте', result.text.includes('уникальное') && result.text.includes('общее'), result.text)
+  check('мерж: без дублей', (result.text.match(/уникальное/gu) ?? []).length === 1, result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('мерж: лишняя фраза Whisper не теряется')
+{
+  process.env.FAKE_TRANSCRIPT = 'Альфа общая фраза.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Альфа общая фраза. Бета дополнительная фраза.'
+  const { service, cleanups } = setup({ engine: 'hybrid' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  check('мерж: добавлена фраза Whisper', result.text.includes('Бета дополнительная фраза'), result.text)
+  check('мерж: Альфа не размножилась', (result.text.match(/Альфа/gu) ?? []).length === 1, result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('whisper не установлен — понятная ошибка')
 {
   const { service, cleanups } = setup({ engine: 'whisper', whisper: false })
