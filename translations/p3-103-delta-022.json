@@ -1,0 +1,7 @@
+{
+  "id": "p3-103",
+  "namespace": "pluginManager",
+  "translations": {
+    "installFailureGeneric": "Команда установки завершилась ошибкой; причина указана в подробностях"
+  }
+}

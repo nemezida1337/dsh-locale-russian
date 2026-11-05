@@ -1,0 +1,8 @@
+{
+  "id": "p3-099",
+  "namespace": "schedule.manager",
+  "translations": {
+    "detail.instructionPlaceholder": "Опишите задачу и результат. Например: «Соберите мой список чтения со ссылками на источники».",
+    "frequency.hostZone": "{rule} ({timeZone})"
+  }
+}

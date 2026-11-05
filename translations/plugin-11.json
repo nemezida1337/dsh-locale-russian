@@ -1,0 +1,14 @@
+{
+  "id": "plugin-11",
+  "kind": "plugin-meta",
+  "translations": {
+    "Keep linked GitHub pull requests beside your conversation: follow checks and reviews, inspect diffs, and send feedback to the agent. Review local changes and use a separate worktree to isolate each task. GitHub features require the gh CLI installed and signed in on the host.": "Держите связанные пул-реквесты GitHub рядом с диалогом: следите за проверками и проверками кода, просматривайте изменения и отправляйте отзывы агенту. Проверяйте локальные изменения и используйте отдельное рабочее дерево, чтобы изолировать каждую задачу. Для функций GitHub нужен установленный и авторизованный gh CLI на хосте.",
+    "Original-file saving and image clipboard actions for Web and Desktop": "Сохранение исходных файлов и работа с изображениями из буфера обмена для Web и Desktop",
+    "Pure Codex-style patch parser and LF text updater with structured match failures": "Чистый парсер патчей в стиле Codex и обновление текста с LF со структурированными ошибками сопоставления",
+    "Strict instant and IANA zone parsing, millisecond spans, and bounded Cron/RRULE recurrence arithmetic": "Строгий разбор моментов времени и зон IANA, интервалы в миллисекундах и ограниченная арифметика повторений Cron/RRULE",
+    "The workspace files page and one workspace directory tree per pane beside docked and floating file previews, listed lazily over the workspaceFiles Remote namespace": "Страница файлов рабочей области и дерево каталогов рабочей области для каждой панели рядом с закреплёнными и плавающими просмотрами файлов, с ленивой загрузкой через Remote-пространство имён workspaceFiles",
+    "Typed, plugin-extensible context menus with captured targets and shared Web presentation": "Типизированные контекстные меню с расширением через плагины, захваченными целями и общим представлением для Web",
+    "Context menus": "Контекстные меню",
+    "File actions": "Действия с файлами"
+  }
+}

@@ -110,6 +110,13 @@
     },
     {
       "kind": "description",
+      "en": "Access files through the local filesystem.",
+      "packages": [
+        "@deepseek-ai/dsh-fs-local"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Active Loader-backed plugin package inventory for official DeepSeek LLM API requests",
       "packages": [
         "@deepseek-ai/dsh-plugin-package-inventory-deepseek"
@@ -124,13 +131,6 @@
     },
     {
       "kind": "description",
-      "en": "Add an Auto review permission mode that uses the model to assess authorization before each tool call.",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-auto-review"
-      ]
-    },
-    {
-      "kind": "description",
       "en": "Additive request-field registry for the official DeepSeek LLM API adapter",
       "packages": [
         "@deepseek-ai/dsh-deepseek-llm-api-extensions"
@@ -138,9 +138,16 @@
     },
     {
       "kind": "description",
-      "en": "Adds a Discover tab to Plugins for browsing and installing bundles from plugin market indexes you add",
+      "en": "Adds a Discover tab to Plugins, where you browse and install plugins from plugin indexes you add.",
       "packages": [
         "@deepseek-ai/dsh-experimental-plugin-market-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Adds an Auto review access mode: before each tool call, a model checks it against what you asked for, runs allowed calls at once, and holds denied calls for your approval.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-auto-review"
       ]
     },
     {
@@ -159,13 +166,6 @@
     },
     {
       "kind": "description",
-      "en": "Agent-plane presentation selector: composes one agent's tools as PTC mode or native tool calls",
-      "packages": [
-        "@deepseek-ai/dsh-agent-tool-presentation"
-      ]
-    },
-    {
-      "kind": "description",
       "en": "Agent-preset surfaces: the default for later sessions, this session's seat, and the composition editor",
       "packages": [
         "@deepseek-ai/dsh-client-ui-agent-preset"
@@ -180,14 +180,7 @@
     },
     {
       "kind": "description",
-      "en": "All-user-messages LLM provider plugin for DeepSeek Harness session titles",
-      "packages": [
-        "@deepseek-ai/dsh-session-title-all-prompts-llm"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Anonymous public HTTP(S) fetch provider for the DeepSeek Harness web capability seam (ctx.web)",
+      "en": "Anonymous HTTP(S) fetch provider for the DeepSeek Harness web capability seam (ctx.web)",
       "packages": [
         "@deepseek-ai/dsh-web-fetch-http"
       ]
@@ -204,6 +197,27 @@
       "en": "Approval composer takeover over the scoped Remote Event waterfall",
       "packages": [
         "@deepseek-ai/dsh-client-ui-approval"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Ask about earlier work, such as “How did we fix the pool leak last week?”, and the agent searches your earlier sessions in the same workspace to answer.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-session-search"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Ask for a Ralph loop with a goal, and the agent starts a fresh agent on it round after round until the goal is met, a blocker is reported, or the round limit is reached.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-ralph-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Ask for work on a new branch, and the agent creates a separate Git worktree and continues there, leaving your current checkout as it is.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-tool-worktree"
       ]
     },
     {
@@ -229,16 +243,16 @@
     },
     {
       "kind": "description",
-      "en": "Automation-only Agent Client Protocol server for driving DeepSeek Harness agents over JSON-RPC stdio",
+      "en": "Background job registry (ctx.jobs) for the DeepSeek Harness — shared ids, owner isolation, polling, cancellation, and completion listeners for long-running tool work",
       "packages": [
-        "@deepseek-ai/dsh-acp"
+        "@deepseek-ai/dsh-jobs"
       ]
     },
     {
       "kind": "description",
-      "en": "Background job registry (ctx.jobs) for the DeepSeek Harness — shared ids, owner isolation, polling, cancellation, and completion listeners for long-running tool work",
+      "en": "Bind change requests to the Session that created, pushed, or tracked them, and watch their status.",
       "packages": [
-        "@deepseek-ai/dsh-jobs"
+        "@deepseek-ai/dsh-experimental-forge-session"
       ]
     },
     {
@@ -253,6 +267,13 @@
       "en": "Bridge plugin: run a Codex hooks.json hook config on the DeepSeek Harness interception seams",
       "packages": [
         "@deepseek-ai/dsh-hooks-codex"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Browse configured plugin indexes and install their packages.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-plugin-market"
       ]
     },
     {
@@ -309,13 +330,6 @@
       "en": "Built-in plugins settings section for the dsh web client: the Settings navigation entry and the tab chrome feature-owned tabs register into",
       "packages": [
         "@deepseek-ai/dsh-client-ui-settings-plugins"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Bundled Word, PowerPoint, and Excel workflows and LibreOffice Kit operations",
-      "packages": [
-        "@deepseek-ai/dsh-skill-office"
       ]
     },
     {
@@ -397,9 +411,9 @@
     },
     {
       "kind": "description",
-      "en": "Configured plugin market indexes for the Web Discover page and the plugin_market agent tool",
+      "en": "Connect to MCP servers and make their tools available in Harness.",
       "packages": [
-        "@deepseek-ai/dsh-plugin-market"
+        "@deepseek-ai/dsh-mcp-client"
       ]
     },
     {
@@ -407,6 +421,13 @@
       "en": "Console logger exporter for cordis",
       "packages": [
         "@deepseek-ai/cordis-plugin-logger-console"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Control which methods non-owner connections can access and retain permission snapshots for each connection.",
+      "packages": [
+        "@deepseek-ai/dsh-api-remote-access"
       ]
     },
     {
@@ -439,9 +460,16 @@
     },
     {
       "kind": "description",
-      "en": "Creates a named Git worktree and changes the calling Session working directory",
+      "en": "Create named Git worktrees and change the current session's working directory.",
       "packages": [
         "@deepseek-ai/dsh-experimental-worktree"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Create, view, update, and delete automated tasks.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-schedule"
       ]
     },
     {
@@ -537,16 +565,16 @@
     },
     {
       "kind": "description",
-      "en": "Desktop product event collection and authenticated Host reporting",
+      "en": "Deprecated tool presentation selector; use dsh-tool-executor-native or dsh-tool-executor-ptc directly",
       "packages": [
-        "@deepseek-ai/dsh-client-product-analytics"
+        "@deepseek-ai/dsh-agent-tool-presentation"
       ]
     },
     {
       "kind": "description",
-      "en": "Discover tab of the dsh web Plugins page: browse configured plugin market indexes and install their bundles",
+      "en": "Desktop product event collection and authenticated Host reporting",
       "packages": [
-        "@deepseek-ai/dsh-client-ui-plugin-market"
+        "@deepseek-ai/dsh-client-product-analytics"
       ]
     },
     {
@@ -568,6 +596,13 @@
       "en": "Domain data form (ctx.storage.domain): schema-validated, event-emitting KV domains over storage backends for the DeepSeek Harness",
       "packages": [
         "@deepseek-ai/dsh-storage-domain"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Drag original files into the composer or other applications, with localized failure feedback.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-file-drag"
       ]
     },
     {
@@ -596,41 +631,6 @@
       "en": "Durable immutable attachment storage seam for the DeepSeek Harness",
       "packages": [
         "@deepseek-ai/dsh-attachment"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Durable workflow-run Conversation Node and nested member disclosure for dsh web",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-workflow-run"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Dynamic attachment presentation plugin for conversation input, message-image, and trajectory image slots",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-attachment"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Dynamic package definition registry, host-half sandbox lifecycle, and invoke handler table for model-mounted dual-half packages",
-      "packages": [
-        "@deepseek-ai/dsh-cordis-host-runner"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Enable analysis of the current session's raw data and grouped chat messages in the session sidebar.",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-session-inspector"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Enable team collaboration, team tools, the member roster, and the shared task board.",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-agent-team-profile"
       ]
     }
   ]

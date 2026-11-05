@@ -66,7 +66,7 @@ function loadItems() {
       items.push({ kind: 'plugin', en: item.en, packages: item.packages ?? [] })
     }
   }
-  return items.slice(0, limit)
+  return items
 }
 
 /**
@@ -95,7 +95,7 @@ function systemPrompt() {
     .join('\n')
   const style = readFileSync(resolve(root, 'STYLE.md'), 'utf8').slice(0, 4000)
   return [
-    'Ты переводишь интерфейс DeepSeek Harness на русский язык. Верни ТОЛЬКО JSON-массив строк в том же порядке и той же длины, что и вход.',
+    'Ты переводишь интерфейс DeepSeek Harness на русский язык. Верни ТОЛЬКО JSON-массив строк (не объектов) в том же порядке и той же длины, что и вход.',
     'Правила: сохраняй все плейсхолдеры вида {name} без изменений; не переводи имена пакетов, команд, моделей, провайдеров и брендов;',
     'пиши кратко, как в интерфейсе; используй терминологию глоссария; ё — только в словах, где она пишется; не добавляй пояснений и кавычек вокруг строк.',
     '',
@@ -108,6 +108,18 @@ function systemPrompt() {
 }
 
 /** Parses a provider answer: JSON array of strings, tolerating code fences. */
+/** Normalizes one provider answer: string or [{key, ru}] object. */
+function normalizeAnswer(value) {
+  if (typeof value === 'string') return value
+  if (value !== null && typeof value === 'object') {
+    for (const field of ['ru', 'translation', 'text', 'value']) {
+      if (typeof value[field] === 'string') return value[field]
+    }
+    return ''
+  }
+  return String(value ?? '')
+}
+
 function parseAnswers(raw) {
   const text = String(raw).trim().replace(/^```(?:json)?/u, '').replace(/```$/u, '').trim()
   const start = text.indexOf('[')
@@ -115,7 +127,17 @@ function parseAnswers(raw) {
   if (start === -1 || end === -1) throw new Error(`провайдер вернул не JSON-массив: ${text.slice(0, 300)}`)
   const parsed = JSON.parse(text.slice(start, end + 1))
   if (!Array.isArray(parsed)) throw new Error('провайдер вернул не массив')
-  return parsed.map((value) => (typeof value === 'string' ? value : String(value ?? '')))
+  return parsed.map((value) => {
+    if (typeof value === 'string') return value
+    // Некоторые модели возвращают [{key, ru}] вместо массива строк.
+    if (value !== null && typeof value === 'object') {
+      for (const field of ['ru', 'translation', 'text', 'value']) {
+        if (typeof value[field] === 'string') return value[field]
+      }
+      return ''
+    }
+    return String(value ?? '')
+  })
 }
 
 /** Ids allocated in this run; dry-run does not write files, so it needs its own counter. */
@@ -136,7 +158,10 @@ function nextFreeId(prefix, width) {
 /** Structural checks every answer must pass before it is written. */
 function validate(item, translated) {
   const problems = []
-  if (typeof translated !== 'string' || translated.trim().length === 0) problems.push('пустой перевод')
+  if (typeof translated !== 'string' || translated.trim().length === 0) {
+    problems.push('пустой перевод')
+    return problems
+  }
   if (translated.includes('\n')) problems.push('перевод содержит перевод строки')
   const expected = placeholders(item.en)
   const actual = placeholders(translated)
@@ -152,7 +177,14 @@ async function translateAll(provider, items) {
   const problems = []
   for (let index = 0; index < items.length; index += batchSize) {
     const group = items.slice(index, index + batchSize)
-    const answers = parseJsonArray(await provider.complete(systemPrompt(), group.map((item) => ({ key: item.key ?? item.en.slice(0, 40), en: item.en, context: item.context }))))
+    const payload = group.map((item) => ({ key: item.key ?? item.en.slice(0, 40), en: item.en, context: item.context }))
+    let answers = []
+    // Модель иногда отвечает объектами вместо строк или пустыми строками:
+    // повторяем группу, прежде чем записывать «проблемы».
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      answers = parseJsonArray(await provider.complete(systemPrompt(), payload)).map(normalizeAnswer)
+      if (answers.length === group.length && answers.every((answer) => typeof answer === 'string' && answer.trim() !== '')) break
+    }
     if (answers.length !== group.length) {
       throw new Error(`провайдер вернул ${answers.length} строк на ${group.length} элементов`)
     }
@@ -213,7 +245,9 @@ async function main() {
   })
 
   const loaded = loadItems()
-  const items = skipTranslated(loaded)
+  // Сначала отбрасываем переведённое, потом применяем --limit: иначе хвост
+  // больших батчей никогда не доходит до перевода.
+  const items = skipTranslated(loaded).slice(0, limit)
   if (loaded.length > items.length) console.log(`уже переведено и пропущено: ${loaded.length - items.length}`)
   if (items.length === 0) {
     console.log('нечего переводить: дельта пуста (запустите npm run refresh после обновления DSH)')

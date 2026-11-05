@@ -1,0 +1,9 @@
+{
+  "id": "p3-094",
+  "namespace": "sidebarRight",
+  "translations": {
+    "menu.close": "Закрыть",
+    "menu.closeOthers": "Закрыть другие вкладки",
+    "menu.closeRight": "Закрыть вкладки справа"
+  }
+}

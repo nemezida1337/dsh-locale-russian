@@ -1,22 +1,8 @@
 {
   "id": "plugin-06",
   "kind": "plugin-meta",
-  "count": 13,
+  "count": 11,
   "items": [
-    {
-      "kind": "title",
-      "en": "Scheduling tools",
-      "packages": [
-        "@deepseek-ai/dsh-tool-schedule"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Session history tools",
-      "packages": [
-        "@deepseek-ai/dsh-tool-session-query"
-      ]
-    },
     {
       "kind": "title",
       "en": "Text editor tools",

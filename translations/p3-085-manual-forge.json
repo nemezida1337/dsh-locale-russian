@@ -1,0 +1,21 @@
+{
+  "id": "p3-085",
+  "namespace": "forgePanel",
+  "translations": {
+    "review.requestChanges": "Запросить изменения",
+    "review.saveFailed": "Не удалось сохранить черновик ревью. Проверьте хранилище браузера и повторите.",
+    "review.selectLine": "Выберите строку {line}",
+    "review.stale": "В PR появились новые коммиты. Обновите и снова выберите строки комментария.",
+    "review.startReview": "Начать ревью",
+    "review.submit": "Отправить ревью",
+    "review.submitted": "Ревью отправлено",
+    "review.submitting": "Отправляем…",
+    "review.summary": "Итог ревью…",
+    "review.summaryRequired": "Введите итог ревью, чтобы запросить изменения.",
+    "review.unknown": "Результат отправки неизвестен. Проверьте GitHub, прежде чем публиковать снова.",
+    "review.unsupported": "Этот хостинг кода не поддерживает отправку ревью.",
+    "review.yourComment": "Ваш комментарий",
+    "worktree.currentBranchTip": "Текущая ветка: {branch}",
+    "worktree.detachedTip": "Не в ветке · {commit}"
+  }
+}

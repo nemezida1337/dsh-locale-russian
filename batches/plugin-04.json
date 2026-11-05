@@ -5,6 +5,139 @@
   "items": [
     {
       "kind": "description",
+      "en": "Serve the Web application's entry page and static files, reject paths outside their directory, and return 404 for missing resources.",
+      "packages": [
+        "@deepseek-ai/dsh-host-frontend-static"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session Controller adapter for React and session-scoped slots",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session goal surface: GoalBar docked above the composer, read from the goal session projection",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-goal"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session Remote commands, cold reads, and live control transport",
+      "packages": [
+        "@deepseek-ai/dsh-api-session-controller"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session-header background-job list with on-demand streaming record panels",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-jobs"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session-log snapshot core with an ACP protocol adapter, expected-output normalization, and fixture invariants",
+      "packages": [
+        "@deepseek-ai/dsh-session-snapshot"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session-owned browser resource lifecycles and MCP integration for experimental providers",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-browser-use-runtime"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session-owned interactive terminals with shell discovery, screen recovery and typed Remote control",
+      "packages": [
+        "@deepseek-ai/dsh-api-terminal-controller"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session-projection seam: the merge-extensible projection type table, the provider contract, and the ctx.sessionProjections registry serving whole current values of log-derived per-session state",
+      "packages": [
+        "@deepseek-ai/dsh-session-projection"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "SessionTelemetryBackend seam for the DeepSeek Harness: session-event capture, projection, redaction, and handoff to a reporting backend",
+      "packages": [
+        "@deepseek-ai/dsh-session-telemetry"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings domain base plugin: shared configuration forms and the canonical settings slot-type contract",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings ownerless-copy and product onboarding plugin: the General section, shell trigger/header chrome content, settings dictionaries, and the versioned welcome notice",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-general"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings page of Subagent delegation on the dsh web client's Plugins page: recursion depth, parallel capacity, and the models agents may choose for subagents",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-subagent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings page of the agent loop on the dsh web client's Plugins page: the parallel tool-call cap of the agent-loop namespace",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-agent-loop"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings page of the DeepSeek web-search provider on the dsh web client's Plugins page: its API key, endpoint, and per-request search budget",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-web-search"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Settings page of the shell executor on the dsh web client's Plugins page: the command timeout and the per-stream output cap of the shell namespace",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-shell"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Share the current Session with a colleague, who can drive it in a browser, edit files inside the granted workspace when the share allows writes, or branch their own Session from the completed history.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-liveshare"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared anonymous user identity for DeepSeek Harness telemetry and feedback correlation",
+      "packages": [
+        "@deepseek-ai/dsh-anonymous-user-id"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared boot glue for the app bins: .env loading, fail-loud Loader guards, snapshot-aware config resolution, and the Loader boot sequence",
+      "packages": [
+        "@deepseek-ai/dsh-app-boot"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Shared Claude Code / Codex hook wire protocol: matcher engine, stdin/exit-code/stdout codec, multi-hook merge, and hook/* session events",
       "packages": [
         "@deepseek-ai/dsh-hook-protocol"
@@ -36,6 +169,13 @@
       "en": "Shared low-level Win32 process, stdio, and Job Object primitives",
       "packages": [
         "@deepseek-ai/dsh-win32-process"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shared messaging, interruption, and child discovery tools for subagents",
+      "packages": [
+        "@deepseek-ai/dsh-tool-subagent-control"
       ]
     },
     {
@@ -82,6 +222,55 @@
     },
     {
       "kind": "description",
+      "en": "Show optional action cards below answers for enabled experiments, and report the user's choices back to the conversation.",
+      "packages": [
+        "@deepseek-ai/dsh-action-cards"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Show optional action cards below answers, with each experiment's own controls.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-action-cards"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Show per-turn and per-step context, timing, cache, and tool cost beside Chat.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-stats"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Show the Enable card for a recommended official plugin after an answer, with its details and your choice.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-plugin-recommendations"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Show the proposal card after an answer with location choice, creation progress, retention and undo.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-creation-recommendations"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shows a Session's change requests in a sidebar tab and lets a new Session start in a worktree.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-forge"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Shows recommendation cards below the answer for what you want from DSH: when you want a page or small tool you can keep, it proposes a new personalized page, built in the background after you click Create; when you ask how to do something in this app or say a capability is missing, it recommends the built-in plugin that provides it, turned on when you click Enable.",
+      "packages": [
+        "@deepseek-ai/dsh-personalized-recommendations"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Sidebar plugin: session multi-level tree, search, grouping, state dots",
       "packages": [
         "@deepseek-ai/dsh-client-ui-sidebar"
@@ -103,23 +292,9 @@
     },
     {
       "kind": "description",
-      "en": "Six model-facing persistent PTY tools with owner isolation and generic background-job integration",
-      "packages": [
-        "@deepseek-ai/dsh-tool-terminal"
-      ]
-    },
-    {
-      "kind": "description",
       "en": "Slot registry pure core: typed ordinary Slots and reusable Component Factories, derived props, Store seats, and renderer installation",
       "packages": [
         "@deepseek-ai/dsh-client-ui-slots"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "SPA dist server for the Web shell: owns the webserver fallback seat, serving explicit index entries and static assets with traversal rejection and 404 misses",
-      "packages": [
-        "@deepseek-ai/dsh-host-frontend-static"
       ]
     },
     {
@@ -134,13 +309,6 @@
       "en": "Stateless branded primitive types for the DeepSeek Harness",
       "packages": [
         "@deepseek-ai/dsh-brand"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Stdio JSON-RPC server plugin for out-of-process DeepSeek Harness SDK clients",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-jsonrpc-server"
       ]
     },
     {
@@ -176,6 +344,13 @@
       "en": "Streaming tool-role migration and delivery validation from Session V3 to V4",
       "packages": [
         "@deepseek-ai/dsh-session-format-v3-to-v4"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Strict instant and IANA zone parsing, millisecond spans, and bounded Cron/RRULE recurrence arithmetic",
+      "packages": [
+        "@deepseek-ai/dsh-util-time"
       ]
     },
     {
@@ -243,37 +418,9 @@
     },
     {
       "kind": "description",
-      "en": "The dsh ACP profile bundle: automation-only JSON-RPC stdio and process lifecycle over dsh-base",
-      "packages": [
-        "@deepseek-ai/dsh-acp-app"
-      ]
-    },
-    {
-      "kind": "description",
       "en": "The dsh browser-surface bundle: the web patch layer over dsh-base plus the runtime glue plugin (frontend dist serving, bash runtime variables, URL line)",
       "packages": [
         "@deepseek-ai/dsh-web-app"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "The dsh one-shot bundle: a direct core Agent/Session runner over dsh-base with no Host, HTTP, or browser layer",
-      "packages": [
-        "@deepseek-ai/dsh-headless"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "The dsh SDK profile bundle: stdio JSON-RPC serving and process lifecycle over dsh-base",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-app"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "The load_workspace_dependencies tool: absolute paths into a bundled Python, Node.js, and pnpm payload",
-      "packages": [
-        "@deepseek-ai/dsh-tool-workspace-dependencies"
       ]
     },
     {
@@ -299,7 +446,14 @@
     },
     {
       "kind": "description",
-      "en": "Theme plugin: Host bootstrap for the pre-plugin palette; DOM-free ThemeRuntime for light/dark/system state; --dsw-* token styles and Appearance settings row",
+      "en": "The workspace files page and one workspace directory tree per pane beside docked and floating file previews, listed lazily over the workspaceFiles Remote namespace",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-sidebar-files"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Theme plugin: Host bootstrap for the pre-plugin palette; ThemeRuntime for light/dark/system state and icon replacements; --dsw-* token styles and Appearance settings row",
       "packages": [
         "@deepseek-ai/dsh-client-ui-theme"
       ]
@@ -348,7 +502,7 @@
     },
     {
       "kind": "description",
-      "en": "Trajectory event ledger with an interactive timing overview: pure-consumer plugin registering into the conversation ViewMap (no service)",
+      "en": "Trajectory event ledger and timing overview with live tool-result inspection",
       "packages": [
         "@deepseek-ai/dsh-client-ui-trajectory"
       ]
@@ -362,9 +516,23 @@
     },
     {
       "kind": "description",
-      "en": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies",
+      "en": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies.",
       "packages": [
         "@deepseek-ai/dsh-experimental-voice-input-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Translate text and reuse translations saved in the session.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-translator"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Translates expanded Think rows into your chosen language as the agent writes them, and View original switches back.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-cot-translation-bundle"
       ]
     },
     {
@@ -372,6 +540,13 @@
       "en": "Type driven schema validator",
       "packages": [
         "@deepseek-ai/schemastery"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Typed, plugin-extensible context menus with captured targets and shared Web presentation",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-context-menu"
       ]
     },
     {
@@ -432,6 +607,13 @@
     },
     {
       "kind": "description",
+      "en": "View, create, replace, and insert text through the filesystem service.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-str-replace-editor"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Web \"Open In...\" controls: the Session-header split button opening the workspace directory in an installed application, and the document preview's default-application controls for one file",
       "packages": [
         "@deepseek-ai/dsh-client-ui-open-in-app"
@@ -449,188 +631,6 @@
       "en": "Web ask_user_question composer takeover and plan-review presentation UI",
       "packages": [
         "@deepseek-ai/dsh-client-ui-user-questions"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web band above the prompt for Claude Code mods: draws each session's mod tree and sends button presses back to the bridge",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-client-ui-claude-code-mods"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web boot kernel: static module table, Cordis loader, framework-free boot page, and UI-renderer handoff",
-      "packages": [
-        "@deepseek-ai/dsh-client-web"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web client graph synchronization and rebuilt-bundle reload transport",
-      "packages": [
-        "@deepseek-ai/dsh-client-hmr"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web route-registration plugin: HTTP and upgrade routes, index transform taps, and static dist fallback; knows no harness concepts",
-      "packages": [
-        "@deepseek-ai/dsh-host-webserver"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web Session-log export command and shared download dialog",
-      "packages": [
-        "@deepseek-ai/dsh-session-log-export"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web skill references and the dedicated skill tool row",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-skill"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Whole-log conversation counts and wall times projection (sessionStats) for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-session-stats"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Whole-log turn outline projection (turnOutline) for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-session-turn-outline"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Windows ACL write-restriction sandbox backend (restricted-token spawn with capability-SID write allowlist) for the DeepSeek Harness sandbox seam",
-      "packages": [
-        "@deepseek-ai/dsh-sandbox-windows-acl"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workflow capability seam: ctx.workflowEngine service, run vocabulary, and workflow/* events",
-      "packages": [
-        "@deepseek-ai/dsh-workflow"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workflow orchestration in the shared sandboxed Node PTC runtime",
-      "packages": [
-        "@deepseek-ai/dsh-workflow-ptc"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace context loader for AGENTS.md/CLAUDE.md instruction files",
-      "packages": [
-        "@deepseek-ai/dsh-agent-instructions"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace entity registry (ctx.workspaceRegistry): durable workspace records with validated session attachment over the domain data form for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-workspace"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace file service and Client resource provider: bounded reads, directory listing, and live metadata over the workspaceFiles Remote namespace",
-      "packages": [
-        "@deepseek-ai/dsh-api-workspace-files"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace file tree tab type for the right Sidebar: lazy directory listing over the workspaceFiles Remote namespace, opening files into the Sidebar",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-sidebar-files"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace picker plugin: one WorkspacePicker registered into the sidebar and empty-state workspace slots",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-workspace"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace Remote commands and reconnect-safe state transport",
-      "packages": [
-        "@deepseek-ai/dsh-api-workspace-controller"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Workspace-authorized model-facing session history search, trace, and event read tools",
-      "packages": [
-        "@deepseek-ai/dsh-tool-session-query"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency atomic file replacement: exclusive-create random-suffix temp + rename carrying the caller-stated permissions (writeFileAtomic)",
-      "packages": [
-        "@deepseek-ai/dsh-atomic-write"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency bounded-retention primitive: ItemRetainer/TextRetainer + neutral notice helpers (what did we keep, what did we omit)",
-      "packages": [
-        "@deepseek-ai/dsh-output-retention"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency browser-safe UUID and byte-encoding helpers",
-      "packages": [
-        "@deepseek-ai/dsh-util-crypto"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency circular deque with amortized constant-time end operations and bounded vacant storage",
-      "packages": [
-        "@deepseek-ai/dsh-deque"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency time vocabulary shared by wire boundaries: canonicalClientTimeZone (IANA zone validation and canonicalization only, no formatting)",
-      "packages": [
-        "@deepseek-ai/dsh-util-time"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Zero-dependency timeout/deadline primitive: clampTimeout, deadline, timeoutOf, TimeoutReason (timing + classification only, no termination)",
-      "packages": [
-        "@deepseek-ai/dsh-timeout"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Interface customization",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-entry-customization"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Task interface",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-schedule"
       ]
     }
   ]

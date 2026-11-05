@@ -2,7 +2,7 @@
 /**
  * Statically extracts every locale dictionary from the installed DSH client
  * bundles. Bundles keep their original object literals, so each
- * `locale.register(ns, { zh, en })` call resolves to pure data that can be
+ * `locale.register(ns, { zh, ru, en })` call resolves to pure data that can be
  * evaluated without running the plugin. Property values that reference another
  * module-scope constant are resolved one property at a time, so one
  * unresolvable value never discards a whole dictionary.
@@ -335,10 +335,11 @@ const report = {
 }
 
 function record(ns, locale, dict, source) {
-  if (!namespaces.has(ns)) namespaces.set(ns, { en: {}, zh: {}, other: {}, sources: [] })
+  if (!namespaces.has(ns)) namespaces.set(ns, { en: {}, zh: {}, ru: {}, other: {}, sources: [] })
   const entry = namespaces.get(ns)
   if (locale === 'en') Object.assign(entry.en, dict)
   else if (locale === 'zh') Object.assign(entry.zh, dict)
+  else if (locale === 'ru') Object.assign(entry.ru, dict)
   else entry.other[locale] = { ...(entry.other[locale] ?? {}), ...dict }
   if (!entry.sources.includes(source)) entry.sources.push(source)
 }

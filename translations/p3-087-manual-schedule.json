@@ -1,0 +1,7 @@
+{
+  "id": "p3-087",
+  "namespace": "schedule.catalog",
+  "translations": {
+    "frequency.hostZone": "{rule} ({timeZone})"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "p3-102",
+  "namespace": "schedule.manager",
+  "translations": {
+    "detail.openSession": "Связанная сессия: открыть связанную сессию",
+    "detail.openSessionTitle": "Связанная сессия {title}: открыть связанную сессию",
+    "detail.sessionArchived": "Связанная сессия в архиве.",
+    "detail.sessionLoading": "Загрузка сведений о связанной сессии.",
+    "detail.sessionUnavailable": "Связанная сессия недоступна.",
+    "list.emptyInactive": "Нет завершённых задач автоматизации",
+    "rule.cancel": "Сбросить",
+    "rule.invalidTitle": "Название задачи: от 1 до 120 символов."
+  }
+}

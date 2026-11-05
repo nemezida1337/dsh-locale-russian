@@ -1,0 +1,26 @@
+{
+  "id": "p3-053",
+  "namespace": "forgePanel",
+  "translations": {
+    "review.comment": "Оставить комментарий…",
+    "review.commentOnly": "Комментарий",
+    "review.confirmRetry": "Проверено; повторная отправка разрешена",
+    "review.done": "Готово",
+    "review.drafts": "Ожидающие комментарии ({count})",
+    "review.edit": "Изменить",
+    "review.failed": "Не удалось отправить: {message}",
+    "review.githubActions": "Параметры комментария GitHub",
+    "review.inputFailed": "Поле ввода пока не принимает ссылку. Повторите позже.",
+    "review.loadFailed": "Не удалось прочитать черновики проверки. Проверьте хранилище браузера.",
+    "review.outdated": "Код обновлён",
+    "review.pending": "Ожидает",
+    "review.publish": "Опубликовать комментарий",
+    "review.published": "Опубликовано на GitHub",
+    "review.publishing": "Публикация…",
+    "review.queue": "Добавить в проверку",
+    "review.quoted": "Добавлено в поле ввода",
+    "review.range": "Комментарий к {range}",
+    "review.recheck": "Открыть на GitHub",
+    "review.remove": "Удалить"
+  }
+}

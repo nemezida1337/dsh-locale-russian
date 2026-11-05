@@ -1,0 +1,17 @@
+{
+  "id": "p3-061",
+  "namespace": "open-in-app",
+  "translations": {
+    "menu.copied": "Скопировано",
+    "menu.copyDirectoryPath": "Копировать путь к папке",
+    "menu.copyFailed": "Не удалось скопировать. Проверьте, что содержимое доступно, и повторите.",
+    "menu.copyLink": "Копировать адрес ссылки",
+    "menu.copyPath": "Копировать путь к файлу",
+    "menu.defaultApp": "Открыть в приложении по умолчанию",
+    "menu.external": "Открыть во внешнем браузере",
+    "menu.finder": "Показать в Finder",
+    "menu.openInFloat": "Открыть в плавающей панели",
+    "menu.openInSidebar": "Открыть в боковой панели",
+    "menu.reveal": "Показать в папке"
+  }
+}

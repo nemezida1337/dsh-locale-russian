@@ -1,0 +1,7 @@
+{
+  "id": "p3-106",
+  "namespace": "settings.agentPreset",
+  "translations": {
+    "inUse": "По умолчанию для новых задач"
+  }
+}

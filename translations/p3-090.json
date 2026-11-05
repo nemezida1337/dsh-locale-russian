@@ -1,0 +1,9 @@
+{
+  "id": "p3-090",
+  "namespace": "pluginManager",
+  "translations": {
+    "installDetailsNoOutput": "Вывод терминала этой установки не попал в подробности",
+    "installFailedEnabling": "Установка завершилась; не удалось включить плагин",
+    "installLogPath": "Полный журнал: {path}"
+  }
+}

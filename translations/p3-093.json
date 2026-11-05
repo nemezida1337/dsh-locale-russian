@@ -1,0 +1,10 @@
+{
+  "id": "p3-093",
+  "namespace": "sidebarFiles",
+  "translations": {
+    "entry.noViewer": "Ни один просмотрщик не может открыть этот файл.",
+    "navigator.hide": "Скрыть дерево файлов",
+    "navigator.resize": "Изменить размер дерева файлов",
+    "navigator.show": "Показать дерево файлов"
+  }
+}

@@ -1,18 +1,291 @@
 {
   "id": "plugin-05",
   "kind": "plugin-meta",
-  "count": 29,
+  "count": 90,
   "items": [
     {
+      "kind": "description",
+      "en": "Web band above the prompt for Claude Code mods: draws each session's mod tree and sends button presses back to the bridge",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-claude-code-mods"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web boot kernel: static module table, Cordis loader, framework-free boot page, and UI-renderer handoff",
+      "packages": [
+        "@deepseek-ai/dsh-client-web"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web client graph synchronization and rebuilt-bundle reload transport",
+      "packages": [
+        "@deepseek-ai/dsh-client-hmr"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web route-registration plugin: HTTP and upgrade routes, per-Peer index transform taps, and static dist fallback",
+      "packages": [
+        "@deepseek-ai/dsh-host-webserver"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web Session-log ZIP export and Session Markdown copy",
+      "packages": [
+        "@deepseek-ai/dsh-session-log-export"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web skill references and the dedicated skill tool row",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-skill"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "When you ask how to do something in this app or say a capability is missing, recommends the built-in plugin that provides it below the answer; Enable turns it on for every conversation, and you can turn it off on the Plugins page.",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-recommendations"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Whole-log conversation counts and wall times projection (sessionStats) for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-session-stats"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Whole-log turn outline projection (turnOutline) for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-session-turn-outline"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Windows ACL write-restriction sandbox backend (restricted-token spawn with capability-SID write allowlist) for the DeepSeek Harness sandbox seam",
+      "packages": [
+        "@deepseek-ai/dsh-sandbox-windows-acl"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workflow capability seam: ctx.workflowEngine service, run vocabulary, and workflow/* events",
+      "packages": [
+        "@deepseek-ai/dsh-workflow"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workflow orchestration in the shared sandboxed Node PTC runtime",
+      "packages": [
+        "@deepseek-ai/dsh-workflow-ptc"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workspace context loader for AGENTS.md/CLAUDE.md instruction files",
+      "packages": [
+        "@deepseek-ai/dsh-agent-instructions"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workspace entity registry (ctx.workspaceRegistry): durable workspace records with validated session attachment over the domain data form for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-workspace"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workspace file service and Client resource provider: bounded reads, directory listing, and live metadata over the workspaceFiles Remote namespace",
+      "packages": [
+        "@deepseek-ai/dsh-api-workspace-files"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workspace picker plugin: one WorkspacePicker registered into the sidebar and empty-state workspace slots",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Workspace Remote commands and reconnect-safe state transport",
+      "packages": [
+        "@deepseek-ai/dsh-api-workspace-controller"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Writes a session's title from all of your messages and updates it when the main task changes, instead of only from the first message.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-session-titles-bundle"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Zero-dependency atomic file replacement: exclusive-create random-suffix temp + rename carrying the caller-stated permissions (writeFileAtomic)",
+      "packages": [
+        "@deepseek-ai/dsh-atomic-write"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Zero-dependency bounded-retention primitive: ItemRetainer/TextRetainer + neutral notice helpers (what did we keep, what did we omit)",
+      "packages": [
+        "@deepseek-ai/dsh-output-retention"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Zero-dependency browser-safe UUID and byte-encoding helpers",
+      "packages": [
+        "@deepseek-ai/dsh-util-crypto"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Zero-dependency circular deque with amortized constant-time end operations and bounded vacant storage",
+      "packages": [
+        "@deepseek-ai/dsh-deque"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Zero-dependency timeout/deadline primitive: clampTimeout, deadline, timeoutOf, TimeoutReason (timing + classification only, no termination)",
+      "packages": [
+        "@deepseek-ai/dsh-timeout"
+      ]
+    },
+    {
       "kind": "title",
-      "en": "Team Collaboration",
+      "en": "ACP server",
+      "packages": [
+        "@deepseek-ai/dsh-acp"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "ACP profile",
+      "packages": [
+        "@deepseek-ai/dsh-acp-app"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Action cards",
+      "packages": [
+        "@deepseek-ai/dsh-action-cards"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Remote access control",
+      "packages": [
+        "@deepseek-ai/dsh-api-remote-access"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Local Bash execution",
+      "packages": [
+        "@deepseek-ai/dsh-bash-local"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Action card display",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-action-cards"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Context menus",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-context-menu"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Personalized page cards",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-creation-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Interface customization",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-entry-customization"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "File actions",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-file-actions"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "File dragging",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-file-drag"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin discovery",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-plugin-market"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin recommendation cards",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-plugin-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Task interface",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-schedule"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Personalized pages",
+      "packages": [
+        "@deepseek-ai/dsh-creation-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Deliverable file references",
+      "packages": [
+        "@deepseek-ai/dsh-deliverable-file-references"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Team collaboration",
       "packages": [
         "@deepseek-ai/dsh-experimental-agent-team"
       ]
     },
     {
       "kind": "title",
-      "en": "Agent Teams",
+      "en": "Agent teams",
       "packages": [
         "@deepseek-ai/dsh-experimental-agent-team-profile"
       ]
@@ -26,7 +299,7 @@
     },
     {
       "kind": "title",
-      "en": "Auto Authorization Review",
+      "en": "Auto authorization review",
       "packages": [
         "@deepseek-ai/dsh-experimental-auto-review"
       ]
@@ -40,7 +313,7 @@
     },
     {
       "kind": "title",
-      "en": "Team Panel",
+      "en": "Team panel",
       "packages": [
         "@deepseek-ai/dsh-experimental-client-ui-agent-team"
       ]
@@ -54,6 +327,20 @@
     },
     {
       "kind": "title",
+      "en": "Change request panel",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-forge"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Statistics view",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-stats"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Voice recording",
       "packages": [
         "@deepseek-ai/dsh-experimental-client-ui-voice-input"
@@ -61,21 +348,56 @@
     },
     {
       "kind": "title",
-      "en": "NodeJS Inspector",
+      "en": "Change requests",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-forge"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Change requests & worktrees",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-forge-bundle"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "GitHub change requests",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-forge-github"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Session change requests",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-forge-session"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "NodeJS inspector",
       "packages": [
         "@deepseek-ai/dsh-experimental-inspector"
       ]
     },
     {
       "kind": "title",
-      "en": "Developer Tools",
+      "en": "Developer tools",
       "packages": [
         "@deepseek-ai/dsh-experimental-inspector-profile"
       ]
     },
     {
       "kind": "title",
-      "en": "Custom plugin markets",
+      "en": "LiveShare Session Sharing",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-liveshare"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Custom plugin indexes",
       "packages": [
         "@deepseek-ai/dsh-experimental-plugin-market-bundle"
       ]
@@ -89,7 +411,7 @@
     },
     {
       "kind": "title",
-      "en": "Session Log",
+      "en": "Session log",
       "packages": [
         "@deepseek-ai/dsh-experimental-session-inspector"
       ]
@@ -131,16 +453,23 @@
     },
     {
       "kind": "title",
-      "en": "Team Tools",
+      "en": "Team tools",
       "packages": [
         "@deepseek-ai/dsh-experimental-tool-agent-team"
       ]
     },
     {
       "kind": "title",
-      "en": "Git Worktrees",
+      "en": "Git worktrees",
       "packages": [
         "@deepseek-ai/dsh-experimental-tool-worktree"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Translation service",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-translator"
       ]
     },
     {
@@ -152,9 +481,114 @@
     },
     {
       "kind": "title",
+      "en": "Worktree service",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-worktree"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Local filesystem",
+      "packages": [
+        "@deepseek-ai/dsh-fs-local"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Harness development context",
+      "packages": [
+        "@deepseek-ai/dsh-harness-dev-context"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Headless profile",
+      "packages": [
+        "@deepseek-ai/dsh-headless"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Static frontend server",
+      "packages": [
+        "@deepseek-ai/dsh-host-frontend-static"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "MCP client",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-client"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Message quotes",
+      "packages": [
+        "@deepseek-ai/dsh-message-quotes"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Personalized recommendations",
+      "packages": [
+        "@deepseek-ai/dsh-personalized-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin indexes",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-market"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin recommendations",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Local PowerShell execution",
+      "packages": [
+        "@deepseek-ai/dsh-pwsh-local"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Task scheduling",
       "packages": [
         "@deepseek-ai/dsh-schedule"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "SDK profile",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-app"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "SDK server",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-jsonrpc-server"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "All-message session titles",
+      "packages": [
+        "@deepseek-ai/dsh-session-title-all-prompts-llm"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Office skills",
+      "packages": [
+        "@deepseek-ai/dsh-skill-office"
       ]
     },
     {
@@ -166,44 +600,37 @@
     },
     {
       "kind": "title",
-      "en": "Browser Use (Chrome DevTools)",
+      "en": "tmux context",
       "packages": [
-        "@deepseek-ai/dsh-experimental-browser-use-chrome-devtools-mcp"
+        "@deepseek-ai/dsh-tmux-context"
       ]
     },
     {
       "kind": "title",
-      "en": "Browser Use (Playwright)",
+      "en": "Native tool execution",
       "packages": [
-        "@deepseek-ai/dsh-experimental-browser-use-playwright-mcp"
+        "@deepseek-ai/dsh-tool-executor-native"
       ]
     },
     {
       "kind": "title",
-      "en": "Computer Use (Cua Driver MCP)",
+      "en": "PTC tool execution",
       "packages": [
-        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-mcp"
+        "@deepseek-ai/dsh-tool-executor-ptc"
       ]
     },
     {
       "kind": "title",
-      "en": "Computer Use (Cua Driver)",
+      "en": "Scheduling tools",
       "packages": [
-        "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native"
+        "@deepseek-ai/dsh-tool-schedule"
       ]
     },
     {
       "kind": "title",
-      "en": "Claude Code subagent",
+      "en": "Session history tools",
       "packages": [
-        "@deepseek-ai/dsh-subagent-claude-code"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Codex subagent",
-      "packages": [
-        "@deepseek-ai/dsh-subagent-codex"
+        "@deepseek-ai/dsh-tool-session-query"
       ]
     }
   ]

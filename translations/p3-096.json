@@ -1,0 +1,10 @@
+{
+  "id": "p3-096",
+  "namespace": "trajectory",
+  "translations": {
+    "request.collapsedTool": "вложенные вызовы",
+    "toolbar.collapseSubCalls": "Свернуть вложенные вызовы",
+    "toolbar.expandSubCalls": "Развернуть вложенные вызовы",
+    "toolbar.subCalls": "Вложенные вызовы"
+  }
+}

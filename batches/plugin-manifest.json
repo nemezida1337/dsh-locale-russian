@@ -23,8 +23,13 @@
     },
     {
       "id": "plugin-05",
-      "count": 29,
+      "count": 90,
       "file": "plugin-05.json"
+    },
+    {
+      "id": "plugin-06",
+      "count": 11,
+      "file": "plugin-06.json"
     }
   ]
 }

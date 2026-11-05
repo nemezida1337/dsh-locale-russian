@@ -71,6 +71,7 @@ export function createProvider({ name, command, baseUrl, model, apiKeyEnv, mockR
         const answer = await response.json()
         const content = answer?.choices?.[0]?.message?.content
         if (typeof content !== 'string') throw new Error('в ответе провайдера нет текста')
+        if (process.env.DEBUG_TRANSLATE === '1') console.error('[provider raw]', content.slice(0, 600))
         return content
       },
     }

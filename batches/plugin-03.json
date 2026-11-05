@@ -5,9 +5,23 @@
   "items": [
     {
       "kind": "description",
-      "en": "Model-facing reminder management tools (schedule_create, schedule_list, schedule_update, schedule_delete) over the Host ctx.schedule service",
+      "en": "Model-facing owner-scoped persistent Bash tool backed by the Harness PTY service",
       "packages": [
-        "@deepseek-ai/dsh-tool-schedule"
+        "@deepseek-ai/dsh-tool-bash-persistent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing owner-scoped persistent PowerShell tool backed by the Harness PTY service",
+      "packages": [
+        "@deepseek-ai/dsh-tool-pwsh-persistent"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing pwsh tool over the bash executor seam",
+      "packages": [
+        "@deepseek-ai/dsh-tool-pwsh"
       ]
     },
     {
@@ -36,13 +50,6 @@
       "en": "Model-facing todo_write tool over the DeepSeek Harness event-sourced session log",
       "packages": [
         "@deepseek-ai/dsh-tool-todo"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing view, create, literal replace, and line insert tool over the Harness filesystem service",
-      "packages": [
-        "@deepseek-ai/dsh-tool-str-replace-editor"
       ]
     },
     {
@@ -89,7 +96,7 @@
     },
     {
       "kind": "description",
-      "en": "Node PTC execution with per-call sandboxed processes or in-memory REPL state",
+      "en": "Node PTC execution with async function, REPL and VM Script evaluators and optional retained state",
       "packages": [
         "@deepseek-ai/dsh-ptc-runtime-node"
       ]
@@ -103,9 +110,9 @@
     },
     {
       "kind": "description",
-      "en": "Opt-in durable per-step context with this agent's tmux pane and window location",
+      "en": "Original-file saving and image clipboard actions for Web and Desktop",
       "packages": [
-        "@deepseek-ai/dsh-tmux-context"
+        "@deepseek-ai/dsh-client-ui-file-actions"
       ]
     },
     {
@@ -201,6 +208,13 @@
     },
     {
       "kind": "description",
+      "en": "Plugin detail documents: meta.detail or README selection, image paths, and local and npm CDN file sources",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-detail"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Plugin loader for cordis",
       "packages": [
         "@deepseek-ai/cordis-plugin-loader"
@@ -285,6 +299,55 @@
     },
     {
       "kind": "description",
+      "en": "Proposes a page or small tool you can keep, below the answer; after you click Create it is built in the background as a plugin page that you can cancel, undo and restore. A build takes minutes and many tokens.",
+      "packages": [
+        "@deepseek-ai/dsh-creation-recommendations"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide absolute paths to the bundled Python, Node.js, and pnpm runtimes.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-workspace-dependencies"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide automation-only ACP communication and process lifecycle management over dsh-base.",
+      "packages": [
+        "@deepseek-ai/dsh-acp-app"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide built-in Word, PowerPoint, and Excel workflows and LibreOffice Kit operations.",
+      "packages": [
+        "@deepseek-ai/dsh-skill-office"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide JSON-RPC over standard input and output and manage the process lifecycle over dsh-base.",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-app"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide shared model guidance for file links and deliverables across application environments.",
+      "packages": [
+        "@deepseek-ai/dsh-deliverable-file-references"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Provide six persistent PTY tools with isolated session ownership and background task integration.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-terminal"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Provide speech transcription for browser clients.",
       "packages": [
         "@deepseek-ai/dsh-experimental-api-speech-to-text"
@@ -313,9 +376,23 @@
     },
     {
       "kind": "description",
+      "en": "Pure Codex-style patch parser and LF text updater with structured match failures",
+      "packages": [
+        "@deepseek-ai/dsh-fs-patch"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Pure React atoms for the dsh web UI: controls, icons, markdown, and JSON inspectors (zero cordis)",
       "packages": [
         "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Quote selected text and display it as a Markdown block quote.",
+      "packages": [
+        "@deepseek-ai/dsh-message-quotes"
       ]
     },
     {
@@ -341,9 +418,16 @@
     },
     {
       "kind": "description",
-      "en": "Read and change the active Session working directory",
+      "en": "Read and change the current session's working directory.",
       "packages": [
         "@deepseek-ai/dsh-tool-working-directory"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Read GitHub change requests for the forge registry through the GitHub CLI on the host.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-forge-github"
       ]
     },
     {
@@ -376,9 +460,9 @@
     },
     {
       "kind": "description",
-      "en": "Refresh session titles as new human prompts arrive.",
+      "en": "Register code host providers and poll change request status through one provider-neutral service.",
       "packages": [
-        "@deepseek-ai/dsh-experimental-session-titles-bundle"
+        "@deepseek-ai/dsh-experimental-forge"
       ]
     },
     {
@@ -439,9 +523,30 @@
     },
     {
       "kind": "description",
-      "en": "Run explicitly requested repeated work with fresh agents.",
+      "en": "Run a single task directly with the core Agent/Session runner over dsh-base, without a Host, HTTP, or browser layer.",
       "packages": [
-        "@deepseek-ai/dsh-experimental-ralph-bundle"
+        "@deepseek-ai/dsh-headless"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Run agents through JSON-RPC over standard input and output for automation.",
+      "packages": [
+        "@deepseek-ai/dsh-acp"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Run Bash commands in local subprocesses.",
+      "packages": [
+        "@deepseek-ai/dsh-bash-local"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Run commands through local PowerShell.",
+      "packages": [
+        "@deepseek-ai/dsh-pwsh-local"
       ]
     },
     {
@@ -481,6 +586,13 @@
     },
     {
       "kind": "description",
+      "en": "Save tmux pane and window locations for each step when needed.",
+      "packages": [
+        "@deepseek-ai/dsh-tmux-context"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Scoped MCP resource discovery and reading through shared model tools",
       "packages": [
         "@deepseek-ai/dsh-mcp-resources"
@@ -502,6 +614,13 @@
     },
     {
       "kind": "description",
+      "en": "Search session history and read trajectories and events according to workspace permissions.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-session-query"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Semantic session durability checkpoints before model requests and tool side effects",
       "packages": [
         "@deepseek-ai/dsh-session-checkpoint-policy"
@@ -509,128 +628,9 @@
     },
     {
       "kind": "description",
-      "en": "Session Controller adapter for React and session-scoped slots",
+      "en": "Serve SDK clients in separate processes through JSON-RPC over standard input and output.",
       "packages": [
-        "@deepseek-ai/dsh-client-ui-session"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session goal surface: GoalBar docked above the composer, read from the goal session projection",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-goal"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session Remote commands, cold reads, and live control transport",
-      "packages": [
-        "@deepseek-ai/dsh-api-session-controller"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session working directories with durable changes and model context",
-      "packages": [
-        "@deepseek-ai/dsh-working-directory"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session-header background-job list with on-demand streaming record panels",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-jobs"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session-log snapshot core with an ACP protocol adapter, expected-output normalization, and fixture invariants",
-      "packages": [
-        "@deepseek-ai/dsh-session-snapshot"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session-owned browser resource lifecycles and MCP integration for experimental providers",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-browser-use-runtime"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session-owned interactive terminals with shell discovery, screen recovery and typed Remote control",
-      "packages": [
-        "@deepseek-ai/dsh-api-terminal-controller"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Session-projection seam: the merge-extensible projection type table, the provider contract, and the ctx.sessionProjections registry serving whole current values of log-derived per-session state",
-      "packages": [
-        "@deepseek-ai/dsh-session-projection"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "SessionTelemetryBackend seam for the DeepSeek Harness: session-event capture, projection, redaction, and handoff to a reporting backend",
-      "packages": [
-        "@deepseek-ai/dsh-session-telemetry"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings domain base plugin: shared configuration forms and the canonical settings slot-type contract",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings ownerless-copy and product onboarding plugin: the General section, shell trigger/header chrome content, settings dictionaries, and the versioned welcome notice",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-general"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings page of Subagent delegation on the dsh web client's Plugins page: recursion depth, parallel capacity, and the models agents may choose for subagents",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-subagent"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings page of the agent loop on the dsh web client's Plugins page: the parallel tool-call cap of the agent-loop namespace",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-agent-loop"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings page of the DeepSeek web-search provider on the dsh web client's Plugins page: its API key, endpoint, and per-request search budget",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-web-search"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings page of the shell executor on the dsh web client's Plugins page: the command timeout and the per-stream output cap of the shell namespace",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-shell"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared anonymous user identity for DeepSeek Harness telemetry and feedback correlation",
-      "packages": [
-        "@deepseek-ai/dsh-anonymous-user-id"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared boot glue for the app bins: .env loading, fail-loud Loader guards, snapshot-aware config resolution, and the Loader boot sequence",
-      "packages": [
-        "@deepseek-ai/dsh-app-boot"
+        "@deepseek-ai/dsh-sdk-jsonrpc-server"
       ]
     }
   ]

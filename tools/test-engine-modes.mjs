@@ -602,19 +602,31 @@ console.log('тёплый сервер: выгрузка во время ста�
   process.env.FAKE_SERVER_DELAY = '1500'
   const { service, cleanups } = setup({ engine: 'whisper', whisperServer: true })
   const pending = service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000)).catch(() => undefined)
-  const pidDeadline = Date.now() + 2000
-  while (Date.now() < pidDeadline && !existsSync(pidFile)) await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
+  // Ждём именно валидный pid: пустой файл дал бы process.kill(0) — группу.
+  let pid = 0
+  const pidDeadline = Date.now() + 3000
+  while (Date.now() < pidDeadline) {
+    if (existsSync(pidFile)) {
+      const value = Number(readFileSync(pidFile, 'utf8').trim())
+      if (Number.isFinite(value) && value > 0) {
+        pid = value
+        break
+      }
+    }
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
+  }
   for (const cleanup of cleanups.reverse()) await cleanup()
   await pending
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
-  const pid = Number(readFileSync(pidFile, 'utf8'))
   let alive = true
-  try {
-    process.kill(pid, 0)
-  } catch {
-    alive = false
+  if (pid > 0) {
+    try {
+      process.kill(pid, 0)
+    } catch {
+      alive = false
+    }
   }
-  check('сервер не пережил выгрузку', alive === false, String(pid))
+  check('сервер не пережил выгрузку', pid > 0 && alive === false, String(pid))
   delete process.env.FAKE_WHISPER_TRANSCRIPT
   delete process.env.FAKE_SERVER_PID
   delete process.env.FAKE_SERVER_DELAY

@@ -1,0 +1,11 @@
+{
+  "id": "p3-086",
+  "namespace": "open-in-app",
+  "translations": {
+    "menu.copied": "Скопировано",
+    "menu.copyDirectoryPath": "Скопировать путь к папке",
+    "menu.copyFailed": "Не удалось скопировать. Проверьте доступность содержимого и повторите.",
+    "menu.copyLink": "Скопировать адрес ссылки",
+    "menu.copyPath": "Скопировать путь к файлу"
+  }
+}

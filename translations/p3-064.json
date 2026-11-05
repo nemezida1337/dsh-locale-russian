@@ -1,0 +1,7 @@
+{
+  "id": "p3-064",
+  "namespace": "contextMenu",
+  "translations": {
+    "failed": "Не удалось выполнить действие. Повторите попытку."
+  }
+}

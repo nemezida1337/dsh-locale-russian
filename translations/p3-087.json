@@ -1,0 +1,18 @@
+{
+  "id": "p3-087",
+  "namespace": "fileActions",
+  "translations": {
+    "menu.copied": "Скопировано",
+    "menu.copyFailed": "Не удалось скопировать. Проверьте доступность содержимого и повторите попытку.",
+    "menu.copyImage": "Копировать изображение",
+    "menu.download": "Скачать",
+    "menu.downloadStarted": "Скачивание начато",
+    "menu.downloaded": "Скачивание завершено",
+    "menu.finder": "Показать в Finder",
+    "menu.reveal": "Показать в папке",
+    "menu.saveAs": "Сохранить как…",
+    "menu.saveFailed": "Не удалось сохранить. Проверьте источник и назначение и повторите попытку.",
+    "menu.saved": "Сохранено",
+    "path.revealError": "Не удалось показать расположение файла. Повторите попытку."
+  }
+}

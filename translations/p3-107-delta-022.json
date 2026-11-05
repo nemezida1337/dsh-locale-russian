@@ -1,0 +1,9 @@
+{
+  "id": "p3-107",
+  "namespace": "settings.models",
+  "translations": {
+    "fetchAdopt": "Обновить список",
+    "fetchDescription": "Это модели, доступные у провайдера. Отмеченные модели попадают в список.",
+    "fetchTitle": "Выберите модели"
+  }
+}

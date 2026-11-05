@@ -1,0 +1,12 @@
+{
+  "id": "p3-068",
+  "namespace": "open-in-app",
+  "translations": {
+    "menu.defaultApp": "Открыть в приложении по умолчанию",
+    "menu.external": "Открыть во внешнем браузере",
+    "menu.finder": "Показать в Finder",
+    "menu.openInFloat": "Открыть в плавающей панели",
+    "menu.openInSidebar": "Открыть в боковой панели",
+    "menu.reveal": "Показать в папке"
+  }
+}

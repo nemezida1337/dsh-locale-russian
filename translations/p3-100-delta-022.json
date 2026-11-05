@@ -1,0 +1,12 @@
+{
+  "id": "p3-100",
+  "namespace": "conversation",
+  "translations": {
+    "detail.schedule.count": "{count} задача автоматизации|{count} задачи автоматизации|{count} задач автоматизации",
+    "detail.schedule.empty": "Нет задач автоматизации",
+    "tool.title.createSchedule": "Создать задачу автоматизации",
+    "tool.title.deleteSchedule": "Удалить задачу автоматизации",
+    "tool.title.listSchedules": "Список задач автоматизации",
+    "tool.title.updateSchedule": "Изменить задачу автоматизации"
+  }
+}

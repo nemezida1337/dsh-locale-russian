@@ -1,0 +1,11 @@
+{
+  "id": "p3-063",
+  "namespace": "schedule.catalog",
+  "translations": {
+    "frequency.hostCustom": "Свой",
+    "frequency.hostDailyInterval": "Каждые {interval} дн. в {time}",
+    "frequency.hostMonthly": "Ежемесячно {days} числа в {time} или в конце месяца",
+    "frequency.hostMonthlyInterval": "Каждые {interval} мес. {days} числа в {time} или в конце месяца",
+    "frequency.hostWeeklyInterval": "Каждые {interval} нед. по {weekdays} в {time}"
+  }
+}

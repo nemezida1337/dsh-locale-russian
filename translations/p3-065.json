@@ -1,0 +1,13 @@
+{
+  "id": "p3-065",
+  "namespace": "conversation",
+  "translations": {
+    "detail.schedule.active": "Включено",
+    "detail.schedule.custom": "Своё",
+    "detail.schedule.ended": "Завершено",
+    "detail.schedule.paused": "Приостановлено",
+    "tool.title.applyPatch": "Применить патч",
+    "tool.title.editSchedule": "Изменить задачу автоматизации",
+    "tool.title.viewSchedule": "Просмотр задачи автоматизации"
+  }
+}

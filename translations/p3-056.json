@@ -1,0 +1,13 @@
+{
+  "id": "p3-056",
+  "namespace": "forgePanel",
+  "translations": {
+    "change.checks.cancelled": "Отменено: {count}",
+    "change.checks.loadFailed": "Не удалось загрузить проверки: {message}",
+    "change.checks.loading": "Загрузка проверок",
+    "change.checks.retry": "Повторить загрузку проверок",
+    "change.ci.cancelled": "Отменено проверок: {count}",
+    "diff.fileTree": "Дерево файлов",
+    "diff.filterConfigFailed": "Сравнение не выполнено: настройки фильтров Git прочитаны не полностью. Проверьте настройки Git и лимит вывода, затем повторите."
+  }
+}

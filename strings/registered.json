@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T16:43:12.025Z",
+  "generatedAt": "2026-11-05T18:05:22.472Z",
   "packageRoot": "~/.dsh/profiles/node_modules/@deepseek-ai",
   "packages": [
     {
@@ -373,6 +373,7 @@
         "reject": "拒绝",
         "allowOnce": "允许一次"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-approval"
@@ -589,6 +590,7 @@
         "clock.md": "{m}月{d}日",
         "clock.ymd": "{y}年{m}月{d}日"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-chat"
@@ -627,6 +629,7 @@
         "listbox.aria": "/{command} 匹配项",
         "notice.attachmentsUnsupported": "/{command} 不接受附件，请先移除附件"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-commands"
@@ -715,6 +718,7 @@
         "number.thousand": "{value}K",
         "number.million": "{value}M"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-locale"
@@ -1043,6 +1047,7 @@
         "terminal.sendInput": "（发送输入）",
         "terminal.session": "终端 {sessionId}"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-conversation"
@@ -1153,6 +1158,7 @@
         "body.copy": "复制",
         "body.copied": "已复制"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-cordis"
@@ -1239,6 +1245,7 @@
         "produced.more": "+ {count} 个文件",
         "produced.open": "打开 {name}"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-deliverables"
@@ -1275,6 +1282,7 @@
         "browser.truncated": "文件夹过多，仅显示开头部分。",
         "browser.showHidden": "显示隐藏文件"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-directory-picker-browse"
@@ -1293,6 +1301,7 @@
         "loading": "正在准备 HTML 预览…",
         "failed": "无法预览这份 HTML 文档。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -1311,6 +1320,7 @@
         "code.copied": "已复制",
         "footnotes": "脚注"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -1361,6 +1371,7 @@
         "error.generic": "反馈保存失败",
         "error.noteTooLarge": "描述太长，请缩短后再提交"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-message-feedback"
@@ -1395,6 +1406,7 @@
         "action.edit": "编辑目标",
         "action.clear": "清除目标"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-goal"
@@ -1435,6 +1447,7 @@
         "duration.title.live": "已运行 {duration}",
         "duration.title.done": "耗时 {duration}"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-jobs"
@@ -1485,6 +1498,7 @@
         "blocked.composer": "当前模型不可用，请先选择模型",
         "empty.efforts": "当前模型未提供推理等级。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-model-selection"
@@ -1573,6 +1587,7 @@
         "app.filemanager": "文件管理器",
         "app.terminal": "终端"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-open-in-app"
@@ -1599,6 +1614,7 @@
         "confirm.cancel": "取消",
         "confirm.enable": "启用完全权限"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-permission-presets"
@@ -1621,6 +1637,7 @@
         "chip.off.title": "plan mode 已关闭 — 点击开启（/plan）",
         "chip.exitFailed": "退出 plan mode 失败"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-plan"
@@ -1661,6 +1678,7 @@
         "plan.decline": "拒绝",
         "plan.discuss": "去聊天里说"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-user-questions"
@@ -1691,6 +1709,7 @@
         "time.months": "{n}个月",
         "time.years": "{n}年"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-reference"
@@ -1737,6 +1756,7 @@
         "relative.future": "{value}{unit}后",
         "relative.overdue": "已逾期 {value}{unit}"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-schedule"
@@ -1765,6 +1785,7 @@
         "dialog.close": "关闭",
         "dialog.commandFailed": "无法启动 Session 导出。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-session-log-export"
@@ -1799,6 +1820,7 @@
         "connection.reconnect": "连接异常，点击立即重连",
         "connection.restart": "连接中断，正在自动重试，点击立即重连"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-settings-general"
@@ -1911,6 +1933,7 @@
         "deleteConfirm": "删除",
         "deleting": "正在删除…"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-agent-preset"
@@ -1923,6 +1946,7 @@
       "zh": {
         "language.title": "语言"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-locale"
@@ -2133,6 +2157,7 @@
         "onboardingSaving": "保存中…",
         "keyRequired": "请输入 API 密钥后继续。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-settings-models"
@@ -2167,6 +2192,7 @@
         "confirm.cancel": "取消",
         "confirm.enable": "启用完全权限"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-permission-presets"
@@ -2249,6 +2275,7 @@
         "failed": "启动失败",
         "unloading": "卸载中"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-settings-plugin-inventory"
@@ -2363,6 +2390,7 @@
         "subagentModelSelectionConflict": "设置已在其他位置更新。请放弃修改后重试。",
         "subagentModelSelectionOff": "关闭后，Subagent 使用配置的默认模型或继承父 Agent 的模型；已选模型会保留。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-settings-plugins"
@@ -2391,6 +2419,7 @@
         "fontSize.increase": "增大字号",
         "fontSize.decrease": "减小字号"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-theme"
@@ -2411,6 +2440,7 @@
         "toggle.collapse": "收起侧边栏",
         "panels.label": "全局面板"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar"
@@ -2427,6 +2457,7 @@
         "copy": "复制",
         "copied": "已复制"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -2473,6 +2504,7 @@
         "error.unavailable": "读取失败：{message}",
         "retry": "重试"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -2509,6 +2541,7 @@
         "error.notDirectory": "这不是一个目录。",
         "error.unavailable": "读取失败：{message}"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-files"
@@ -2529,6 +2562,7 @@
         "failed": "无法显示这张图片。",
         "unsupported": "图片预览需要完整文件内容。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -2557,6 +2591,7 @@
         "unsupported": "PDF 预览需要完整文件内容。",
         "retry": "重试"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-documentpreview"
@@ -2609,6 +2644,7 @@
         "tab.guide.title": "开始",
         "tab.unavailable": "这类内容还没有可用的查看方式。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-sidebar-right"
@@ -2633,6 +2669,7 @@
         "row.inspect": "查看",
         "menu.userOnly": "仅用户"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-skill"
@@ -2661,6 +2698,7 @@
         "crumbs.aria": "目录导航",
         "suggestions.aria": "触发候选建议"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-input-trigger"
@@ -2745,6 +2783,7 @@
         "readonly.oneShot.body": "一次性任务不支持后续消息，可在这里查看完整执行记录。",
         "readonly.body": "父会话当前不在线，重新打开父会话后即可继续发送消息。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-subagent"
@@ -3105,6 +3144,7 @@
         "layout.systemPromptAndToolsUpdated": "系统提示词和工具已更新",
         "layout.compactionInterrupted": "上下文压缩在完成前被中断。"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-trajectory"
@@ -3151,6 +3191,7 @@
         "status.cancelled": "已取消",
         "status.interrupted": "已中断"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-workflow-run"
@@ -3287,6 +3328,7 @@
         "time.years": "{n}年",
         "time.ago": "{t}前"
       },
+      "ru": {},
       "other": {},
       "sources": [
         "dsh-client-ui-workspace"
