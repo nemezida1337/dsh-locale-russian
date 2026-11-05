@@ -28,7 +28,11 @@ npx dsh-locale-russian-install --desktop
 
 ---
 
-## Пост в Threads (черновик)
+## Пост в Threads
+
+**Опубликован 2026-11-06:** https://www.threads.com/@golova_2uxa/post/DfYJ1FFDYDN
+
+Черновик, который ушёл в пост:
 
 Готово: русская диктовка для DeepSeek Harness стала быстрой.
 
