@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Русская локализация DeepSeek Harness — интерфейс и диктовка</title>
-<meta name="description" content="Русская локализация DeepSeek Harness: перевод интерфейса и описаний плагинов, локальная диктовка с гибридом GigaAM + Whisper, словарь своей терминологии и обучение через агента.">
+<meta name="description" content="Русская локализация DeepSeek Harness и локальная диктовка: режим auto (0,15–0,22 с на русском), динамические словари, статистика терминов, восстановление диктовки.">
 <meta name="theme-color" content="#090a0b">
 <link rel="canonical" href="https://nemezida1337.github.io/dsh-locale-russian/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -82,7 +82,7 @@
   .hero-art { display: flex; justify-content: center; }
   .window { position: relative; width: 100%; border: 1px solid #2a2e35; border-radius: 16px; padding: 7px; background: #050607; box-shadow: 0 34px 90px rgba(0,0,0,.55); }
   .window img { border-radius: 11px; }
-  .window::after { content: "0.23.0 · гибридная диктовка"; position: absolute; left: 18px; bottom: 18px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.16); border-radius: 5px; background: rgba(5,6,7,.82); color: var(--muted); font: 9.5px/1 var(--mono); letter-spacing: .04em; }
+  .window::after { content: "0.25.0 · быстрая диктовка и словарь"; position: absolute; left: 18px; bottom: 18px; padding: 5px 7px; border: 1px solid rgba(255,255,255,.16); border-radius: 5px; background: rgba(5,6,7,.82); color: var(--muted); font: 9.5px/1 var(--mono); letter-spacing: .04em; }
   @media (max-width: 840px) {
     .hero { padding: 56px 0 50px; }
     .hero-grid { grid-template-columns: 1fr; gap: 36px; }
@@ -241,7 +241,7 @@
       <a href="#install">Установка</a>
       <a href="#guides">Гайды</a>
       <a href="https://github.com/nemezida1337/dsh-locale-russian">GitHub</a>
-      <a class="nav-cta" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.23.0">Релиз 0.23.0</a>
+      <a class="nav-cta" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.25.0">Релиз 0.25.0</a>
     </nav>
   </div>
 </header>
@@ -250,12 +250,12 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <div class="eyebrow"><span class="dot"></span> DeepSeek Harness · версия 0.23.0</div>
+        <div class="eyebrow"><span class="dot"></span> DeepSeek Harness · версия 0.25.0</div>
         <h1>DeepSeek Harness<br><span>по-русски.</span></h1>
-        <p class="lead">Интерфейс, плагины и описания — по-русски. Плюс локальная диктовка с гибридом GigaAM + Whisper и словарём вашей терминологии. Без облака и ключей.</p>
+        <p class="lead">Локальная диктовка для DeepSeek Harness: режим auto за 0,15–0,22 с, динамические словари, статистика терминов. Интерфейс остаётся нативным русским, на старых версиях — наш перевод.</p>
         <div class="actions">
           <button class="button" type="button" data-open-dialog="plugin-install">Установить</button>
-          <a class="button outline" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.23.0">Релиз 0.23.0</a>
+          <a class="button outline" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.25.0">Релиз 0.25.0</a>
           <a class="button quiet" href="#guides">Гайды →</a>
         </div>
         <div class="meta">macOS · локально · без облака · <a href="https://www.npmjs.com/package/dsh-locale-russian">npm</a> · <a href="https://github.com/nemezida1337/dsh-locale-russian">open source</a></div>
@@ -288,9 +288,9 @@
         <p>Обычный клиентский плагин DSH: добавляет язык <code>ru</code> и локального провайдера распознавания. Не форк — ничего не патчит в приложении.</p>
       </div>
       <div class="device-line">
-        <article><h3>Перевод интерфейса</h3><p>3929 строк в 75 namespace: панели, настройки, диалоги, карточки инструментов и ошибки UI. Русские склонения из коробки.</p></article>
-        <article><h3>Гибридная диктовка</h3><p>GigaAM и Whisper работают параллельно: русский текст от GigaAM, термины от Whisper. 8,6% ошибок в словах, 97% терминов.</p></article>
-        <article><h3>Словарь и агент</h3><p>Окно словаря по Cmd+Shift+D, автоподсказки из диктовок и обучение через чат: «дообучи на моей терминологии».</p></article>
+        <article><h3>Быстрая диктовка</h3><p>Режим auto: GigaAM за 0,15–0,22 с на обычном русском, Whisper — только на терминах и транслитерациях. Тёплый сервер и предзагрузка.</p></article>
+        <article><h3>Словарь, который знает вас</h3><p>Динамические профили, статистика пользы ×N, Retention-чистка и импорт по URL. Лимит 400 слов на словарь, а не на всё.</p></article>
+        <article><h3>DSH 0.2.2 и старые версии</h3><p>Нативный русский не перезаписываем — плагин определяет его сам. На старых DSH работает собственный полный перевод.</p></article>
       </div>
       <div class="shots">
         <figure class="shot"><img src="card.jpg" alt="Гибридная диктовка по-русски" loading="lazy"><span>Гибридная диктовка · подсветка терминов</span></figure>
@@ -304,16 +304,16 @@
   <section class="section" id="whats-new">
     <div class="wrap">
       <div class="section-head">
-        <div><div class="label">Что нового</div><h2>0.23.0 — гибрид и словарь.</h2></div>
-        <p>Главное обновление: диктовка понимает ваши термины и учится у вас. Полный список — в <a href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/CHANGELOG.md">CHANGELOG</a>.</p>
+        <div><div class="label">Что нового</div><h2>0.25.0 — скорость и динамические словари.</h2></div>
+        <p>Главное обновление: диктовка отвечает быстрее и знает вашу терминологию. Полный список — в <a href="https://github.com/nemezida1337/dsh-locale-russian/blob/main/CHANGELOG.md">CHANGELOG</a>.</p>
       </div>
       <div class="roadmap">
-        <div class="road"><span class="label">Движок</span><h3>Второй движок — Whisper</h3><p>GigaAM и Whisper вместе, посентенционное слияние. Словарь передаётся обоим: GigaAM через hotwords, Whisper через prompt.</p></div>
-        <div class="road"><span class="label">Словарь</span><h3>Окно словаря</h3><p>Cmd+Shift+D: слова и замены, поиск, добавление, импорт из буфера, переключение движка и стратегии слияния.</p></div>
-        <div class="road"><span class="label">Текст</span><h3>Подсветка и правка</h3><p>Заменённые термины — синим, подсказки — жёлтым. Клик по слову открывает варианты и «Вернуть как было».</p></div>
-        <div class="road"><span class="label">Агент</span><h3>Обучение через чат</h3><p>Секция «Предложения» находит искажённые термины в последних диктовках, а кнопка «Попросить агента» копирует запрос.</p></div>
-        <div class="road"><span class="label">Установка</span><h3>Одна команда</h3><p>Встроенный Whisper без Homebrew, модель с прогрессом и настройка гибрида. Откат — <code>--revert</code>.</p></div>
-        <div class="road"><span class="label">Перевод</span><h3>Описания плагинов</h3><p>358 описаний переписаны по-человечески, без «швов» и «каскадов». «Развёртывание» заменено на «установку».</p></div>
+        <div class="road"><span class="label">Скорость</span><h3>Режим auto</h3><p>Русская речь — GigaAM за 0,15–0,22 с. Whisper подключается только на английских терминах, транслитерациях или низкой уверенности.</p></div>
+        <div class="road"><span class="label">Длинные записи</span><h3>Пунктуация и абзацы</h3><p>Аудио режется по тихим точкам, prompt Whisper — «Термины: …», предложения выравниваются по смыслу: точки на месте, абзацы не теряются.</p></div>
+        <div class="road"><span class="label">Словарь</span><h3>Динамические профили</h3><p>Работа, проект, личное: переключение вручную и автоматически, лимит 400 слов на словарь, активный профиль прямо в окне.</p></div>
+        <div class="road"><span class="label">Польза</span><h3>Статистика ×N</h3><p>Видно, какие термины реально спасают распознавание. Retention-чистка неиспользуемых слов с предпросмотром и «Вернуть».</p></div>
+        <div class="road"><span class="label">Совместимость</span><h3>DSH 0.2.2</h3><p>Нативный русский язык не перезаписывается: стоковые плагины загружаются нормально. На старых версиях — свой полный перевод.</p></div>
+        <div class="road"><span class="label">Надёжность</span><h3>Восстановление диктовки</h3><p>Если текст не попал в поле ввода, появляется панель «Вставить / Скопировать» — диктовка больше не пропадает.</p></div>
       </div>
     </div>
   </section>
@@ -333,7 +333,7 @@
             <div class="step"><p><strong>Слияние по предложениям</strong> — для каждого предложения выбирается вариант с лучшей оценкой: термины из словаря минус искажённая латиница.</p></div>
             <div class="step"><p><strong>Словарь — обоим движкам</strong> — термины из проекта работают и в GigaAM, и в Whisper, а замены исправляют устойчивые ошибки.</p></div>
           </div>
-          <p class="note">На корпусе из 10 смешанных фраз: <strong>8,6% ошибок в словах</strong> и <strong>97% верных терминов</strong>. Для сравнения: у GigaAM было 27,7%, у Whisper — 11,3%.</p>
+          <p class="note">На корпусе из 10 смешанных фраз: <strong>8,6% ошибок в словах</strong> и <strong>98% верных терминов</strong>. Для сравнения: у GigaAM было 27,7%, у Whisper — 11,3%. В режиме auto русская фраза обрабатывается за 0,15–0,22 с.</p>
         </div>
       </div>
     </div>
@@ -376,6 +376,7 @@
         <details open><summary>Диктовка правда работает без облака?</summary><p>Да. GigaAM и Whisper работают локально, аудио не покидает машину. Для распознавания не нужны API-ключи.</p></details>
         <details><summary>Какие лимиты у словаря?</summary><p>До 400 слов и фраз (каждое до 64 символов), замены — без жёсткого счётчика, при сканировании проекта берутся до 150 терминов. Подсказка Whisper использует первые 60 терминов.</p></details>
         <details><summary>Нужен ли Homebrew для Whisper?</summary><p>Нет: установщик кладёт встроенный prebuilt-бинарь. Если он недоступен — попробует Homebrew, а если и его нет, останется GigaAM.</p></details>
+        <details><summary>DSH 0.2.2 уже переведён на русский. Зачем плагин?</summary><p>Для диктовки и словаря — это основная ценность. Переводу плагин не мешает: он определяет нативный русский и не регистрирует свои словари, поэтому стоковые плагины загружаются нормально. На старых версиях DSH работает собственный полный перевод.</p></details>
         <details><summary>Это официальный плагин DeepSeek?</summary><p>Нет. Это неофициальная локализация и локальная диктовка; она не связана с DeepSeek и не заменяет DSH.</p></details>
       </div>
     </div>
@@ -411,7 +412,7 @@
     <p class="small"><strong>Без терминала:</strong> добавьте индекс в «Плагины → Обзор → Источники индексов» и установите из карточки.</p>
     <div class="cmd-row"><pre><code id="cmd-market">https://nemezida1337.github.io/dsh-locale-russian/index.json</code></pre><button class="copy" data-copy="cmd-market" type="button">Копировать</button></div>
     <div class="os-links" aria-label="Скачать DeepSeek Harness"><a href="https://www.deepseek.com/harness/">macOS</a><a href="https://www.deepseek.com/harness/">Windows</a><a href="https://www.deepseek.com/harness/">Linux / web</a></div>
-    <div class="dialog-actions"><a class="button" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.23.0">Релиз 0.23.0</a><button class="button outline" type="button" data-copy-id="cmd-dialog">Скопировать команду</button><button class="button outline" type="button" data-close-dialog>Готово</button></div>
+    <div class="dialog-actions"><a class="button" href="https://github.com/nemezida1337/dsh-locale-russian/releases/tag/v0.25.0">Релиз 0.25.0</a><button class="button outline" type="button" data-copy-id="cmd-dialog">Скопировать команду</button><button class="button outline" type="button" data-close-dialog>Готово</button></div>
   </div>
 </dialog>
 
