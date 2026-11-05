@@ -334,15 +334,206 @@ window.__ModuleLoader__.load({
 		/** Debounce timer for auto-learning. */
 		let learnTimer;
 
+		/** Recovery state for a transcription that never reached the composer. */
+		let recoveryTimer;
+		let recoveryPanel;
+		let recoveryText = "";
+		const RECOVERY_STORAGE_KEY = "dsh-locale-ru-recovery";
+
+		/** Stores the pending recovery text so an app reload keeps it. */
+		function storeRecovery(at, text) {
+			try {
+				localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify({ at, text }));
+			} catch (error) {
+				// localStorage недоступен
+			}
+		}
+
+		/** Drops the stored recovery text. */
+		function clearStoredRecovery() {
+			try {
+				localStorage.removeItem(RECOVERY_STORAGE_KEY);
+			} catch (error) {
+				// localStorage недоступен
+			}
+		}
+
+		/** Hides the recovery panel. */
+		function hideRecoveryPanel() {
+			if (recoveryPanel === undefined) return;
+			if (typeof recoveryPanel.remove === "function") recoveryPanel.remove();
+			else if (recoveryPanel.parentNode) recoveryPanel.parentNode.removeChild(recoveryPanel);
+			recoveryPanel = undefined;
+		}
+
+		/** Finds the composer that should receive the recovered text. */
+		function activeComposer() {
+			const active = document.activeElement;
+			if (active !== null && active !== undefined && typeof active.closest === "function") {
+				const editable = active.closest("[contenteditable=true]");
+				if (editable !== null) return editable;
+			}
+			if (lastComposer !== null && document.body !== undefined && document.body.contains(lastComposer)) return lastComposer;
+			return null;
+		}
+
+		/** Inserts text into the composer; false when no target is available. */
+		function insertRecoveredText(text) {
+			const composer = activeComposer();
+			if (composer === null) return false;
+			try {
+				composer.focus();
+				if (typeof document.execCommand === "function" && document.execCommand("insertText", false, text)) return true;
+			} catch (error) {
+				// ниже пробуем напрямую
+			}
+			try {
+				const current = String(composer.innerText ?? "");
+				composer.innerText = current + text;
+				composer.dispatchEvent(new Event("input", { bubbles: true }));
+				return true;
+			} catch (error) {
+				return false;
+			}
+		}
+
+		/** Small DOM helper for the recovery panel (modalElement lives deeper). */
+		function recoveryElement(tag, style, text) {
+			const element = document.createElement(tag);
+			if (style !== undefined && style !== "") element.style.cssText = style;
+			if (text !== undefined) element.textContent = text;
+			return element;
+		}
+
+		/** Shows the recovery panel: the transcript was never inserted. */
+		function showRecoveryPanel(text, at) {
+			if (typeof text !== "string" || text.trim() === "") return;
+			hideRecoveryPanel();
+			recoveryText = text;
+			storeRecovery(at, text);
+			const panel = recoveryElement("div", "position:fixed;right:16px;bottom:16px;z-index:2147483647;max-width:420px;display:flex;flex-direction:column;gap:8px;"
+				+ "padding:12px 14px;border-radius:12px;background:rgba(20,20,22,.97);border:1px solid rgba(122,162,255,.4);box-shadow:0 10px 32px rgba(0,0,0,.5);color:#f2f2f5;"
+				+ "font:500 12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+			panel.setAttribute("data-dsh-locale-ru-recovery", "");
+			panel.appendChild(recoveryElement("div", "font-weight:700;font-size:13px", "Диктовка не попала в поле ввода"));
+			panel.appendChild(recoveryElement("div", "color:#b6c0d2;max-height:120px;overflow:auto;white-space:pre-wrap", text.length > 400 ? `${text.slice(0, 400)}…` : text));
+			const actions = recoveryElement("div", "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap");
+			const insert = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(40,60,110,.95);color:#fff;font-weight:600", "Вставить");
+			insert.setAttribute("role", "button");
+			insert.addEventListener("click", () => {
+				if (insertRecoveredText(recoveryText)) {
+					hideRecoveryPanel();
+					clearStoredRecovery();
+					showToast("Диктовка вставлена", true);
+				} else {
+					showToast("Некуда вставить — текст скопирован. Вставьте в поле ввода", true);
+					void copyRecoveredText();
+				}
+			});
+		const copy = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.9);color:#f2f2f5;font-weight:600", "Скопировать");
+			copy.setAttribute("role", "button");
+			copy.addEventListener("click", () => void copyRecoveredText());
+			const close = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.65);color:#b6c0d2;font-weight:600", "Закрыть");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => {
+				hideRecoveryPanel();
+				clearStoredRecovery();
+			});
+			actions.appendChild(insert);
+			actions.appendChild(copy);
+			actions.appendChild(close);
+			panel.appendChild(actions);
+			if (document.body !== undefined) document.body.appendChild(panel);
+			recoveryPanel = panel;
+		}
+
+		/** Copies the recovery text to the clipboard. */
+		async function copyRecoveredText() {
+			try {
+				await navigator.clipboard.writeText(recoveryText);
+				showToast("Текст скопирован", true);
+			} catch (error) {
+				showToast("Не удалось скопировать текст", false);
+			}
+		}
+
+		/** Fetches the last transcription from the host. */
+		async function fetchLastTranscriptionInfo() {
+			for (const port of DICTIONARY_PORTS) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/last-transcription`, { signal: AbortSignal.timeout(1500) });
+					if (!response.ok) continue;
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/**
+		 * After a recording stops, waits for the transcript and checks that it
+		 * reached the composer. When the window/tab was switched mid-processing,
+		 * the stock plugin may drop the text — we offer it for recovery.
+		 */
+		function scheduleRecoveryCheck() {
+			clearTimeout(recoveryTimer);
+			const endedAt = Date.now();
+			recoveryTimer = setTimeout(async () => {
+				const deadline = Date.now() + 25000;
+				let payload;
+				while (Date.now() < deadline) {
+					payload = await fetchLastTranscriptionInfo();
+					if (payload !== undefined && Number(payload.at) > endedAt && typeof payload.text === "string" && payload.text !== "") break;
+					payload = undefined;
+					await new Promise((resolvePromise) => setTimeout(resolvePromise, 600));
+				}
+				if (payload === undefined) return;
+				// Даём вставке и нашим наблюдателям время сработать.
+				await new Promise((resolvePromise) => setTimeout(resolvePromise, 1200));
+				if (dictationInsertedAt > endedAt) return;
+				showRecoveryPanel(payload.text, Number(payload.at) || Date.now());
+			}, 500);
+		}
+
+		/** Restores a stored recovery panel after an app reload. */
+		function restoreStoredRecovery() {
+			try {
+				const raw = localStorage.getItem(RECOVERY_STORAGE_KEY);
+				if (raw === null) return;
+				const parsed = JSON.parse(raw);
+				if (typeof parsed?.text !== "string" || parsed.text.trim() === "") return;
+				if (Date.now() - Number(parsed.at) > 30 * 60 * 1000) {
+					clearStoredRecovery();
+					return;
+				}
+				showRecoveryPanel(parsed.text, Number(parsed.at) || Date.now());
+			} catch (error) {
+				// битые данные — просто забываем
+			}
+		}
+
+		try {
+			globalThis.__dshLocaleRuRecovery = {
+				show: showRecoveryPanel,
+				hide: hideRecoveryPanel,
+				restore: restoreStoredRecovery,
+			};
+		} catch (error) {
+			// среда без globalThis
+		}
+
 		/** Marks the moment a dictation recording ended; the insertion follows. */
-		function markDictationEnded() {
+		function markDictationEnded(durationMs) {
 			dictationEndedAt = Date.now();
 			dictationHighlightDismissed = false;
 			dictationHighlightDrawn = false;
 			clearDictationHighlights();
 			caretFixPending = true;
 			dictationInsertion = null;
+			dictationInsertedAt = 0;
 			dictationBeforeText = lastComposer === null ? null : String(lastComposer.innerText ?? "");
+			if (Number(durationMs) >= 500) scheduleRecoveryCheck();
 		}
 
 		/**
@@ -2930,6 +3121,8 @@ window.__ModuleLoader__.load({
 							if (insertion !== undefined) {
 								dictationInsertion = insertion;
 								dictationInsertedAt = Date.now();
+								clearStoredRecovery();
+								hideRecoveryPanel();
 								dictationBeforeText = after;
 								dictationHighlightDismissed = false;
 								dictationHighlightDrawn = false;
@@ -3078,10 +3271,11 @@ window.__ModuleLoader__.load({
 				const tracked = new Proxy(Original, {
 					construct(target, args) {
 						const recorder = Reflect.construct(target, args);
+						const startedAt = Date.now();
 						recorders.add(recorder);
 						recorder.addEventListener("stop", () => {
 							recorders.delete(recorder);
-							markDictationEnded();
+							markDictationEnded(Date.now() - startedAt);
 							hideIndicator();
 						});
 						return recorder;
@@ -3149,8 +3343,11 @@ window.__ModuleLoader__.load({
 			const restoreHighlights = installHighlightMaintenance();
 			ctx.effect(() => () => {
 				clientDisposed = true;
+				clearTimeout(recoveryTimer);
+				hideRecoveryPanel();
 				closeAllModalWindows();
 			});
+			setTimeout(() => restoreStoredRecovery(), 2000);
 			// Функция онбординга живёт в том же модуле, но вызываем через
 			// globalThis: так её видно из apply независимо от порядка объявлений.
 			setTimeout(() => {

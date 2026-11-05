@@ -174,6 +174,15 @@ let statsState = {
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 let modelReady = true
 let doctorDelayMs = 0
+const storage = new Map()
+Object.defineProperty(globalThis, 'localStorage', {
+  value: {
+    getItem: (key) => (storage.has(key) ? storage.get(key) : null),
+    setItem: (key, value) => storage.set(key, String(value)),
+    removeItem: (key) => storage.delete(key),
+  },
+  configurable: true,
+})
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body, headers: options.headers ?? {} })
   if (url.endsWith('/profiles')) {
@@ -853,6 +862,26 @@ console.log('настройки: автопереключение словаря
   check('режим авто отправлен', requests.some((request) => request.url.endsWith('/settings') && JSON.parse(request.body).autoSwitchMode === 'auto'), JSON.stringify(requests))
   documentStub.dispatch('keydown', { key: 'Escape' })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+}
+
+console.log('восстановление потерянной диктовки')
+{
+  closeModal()
+  await openModal()
+  const editor = documentStub.body.children.find((child) => child.getAttribute?.('contenteditable') === 'true') ?? null
+  globalThis.__dshLocaleRuRecovery.show('Потерянный текст диктовки', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const panel = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null)
+  check('панель восстановления появилась', panel !== undefined)
+  check('текст восстановления сохранён', (storage.get('dsh-locale-ru-recovery') ?? '').includes('Потерянный текст'))
+  clipboardWrites.length = 0
+  const copy = [...(panel?.children ?? [])].flatMap((child) => child.children ?? []).find((child) => child.textContent === 'Скопировать')
+  copy.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('копирование восстановленного текста', clipboardWrites.some((text) => text.includes('Потерянный текст')), JSON.stringify(clipboardWrites))
+  globalThis.__dshLocaleRuRecovery.hide()
+  check('панель восстановления закрывается', !documentStub.body.children.some((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null))
+  storage.clear()
 }
 
 console.log('добавление слова через поле')
