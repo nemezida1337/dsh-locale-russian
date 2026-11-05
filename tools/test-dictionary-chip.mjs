@@ -311,6 +311,7 @@ plugin.apply({
 })
 await new Promise((resolvePromise) => setTimeout(resolvePromise, 0))
 check('без нативного ru словари регистрируются', registeredNamespaces > 0, String(registeredNamespaces))
+check('режим локали отмечен как own', globalThis.__dshLocaleRuLocaleMode === 'own', String(globalThis.__dshLocaleRuLocaleMode))
 
 const panel = () => documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-dictionary') !== null)
 const rows = () => (panel()?.children ?? []).map((child) => child.textContent)
@@ -1018,6 +1019,7 @@ console.log('нативный русский: свои словари не ре�
   })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 0))
   check('при нативном ru нет чужих регистраций', nativeRegistrations === 0, String(nativeRegistrations))
+  check('режим локали отмечен как native', globalThis.__dshLocaleRuLocaleMode === 'native', String(globalThis.__dshLocaleRuLocaleMode))
   for (const cleanup of nativeCleanups.reverse()) cleanup()
 }
 

@@ -66,7 +66,7 @@ async function capture(id, title) {
   writeFileSync(txt, `# ${title}\n\n${text}\n`)
   const clippedItems = (Array.isArray(clipped) ? clipped : []).map((item) => ({
     ...item,
-    ours: OWN_COPY.test(item.text),
+    ours: ownCopyActive && OWN_COPY.test(item.text),
   }))
   screens.push({
     id,
@@ -86,6 +86,24 @@ async function capture(id, title) {
 }
 
 await page.navigate(url)
+
+/**
+ * Режим локали: `own` — словари нашего пакета активны, `native` — DSH уже
+ * везёт свой русский и наш плагин словари не регистрирует. Нативная копия
+ * не наша: её обрезку нельзя записывать в провал проверки.
+ */
+let localeMode = 'unknown'
+for (let attempt = 0; attempt < 20; attempt += 1) {
+  try {
+    localeMode = await page.evaluate('globalThis.__dshLocaleRuLocaleMode ?? "unknown"')
+  } catch {
+    localeMode = 'unknown'
+  }
+  if (localeMode !== 'unknown') break
+  await sleep(150)
+}
+const ownCopyActive = localeMode === 'own'
+console.log(`режим локали: ${localeMode}${ownCopyActive ? '' : ' — кириллица натива не считается нашей копией'}`)
 await sleep(6000)
 
 for (const label of DISMISS) {
