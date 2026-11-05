@@ -309,6 +309,28 @@ console.log('endpoint хоста')
     headers: { 'sec-fetch-site': 'cross-site', origin: 'null' },
   })
   check('opaque-origin без Electron отклонён', opaqueOrigin.status === 403, String(opaqueOrigin.status))
+  // DSH 0.2.2 грузит рендерер со схемы dsh-app://app: это не opaque origin,
+  // но и не loopback-URL, поэтому доверяем схеме только при Electron UA.
+  const appScheme = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'cross-site', origin: 'dsh-app://app', 'user-agent': 'Mozilla/5.0 DeepSeek Harness Electron/44.7.0' },
+  })
+  check('dsh-app origin разрешён', appScheme.status === 200, String(appScheme.status))
+  const appSchemeForeign = await fetch(`http://127.0.0.1:${port}/last-transcription`, {
+    headers: { 'sec-fetch-site': 'cross-site', origin: 'dsh-app://app', 'user-agent': 'Mozilla/5.0 Safari/605' },
+  })
+  check('dsh-app без Electron отклонён', appSchemeForeign.status === 403, String(appSchemeForeign.status))
+  const preflight = await fetch(`http://127.0.0.1:${port}/dictionary`, {
+    method: 'OPTIONS',
+    headers: {
+      origin: 'dsh-app://app',
+      'sec-fetch-site': 'cross-site',
+      'user-agent': 'Mozilla/5.0 DeepSeek Harness Electron/44.7.0',
+      'access-control-request-method': 'POST',
+      'access-control-request-headers': 'content-type,x-dsh-locale-client',
+    },
+  })
+  check('preflight dsh-app разрешён', preflight.status === 204, String(preflight.status))
+  check('preflight разрешает private network', preflight.headers.get('access-control-allow-private-network') === 'true')
   // CSRF: мутирующий POST из браузера требует клиентский заголовок.
   const csrfNoHeader = await fetch(`http://127.0.0.1:${port}/stats/reset`, {
     method: 'POST',
