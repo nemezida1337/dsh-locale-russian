@@ -30,34 +30,6 @@ npx dsh-locale-russian-install --desktop
 
 ## Пост в Threads
 
-**Опубликован 2026-11-06:** https://www.threads.com/@golova_2uxa/post/DfYJ1FFDYDN
+**Опубликован 2026-11-06:** https://www.threads.com/@golova_2uxa/post/DfYK2kADRRc
 
-Черновик, который ушёл в пост:
-
-Готово: русская диктовка для DeepSeek Harness стала быстрой.
-
-Режим auto: GigaAM отвечает за 0,15–0,22 с, Whisper подключается только на английских терминах. Динамические словари (работа/проект/личное), статистика пользы терминов и чистка неиспользуемых слов. Длинные диктовки больше не теряют абзацы.
-
-DSH 0.2.2 уже с нативным русским — плагин это учитывает и не ломает загрузку. На старых версиях работает свой полный перевод.
-
-Установка: npx dsh-locale-russian-install --desktop
-Сайт: https://nemezida1337.github.io/dsh-locale-russian/
-
-#DeepSeekHarness #диктовка #ru
-
-## Анонс в сообществе DeepSeek Harness (черновик)
-
-Обновил русскую локализацию и диктовку для DSH: **0.25.0**.
-Главное: быстрый режим auto (0,15–0,22 с на русском), динамические словари с контекстами и статистикой, длинные диктовки с восстановленной пунктуацией. На 0.2.2 плагин больше не конфликтует с нативным русским языком.
-Установка: `npx dsh-locale-russian-install --desktop`. Индекс плагинов: `https://nemezida1337.github.io/dsh-locale-russian/index.json`.
-
-## Чек-лист выпуска
-
-1. `npm test` — 610 проверок зелёные.
-2. `node tools/check-app.mjs` — покрытие полное, хук диктовки совместим.
-3. Коммит `Релиз 0.25.0` и пуш в `main` (сайт задеплоится автоматически).
-4. Тег `v0.25.0` и пуш тега — workflow соберёт, проверит и опубликует npm.
-5. GitHub Release с этими заметками (приложить `site/card.jpg`).
-6. Пост в Threads с карточкой `site/card.jpg`.
-7. Анонс в обсуждении DeepSeek Harness.
-8. Проверить установку: `npx dsh-locale-russian-install --desktop` на чистом профиле.
+Финальный текст — `docs/social/threads-0.25.0-post.txt`, карточка — `docs/social/threads-0.25.0-card.jpg`.
