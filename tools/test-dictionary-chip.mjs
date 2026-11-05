@@ -290,9 +290,10 @@ globalThis.fetch = async (url, options = {}) => {
 
 await import(`${bundle}?v=${Date.now()}`)
 const plugin = windowStub.entry.factory(() => { throw new Error('no modules') })
+let registeredNamespaces = 0
 const locale = {
   addLanguage() { return () => {} },
-  register() { return () => {} },
+  register() { registeredNamespaces += 1; return () => {} },
   getSnapshot() { return { active: 'en' } },
   fallbackChain: (value) => [value],
   resolveText: (text) => text,
@@ -309,6 +310,7 @@ plugin.apply({
   },
 })
 await new Promise((resolvePromise) => setTimeout(resolvePromise, 0))
+check('без нативного ru словари регистрируются', registeredNamespaces > 0, String(registeredNamespaces))
 
 const panel = () => documentStub.body.children.find((element) => element.getAttribute('data-dsh-locale-ru-dictionary') !== null)
 const rows = () => (panel()?.children ?? []).map((child) => child.textContent)
@@ -989,6 +991,34 @@ console.log('выгрузка')
   documentStub.dispatch('selectionchange')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 220))
   check('после выгрузки поповер не появляется', panel() === undefined)
+}
+
+console.log('нативный русский: свои словари не регистрируются')
+{
+  let nativeRegistrations = 0
+  const nativeLocale = {
+    addLanguage() { throw new Error('locale "ru" is already registered') },
+    register() { nativeRegistrations += 1; return () => {} },
+    getSnapshot() { return { active: 'ru' } },
+    fallbackChain: (value) => [value],
+    resolveText: (text) => text,
+    translate: () => '',
+    bind: () => () => '',
+  }
+  await import(`${bundle}?v=${Date.now() + 1}`)
+  const nativePlugin = windowStub.entry.factory(() => { throw new Error('no modules') })
+  const nativeCleanups = []
+  nativePlugin.apply({
+    locale: nativeLocale,
+    effect(callback) {
+      const disposer = callback()
+      nativeCleanups.push(typeof disposer === 'function' ? disposer : () => {})
+      return disposer
+    },
+  })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 0))
+  check('при нативном ru нет чужих регистраций', nativeRegistrations === 0, String(nativeRegistrations))
+  for (const cleanup of nativeCleanups.reverse()) cleanup()
 }
 
 if (failures.length > 0) {

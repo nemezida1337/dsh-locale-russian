@@ -3387,7 +3387,21 @@ window.__ModuleLoader__.load({
 			/** Namespaces the built-in catalog already owns; the pack overrides them via translate. */
 			const occupied = new Set();
 			const disposers = [];
-			disposers.push(tolerateExisting(() => locale.addLanguage(LANGUAGE)));
+			// DSH 0.2.2+ поставляется с нативным русским языком и словарями.
+			// Регистрировать свои в этом случае нельзя: стоковые плагины падают
+			// на «locale namespace ... already has locale "ru"» и не активируются.
+			let nativeRussian = false;
+			try {
+				disposers.push(locale.addLanguage(LANGUAGE));
+			} catch (error) {
+				if (!(error instanceof Error) || error.message.indexOf("already") === -1) throw error;
+				nativeRussian = true;
+			}
+			if (nativeRussian) {
+				return () => {
+					for (const dispose of disposers.reverse()) dispose();
+				};
+			}
 			for (const namespace of Object.keys(DICTIONARIES)) {
 				try {
 					disposers.push(locale.register(namespace, LANGUAGE.id, DICTIONARIES[namespace]));

@@ -228,9 +228,9 @@ check(t('plain') === 'Plain', 'English dictionary wins while en is active')
 locale.active = 'zh'
 check(t('plain') === 'Plain', 'a locale without a dictionary falls back to en')
 
-// DSH 0.2.2 ships its own Russian catalog: our plugin must not throw on the
-// occupied slots, must override the built-in copy with its own translation, and
-// must restore the built-in copy on dispose.
+// DSH 0.2.2 ships its own Russian catalog: our plugin must not throw, must not
+// duplicate the built-in language and must leave the native copy untouched —
+// registering our dictionaries would break stock plugins at boot.
 {
   const strict = new StrictLocale()
   strict.addLanguage({ id: 'en', label: 'English', fallback: 'en' })
@@ -254,11 +254,11 @@ check(t('plain') === 'Plain', 'a locale without a dictionary falls back to en')
   await new Promise((resolve) => setTimeout(resolve, 0))
   check(strictError === undefined, 'activation does not throw when the built-in catalog occupies slots')
   check(strict.languages.filter((language) => language.id === 'ru').length === 1, 'the built-in ru language is not duplicated')
-  check(strict.translate('common', 'cancel') === 'Отмена', 'our copy overrides the built-in dictionary in an occupied namespace')
-  check(strict.translate('common', 'builtin.only') === 'встроенный', 'a key missing from our table still comes from the built-in dictionary')
-  check(strict.dicts.get('chat')?.has('ru') === true, 'free namespaces register as usual')
+  check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'нативный перевод не перезаписывается')
+  check(strict.translate('common', 'builtin.only') === 'встроенный', 'ключи натива остаются на месте')
+  check(strict.dicts.get('chat')?.has('ru') !== true, 'свои словари при нативном ru не регистрируются')
   for (const disposer of strictDisposers.reverse()) disposer()
-  check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'dispose restores the built-in copy')
+  check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'после выгрузки нативный перевод цел')
 }
 
 for (const disposer of disposers.reverse()) disposer()
