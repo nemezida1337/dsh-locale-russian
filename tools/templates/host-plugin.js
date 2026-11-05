@@ -938,10 +938,12 @@ export function apply(ctx, config = {}) {
       id = `${base}-${suffix}`
       suffix += 1
     }
-    // Сначала сохраняем последние слова текущего активного профиля.
+    // Сохраняем последние слова текущего активного профиля — только если он жив.
     const previous = readProfileFile(settings.activeProfile)
-    const current = snapshotActiveDictionary(settings.activeProfile, previous?.name ?? settings.activeProfile)
-    if (current !== undefined) writeProfileFile(current)
+    if (previous !== undefined) {
+      const current = snapshotActiveDictionary(settings.activeProfile, previous.name ?? settings.activeProfile)
+      if (current !== undefined) writeProfileFile(current)
+    }
     const profile = snapshotActiveDictionary(id, clean)
     if (!writeProfileFile(profile)) return { ok: false, reason: 'write-failed' }
     writeSettings({ ...settings, activeProfile: id, profilesBootstrapped: true })

@@ -376,6 +376,9 @@ console.log('endpoint хоста')
   const deletedActive = await fetch(`http://127.0.0.1:${port}/profiles/delete`, { method: 'POST', body: JSON.stringify({ id: activeProfileId }) }).then((response) => response.json())
   const profilesAfterDelete = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
   check('удаление последнего профиля не воскрешает файл', deletedActive.ok === true && !(profilesAfterDelete.profiles ?? []).some((profile) => profile.id === activeProfileId), JSON.stringify(profilesAfterDelete))
+  const createdAfterDelete = await fetch(`http://127.0.0.1:${port}/profiles/create`, { method: 'POST', body: JSON.stringify({ name: 'Новый' }) }).then((response) => response.json())
+  const profilesAfterRecreate = await fetch(`http://127.0.0.1:${port}/profiles`).then((response) => response.json())
+  check('создание после удаления не воскрешает default', createdAfterDelete.ok === true && !(profilesAfterRecreate.profiles ?? []).some((profile) => profile.id === 'default'), JSON.stringify(profilesAfterRecreate))
   // Импорт по URL.
   const importedBody = JSON.stringify({ words: ['СловоИзURL'], replacements: { 'фром': 'from' } })
   const importServer = createHttpServer((request, response) => {

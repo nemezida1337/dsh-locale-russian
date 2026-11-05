@@ -173,6 +173,7 @@ let statsState = {
 }
 let reviewPairs = [{ heard: 'ngine', chosen: 'engine' }]
 let modelReady = true
+let doctorDelayMs = 0
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body, headers: options.headers ?? {} })
   if (url.endsWith('/profiles')) {
@@ -234,6 +235,7 @@ globalThis.fetch = async (url, options = {}) => {
     }) }
   }
   if (url.endsWith('/doctor')) {
+    if (doctorDelayMs > 0) await new Promise((resolvePromise) => setTimeout(resolvePromise, doctorDelayMs));
     return { ok: true, json: async () => ({ ok: true, items: [
       { id: 'gigaam-binary', label: 'Движок GigaAM', ok: true, detail: '' },
       { id: 'gigaam-model', label: 'Модель GigaAM', ok: true, detail: '' },
@@ -810,6 +812,33 @@ console.log('настройки: двойное открытие и подгот
   check('одно окно настроек при двойном нажатии', panels === 1, String(panels))
   documentStub.dispatch('keydown', { key: 'Escape' })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+}
+
+console.log('гонки: закрытие окон во время запросов')
+{
+  // Настройки: закрыть до ответа /doctor.
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  doctorDelayMs = 180
+  findInSettings('Проверить диктовку').dispatch('click')
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 320))
+  doctorDelayMs = 0
+  check('закрытие настроек во время /doctor не роняет', settingsPanel() === undefined)
+  // Словарь: закрыть до ответа /engine.
+  closeModal()
+  await openModal()
+  findByText('Гибрид').dispatch('click')
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('закрытие словаря во время /engine не роняет', modalPanel() === undefined)
+  // Мост закрытия окон доступен и закрывает настройки.
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('настройки открылись перед выгрузкой', settingsPanel() !== undefined)
+  globalThis.__dshLocaleRuCloseWindows?.()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('окна закрываются при выгрузке', settingsPanel() === undefined)
 }
 
 console.log('настройки: автопереключение словаря')
