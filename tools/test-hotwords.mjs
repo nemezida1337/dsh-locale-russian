@@ -153,6 +153,10 @@ console.log('SSRF: IPv6-формы приватных адресов')
     '0:0:0:0:0:0:0:1',
     '64:ff9b::7f00:1',
     '2002:7f00:0001::',
+    '100::1',
+    '2001:db8::1',
+    '2001::1',
+    '4000::1',
   ]
   for (const address of privateAddresses) {
     check(`приватный адрес ${address}`, internals.isPrivateAddress(address) === true)
@@ -178,6 +182,12 @@ console.log('endpoint хоста')
   const service = { register() { return async () => {} }, snapshot() { return { selection: { providerId: 'gigaam-local' } } }, async *follow() {} }
   const cleanups = []
   const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+  writeFileSync(join(workspace, 'transcripts.json'), JSON.stringify([{
+    at: '2026-11-05T20:00:00.000Z',
+    engine: 'auto',
+    mode: 'sentences',
+    merged: 'Старый транскрипт для гидратации',
+  }]))
   apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
     binaryPath: join(workspace, 'no-engine'),
     modelDir: join(workspace, 'models'),
@@ -189,6 +199,8 @@ console.log('endpoint хоста')
   await new Promise((resolve) => setTimeout(resolve, 250))
   const post = (body) => fetch(`http://127.0.0.1:${port}/hotwords`, { method: 'POST', body }).then((response) => response.json())
   check('health отвечает', await fetch(`http://127.0.0.1:${port}/health`).then((r) => r.ok))
+  const hydrated = await fetch(`http://127.0.0.1:${port}/transcriptions?after=0`).then((response) => response.json())
+  check('transcriptions: история подхвачена после старта', hydrated.items?.some((item) => item.text === 'Старый транскрипт для гидратации'), JSON.stringify(hydrated))
   const first = await post('configHotwords')
   check('фраза добавлена через endpoint', first.ok === true && first.count === 1, JSON.stringify(first))
   check('файл обновлён', readFileSync(file, 'utf8').includes('configHotwords'))

@@ -339,7 +339,7 @@ console.log('last-transcription отдаёт применённые замены
   const none = await fetch(`http://127.0.0.1:${freePort}/transcriptions?after=${Date.now()}`).then((response) => response.json())
   check('transcriptions: пусто после текущего времени', Array.isArray(none?.items) && none.items.length === 0, JSON.stringify(none))
   const sparse = await fetch(`http://127.0.0.1:${freePort}/transcriptions`).then((response) => response.json())
-  check('transcriptions: без параметра отдаёт историю', Array.isArray(sparse?.items) && sparse.items.length === 1, JSON.stringify(sparse))
+  check('transcriptions: без параметра отдаёт историю', Array.isArray(sparse?.items) && sparse.items.some((item) => item.text === 'Проверка GitHub'), JSON.stringify(sparse))
   check('слова в результате провайдера', Array.isArray(result.words) && result.words.length === 2, JSON.stringify(result.words))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT

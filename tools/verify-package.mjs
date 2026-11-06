@@ -257,6 +257,10 @@ check(t('plain') === 'Plain', 'a locale without a dictionary falls back to en')
   check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'нативный перевод не перезаписывается')
   check(strict.translate('common', 'builtin.only') === 'встроенный', 'ключи натива остаются на месте')
   check(strict.dicts.get('chat')?.has('ru') !== true, 'свои словари при нативном ru не регистрируются')
+  const pluginTextSample = Object.entries(JSON.parse(readFileSync(resolve(root, 'dictionary/plugin-meta.json'), 'utf8')))[0]
+  if (pluginTextSample !== undefined) {
+    check(strict.resolveText(pluginTextSample[0]) === pluginTextSample[1], 'описания плагинов переводятся и при нативном ru')
+  }
   for (const disposer of strictDisposers.reverse()) disposer()
   check(strict.translate('common', 'cancel') === 'Встроенная отмена', 'после выгрузки нативный перевод цел')
 }

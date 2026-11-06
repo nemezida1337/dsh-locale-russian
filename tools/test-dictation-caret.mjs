@@ -179,9 +179,11 @@ console.log('после остановки записи каретка уход�
 {
   check('наблюдатель установлен', observerCallbacks.length === 1, String(observerCallbacks.length))
   // Рекордер создаём через пропатченный MediaRecorder: только так патч его видит.
-  editable.innerText = 'Проверка GitHub и фордж'
+  // До записи поле пустое; вставка стоком приходит уже после остановки.
+  editable.innerText = ''
   const recorder = new windowStub.MediaRecorder()
   recorder.stop()
+  editable.innerText = 'Проверка GitHub и фордж'
   selectionState.ranges.length = 0
   observerCallbacks[0]()
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
