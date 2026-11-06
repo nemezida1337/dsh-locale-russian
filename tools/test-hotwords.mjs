@@ -165,6 +165,20 @@ console.log('SSRF: IPv6-формы приватных адресов')
   for (const address of publicAddresses) {
     check(`публичный адрес ${address}`, internals.isPrivateAddress(address) === false)
   }
+  // Две диктовки: каждый транскрипт достаётся своей, даже если первая упала.
+  const first = { endedAt: 1000 }
+  const second = { endedAt: 2000 }
+  const pair = internals.assignTranscriptsToDictations([first, second], [
+    { at: 1500, text: 'Первая' },
+    { at: 2500, text: 'Вторая' },
+  ])
+  check('маппинг диктовок: обе на месте', pair.get(first)?.text === 'Первая' && pair.get(second)?.text === 'Вторая', JSON.stringify([...pair]))
+  const failed = { endedAt: 1000 }
+  const alive = { endedAt: 2000 }
+  const afterFailure = internals.assignTranscriptsToDictations([failed, alive], [{ at: 2600, text: 'Вторая' }])
+  check('маппинг диктовок: текст не крадётся у следующей', afterFailure.get(failed) === undefined && afterFailure.get(alive)?.text === 'Вторая', JSON.stringify([...afterFailure]))
+  const stray = internals.assignTranscriptsToDictations([{ endedAt: 1000 }], [{ at: 500, text: 'Старое' }])
+  check('маппинг диктовок: старый транскрипт не подходит', stray.size === 0, JSON.stringify([...stray]))
 }
 
 console.log('endpoint хоста')
