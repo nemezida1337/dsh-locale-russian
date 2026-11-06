@@ -995,6 +995,16 @@ console.log('восстановление потерянной диктовки'
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
   check('очередь восстановлений очищена', recoveryPanel() === undefined && storage.get('dsh-locale-ru-recovery') === undefined)
 
+  // Escape закрывает панель recovery, когда модалки уже нет.
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  globalThis.__dshLocaleRuRecovery.show('Диктовка для Escape', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('панель перед Escape есть', recoveryPanel() !== undefined)
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('Escape закрывает панель recovery', recoveryPanel() === undefined && storage.get('dsh-locale-ru-recovery') === undefined)
+
   // Чужой чат: восстанавливать текст в активное поле нельзя.
   storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
   editor.textContent = ''

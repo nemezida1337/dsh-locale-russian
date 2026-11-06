@@ -667,6 +667,7 @@ window.__ModuleLoader__.load({
 				endedAt: Number(item.endedAt) || at,
 				session: typeof item.session === "string" ? item.session : undefined,
 			});
+			while (recoveryQueue.length > 10) recoveryQueue.shift();
 			persistRecoveryQueue();
 			if (recoveryCurrent !== undefined) {
 				if (recoveryTitle !== undefined) recoveryTitle.textContent = `Диктовка не попала в поле ввода · ещё ${recoveryQueue.length}`;
@@ -729,6 +730,7 @@ window.__ModuleLoader__.load({
 						}
 						entry.transcript = candidates[0];
 						claimedTranscripts.add(candidates[0].at);
+						if (claimedTranscripts.size > 64) claimedTranscripts.clear();
 					}
 					// Даём стоковой вставке и ChronoFlow время завершиться.
 					await recoverySleep(2500);
@@ -788,6 +790,23 @@ window.__ModuleLoader__.load({
 			};
 		} catch (error) {
 			// среда без globalThis
+		}
+
+		// Окна DSH делят localStorage: если recovery очистили в другом окне,
+		// здесь панель тоже должна исчезнуть, иначе текст вставят дважды.
+		try {
+			if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+				window.addEventListener("storage", (event) => {
+					if (event === null || event === undefined || event.key !== RECOVERY_STORAGE_KEY) return;
+					if (event.newValue !== null && event.newValue !== "") return;
+					removeRecoveryPanel();
+					recoveryCurrent = undefined;
+					recoveryQueue = [];
+					recoveryText = "";
+				});
+			}
+		} catch (error) {
+			// среда без window
 		}
 
 		/** Marks the moment a dictation recording ended; the insertion follows. */
@@ -3361,6 +3380,10 @@ window.__ModuleLoader__.load({
 				}
 				if (dictionaryModal !== undefined || dictionaryModalOpening === true) {
 					closeDictionaryModal();
+					return;
+				}
+				if (recoveryCurrent !== undefined) {
+					dismissCurrentRecovery();
 					return;
 				}
 				dictationHighlightDismissed = true;
