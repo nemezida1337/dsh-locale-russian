@@ -1085,6 +1085,14 @@ console.log('восстановление потерянной диктовки'
   )
   check('клиентский маппинг: обе диктовки', mapping.size === 2, String(mapping.size))
 
+  // Вставка уже наблюдалась, но поле очищено (сообщение отправлено) — не ложная тревога.
+  debugApi.setDictationEndedAt(4242)
+  debugApi.noteDictationInserted()
+  check('вставка запомнена', debugApi.insertedDictationEnds().includes(4242), JSON.stringify(debugApi.insertedDictationEnds()))
+  editor.textContent = ''
+  check('отправленная диктовка не считается потерянной', debugApi.recoveryMissed({ endedAt: 4242, transcript: { text: 'Текст, который уже отправили' } }) === false)
+  check('неотправленная диктовка считается потерянной', debugApi.recoveryMissed({ endedAt: 999999, transcript: { text: 'Другой текст' } }) === true)
+
   // Чужой чат: восстанавливать текст в активное поле нельзя.
   storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
   editor.textContent = ''

@@ -148,6 +148,7 @@ globalThis.fetch = async (url) => {
   return { ok: true, json: async () => ({ ok: true }) }
 }
 
+globalThis.__dshLocaleRuDebug = true
 await import(`${bundle}?v=${Date.now()}`)
 const plugin = windowStub.entry.factory(() => { throw new Error('no modules') })
 const locale = {
@@ -191,6 +192,7 @@ console.log('после остановки записи каретка уход�
   check('диапазон в конце поля', selectionState.ranges[0]?.element === editable && selectionState.ranges[0]?.collapseToEnd === true,
     JSON.stringify({ same: selectionState.ranges[0]?.element === editable, toEnd: selectionState.ranges[0]?.collapseToEnd }))
   check('уведомление о применённых заменах', documentStub.body.children.some((element) => String(element.textContent).includes('Словарь: заменено')), JSON.stringify(documentStub.body.children.map((element) => element.textContent)))
+  check('вставка отмечена для recovery', (globalThis.__dshLocaleRuDebugApi?.insertedDictationEnds?.() ?? []).length > 0, JSON.stringify(globalThis.__dshLocaleRuDebugApi?.insertedDictationEnds?.()))
   // Второе изменение не должно снова двигать каретку.
   selectionState.ranges.length = 0
   observerCallbacks[0]()
