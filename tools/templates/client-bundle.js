@@ -237,6 +237,15 @@ window.__ModuleLoader__.load({
 
 		/** Ports the host half listens on for the personal dictionary (see the host template). */
 		const DICTIONARY_PORTS = [47118, 47119, 47120, 47121, 47122];
+		/** Last port that answered: avoids scanning five ports on every request. */
+		let knownHostPort;
+		function hostPortOrder() {
+			if (knownHostPort === undefined || !DICTIONARY_PORTS.includes(knownHostPort)) return DICTIONARY_PORTS;
+			return [knownHostPort, ...DICTIONARY_PORTS.filter((port) => port !== knownHostPort)];
+		}
+		function markHostPort(port) {
+			knownHostPort = port;
+		}
 
 		/**
 		 * Adds a "+ в словарь" chip next to a text selection inside an editable
@@ -329,28 +338,57 @@ window.__ModuleLoader__.load({
 		let dictationInsertion = null;
 		/** When the insertion was captured. */
 		let dictationInsertedAt = 0;
+		/** Session id captured when the current recording started. */
+		let dictationSessionId;
 		/** Whether the caret fix still waits for the insertion mutation. */
 		let caretFixPending = false;
 		/** Debounce timer for auto-learning. */
 		let learnTimer;
 
-		/** Recovery state for a transcription that never reached the composer. */
+		/** Recovery state for dictations whose transcript never reached a composer. */
 		let recoveryTimer;
 		let recoveryPanel;
+		let recoveryQueue = [];
+		let recoveryCurrent;
+		let recoveryTitle;
 		let recoveryText = "";
 		let recoveryWatchTimer;
+		let recoveryProcessing = false;
+		let pendingDictations = [];
+		const claimedTranscripts = new Set();
 		const RECOVERY_STORAGE_KEY = "dsh-locale-ru-recovery";
 
-		/** Stores the pending recovery text so an app reload keeps it. */
-		function storeRecovery(at, text) {
+		/** Reads the current DSH session id, when the app exposes it. */
+		function currentSessionId() {
 			try {
-				localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify({ at, text }));
+				const raw = localStorage.getItem("dsh.sessions.current");
+				if (raw === null || raw === "") return undefined;
+				const parsed = JSON.parse(raw);
+				return typeof parsed?.sessionId === "string" ? parsed.sessionId : undefined;
+			} catch (error) {
+				return undefined;
+			}
+		}
+
+		/** Persists the recovery queue; the open panel is stored first. */
+		function persistRecoveryQueue() {
+			try {
+				const items = [];
+				if (recoveryCurrent !== undefined) items.push(recoveryCurrent);
+				items.push(...recoveryQueue);
+				if (items.length === 0) {
+					localStorage.removeItem(RECOVERY_STORAGE_KEY);
+					return;
+				}
+				localStorage.setItem(RECOVERY_STORAGE_KEY, JSON.stringify({
+					items: items.map((item) => ({ at: item.at, endedAt: item.endedAt, text: item.text, session: item.session })),
+				}));
 			} catch (error) {
 				// localStorage недоступен
 			}
 		}
 
-		/** Drops the stored recovery text. */
+		/** Drops the stored recovery queue. */
 		function clearStoredRecovery() {
 			try {
 				localStorage.removeItem(RECOVERY_STORAGE_KEY);
@@ -359,8 +397,8 @@ window.__ModuleLoader__.load({
 			}
 		}
 
-		/** Hides the recovery panel. */
-		function hideRecoveryPanel() {
+		/** Removes the panel DOM and stops its watcher. */
+		function removeRecoveryPanel() {
 			clearInterval(recoveryWatchTimer);
 			recoveryWatchTimer = undefined;
 			if (recoveryPanel === undefined) return;
@@ -369,22 +407,27 @@ window.__ModuleLoader__.load({
 			recoveryPanel = undefined;
 		}
 
+		/** Hard-hides recovery: used on dispose and by the debug bridge. */
+		function hideRecoveryPanel() {
+			removeRecoveryPanel();
+			recoveryCurrent = undefined;
+			recoveryQueue = [];
+			recoveryText = "";
+			clearStoredRecovery();
+		}
+
 		/** Normalized words, for checking whether the transcript already reached a draft. */
 		function recoveryWords(text) {
 			return String(text ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(/\s+/u).filter((word) => word.length >= 3);
 		}
 
-		/**
-		 * True when some composer already contains the recovered transcript.
-		 * Вставка идёт по span, зафиксированному до записи: если он устарел,
-		 * стоковый плагин возвращает false, но текст мог появиться другим путём
-		 * (поздняя вставка, ChronoFlow, ручная правка). Показывать панель и
-		 * тем более вставлять повторно в этом случае нельзя — иначе дубль.
-		 */
-		function composerContainsText(text) {
-			const words = recoveryWords(text);
-			if (words.length === 0) return false;
-			const sample = [...new Set(words)].slice(0, 20);
+		/** Compact normalized text, for exact matching. */
+		function recoveryCompact(text) {
+			return String(text ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+		}
+
+		/** All composers currently mounted in the app. */
+		function recoveryComposers() {
 			const roots = [];
 			try {
 				if (typeof document.querySelectorAll === "function") roots.push(...document.querySelectorAll("[contenteditable=true]"));
@@ -400,11 +443,49 @@ window.__ModuleLoader__.load({
 					stack.push(...(element.children ?? []));
 				}
 			}
-			const haystack = roots.map((element) => String(element.innerText ?? element.textContent ?? "")).join(" ");
-			const hayWords = new Set(recoveryWords(haystack));
-			let hits = 0;
-			for (const word of sample) if (hayWords.has(word)) hits += 1;
-			return hits / sample.length >= 0.6;
+			return roots;
+		}
+
+		/**
+		 * True when some composer already contains the recovered transcript.
+		 * Вставка идёт по span, зафиксированному до записи: если он устарел,
+		 * стоковый плагин возвращает false, но текст мог появиться другим путём
+		 * (поздняя вставка, ChronoFlow, ручная правка). Показывать панель и
+		 * тем более вставлять повторно в этом случае нельзя — иначе дубль.
+		 */
+		/** Counts transcript words found in order in the draft (greedy subsequence). */
+		function orderedWordMatches(words, haystackWords) {
+			let pointer = 0;
+			let matched = 0;
+			for (const word of words) {
+				let index = pointer;
+				while (index < haystackWords.length && haystackWords[index] !== word) index += 1;
+				if (index >= haystackWords.length) continue;
+				matched += 1;
+				pointer = index + 1;
+			}
+			return matched;
+		}
+
+		function composerContainsText(text) {
+			const words = recoveryWords(text);
+			if (words.length === 0) return false;
+			const haystacks = recoveryComposers().map((element) => String(element.innerText ?? element.textContent ?? ""));
+			const compactText = recoveryCompact(text).slice(0, 160);
+			for (const haystack of haystacks) {
+				const compactHaystack = recoveryCompact(haystack);
+				if (compactText.length >= 8 && compactHaystack.includes(compactText)) return true;
+				const hayWords = recoveryWords(haystack);
+				if (words.length <= 4) {
+					if (orderedWordMatches(words, hayWords) === words.length) return true;
+					continue;
+				}
+				// Порядок слов важнее набора: иначе две разные диктовки с общими
+				// словами («потерянная диктовка про…») выглядят одинаковыми.
+				const matched = orderedWordMatches(words, hayWords);
+				if (matched >= Math.max(5, Math.ceil(words.length * 0.75))) return true;
+			}
+			return false;
 		}
 
 		/** Finds the composer that should receive the recovered text. */
@@ -415,23 +496,50 @@ window.__ModuleLoader__.load({
 				if (editable !== null) return editable;
 			}
 			if (lastComposer !== null && document.body !== undefined && document.body.contains(lastComposer)) return lastComposer;
-			return null;
+			const mounted = recoveryComposers();
+			return mounted.length === 1 ? mounted[0] : null;
 		}
 
-		/** Inserts text into the composer; false when no target is available. */
-		function insertRecoveredText(text) {
+		/** Moves the caret to the end of an editable, when the editor supports it. */
+		function moveCaretToEnd(composer) {
+			try {
+				const selection = document.getSelection();
+				if (!selection || typeof document.createRange !== "function") return;
+				const range = document.createRange();
+				range.selectNodeContents(composer);
+				range.collapse(false);
+				selection.removeAllRanges();
+				selection.addRange(range);
+			} catch (error) {
+				// редактор мог размонтироваться
+			}
+		}
+
+		/**
+		 * Inserts recovered text at the end of the live composer.
+		 * @param text - transcript to insert.
+		 * @param session - session id captured during dictation, when known.
+		 * @returns "already" | "wrong-session" | true | false.
+		 */
+		function insertRecoveredText(text, session) {
 			if (composerContainsText(text)) return "already";
+			const liveSession = currentSessionId();
+			if (typeof session === "string" && session !== "" && typeof liveSession === "string" && liveSession !== "" && session !== liveSession) {
+				return "wrong-session";
+			}
 			const composer = activeComposer();
 			if (composer === null) return false;
+			const draft = String(composer.innerText ?? composer.textContent ?? "");
+			const separator = draft.trim() === "" ? "" : (draft.endsWith("\n") ? "" : "\n\n");
+			const inserted = separator + text;
 			try {
 				composer.focus();
-				if (typeof document.execCommand === "function" && document.execCommand("insertText", false, text)) return true;
-			} catch (error) {
-				// ниже пробуем напрямую
-			}
-			try {
-				const current = String(composer.innerText ?? "");
-				composer.innerText = current + text;
+				moveCaretToEnd(composer);
+				if (typeof document.execCommand === "function" && document.execCommand("insertText", false, inserted)) {
+					const after = String(composer.innerText ?? composer.textContent ?? "");
+					if (after.includes(text.slice(0, 24))) return true;
+				}
+				composer.innerText = draft + inserted;
 				composer.dispatchEvent(new Event("input", { bubbles: true }));
 				return true;
 			} catch (error) {
@@ -447,72 +555,7 @@ window.__ModuleLoader__.load({
 			return element;
 		}
 
-		/** Shows the recovery panel: the transcript was never inserted. */
-		function showRecoveryPanel(text, at) {
-			if (typeof text !== "string" || text.trim() === "") return;
-			if (composerContainsText(text)) {
-				dictationInsertedAt = Date.now();
-				clearStoredRecovery();
-				hideRecoveryPanel();
-				return;
-			}
-			hideRecoveryPanel();
-			recoveryText = text;
-			storeRecovery(at, text);
-			const panel = recoveryElement("div", "position:fixed;right:16px;bottom:16px;z-index:2147483647;max-width:420px;display:flex;flex-direction:column;gap:8px;"
-				+ "padding:12px 14px;border-radius:12px;background:rgba(20,20,22,.97);border:1px solid rgba(122,162,255,.4);box-shadow:0 10px 32px rgba(0,0,0,.5);color:#f2f2f5;"
-				+ "font:500 12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
-			panel.setAttribute("data-dsh-locale-ru-recovery", "");
-			panel.appendChild(recoveryElement("div", "font-weight:700;font-size:13px", "Диктовка не попала в поле ввода"));
-			panel.appendChild(recoveryElement("div", "color:#b6c0d2;max-height:120px;overflow:auto;white-space:pre-wrap", text.length > 400 ? `${text.slice(0, 400)}…` : text));
-			const actions = recoveryElement("div", "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap");
-			const insert = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(40,60,110,.95);color:#fff;font-weight:600", "Вставить");
-			insert.setAttribute("role", "button");
-			insert.addEventListener("click", () => {
-				const result = insertRecoveredText(recoveryText);
-				if (result === "already") {
-					hideRecoveryPanel();
-					clearStoredRecovery();
-					showToast("Диктовка уже в поле ввода — вставлять не нужно", true);
-				} else if (result) {
-					hideRecoveryPanel();
-					clearStoredRecovery();
-					showToast("Диктовка вставлена", true);
-				} else {
-					showToast("Некуда вставить — текст скопирован. Вставьте в поле ввода", true);
-					void copyRecoveredText();
-				}
-			});
-		const copy = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.9);color:#f2f2f5;font-weight:600", "Скопировать");
-			copy.setAttribute("role", "button");
-			copy.addEventListener("click", () => void copyRecoveredText());
-			const close = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.65);color:#b6c0d2;font-weight:600", "Закрыть");
-			close.setAttribute("role", "button");
-			close.addEventListener("click", () => {
-				hideRecoveryPanel();
-				clearStoredRecovery();
-			});
-			actions.appendChild(insert);
-			actions.appendChild(copy);
-			actions.appendChild(close);
-			panel.appendChild(actions);
-			if (document.body !== undefined) document.body.appendChild(panel);
-			recoveryPanel = panel;
-			clearInterval(recoveryWatchTimer);
-			recoveryWatchTimer = setInterval(() => {
-				if (recoveryPanel === undefined) {
-					clearInterval(recoveryWatchTimer);
-					recoveryWatchTimer = undefined;
-					return;
-				}
-				if (!composerContainsText(recoveryText)) return;
-				hideRecoveryPanel();
-				clearStoredRecovery();
-				showToast("Диктовка появилась в поле ввода — вставлять не нужно", true);
-			}, 1500);
-		}
-
-		/** Copies the recovery text to the clipboard. */
+		/** Copies the currently shown recovery text to the clipboard. */
 		async function copyRecoveredText() {
 			try {
 				await navigator.clipboard.writeText(recoveryText);
@@ -522,63 +565,216 @@ window.__ModuleLoader__.load({
 			}
 		}
 
-		/** Fetches the last transcription from the host. */
-		async function fetchLastTranscriptionInfo() {
-			for (const port of DICTIONARY_PORTS) {
+		/** Closes the current panel and shows the next queued recovery. */
+		function dismissCurrentRecovery() {
+			removeRecoveryPanel();
+			recoveryCurrent = undefined;
+			recoveryText = "";
+			persistRecoveryQueue();
+			if (recoveryQueue.length > 0) setTimeout(() => showNextRecovery(), 250);
+		}
+
+		/** Shows the next queued transcript, skipping ones already in a composer. */
+		function showNextRecovery() {
+			if (recoveryCurrent !== undefined) return;
+			while (recoveryQueue.length > 0) {
+				const item = recoveryQueue.shift();
+				if (composerContainsText(item.text)) continue;
+				recoveryCurrent = item;
+				recoveryText = item.text;
+				persistRecoveryQueue();
+				renderRecoveryPanel();
+				startRecoveryWatch();
+				return;
+			}
+			persistRecoveryQueue();
+		}
+
+		/** Renders the panel for the current recovery item. */
+		function renderRecoveryPanel() {
+			removeRecoveryPanel();
+			if (recoveryCurrent === undefined) return;
+			const text = recoveryCurrent.text;
+			const panel = recoveryElement("div", "position:fixed;right:16px;bottom:16px;z-index:2147483647;max-width:420px;display:flex;flex-direction:column;gap:8px;"
+				+ "padding:12px 14px;border-radius:12px;background:rgba(20,20,22,.97);border:1px solid rgba(122,162,255,.4);box-shadow:0 10px 32px rgba(0,0,0,.5);color:#f2f2f5;"
+				+ "font:500 12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+			panel.setAttribute("data-dsh-locale-ru-recovery", "");
+			const queued = recoveryQueue.length;
+			recoveryTitle = recoveryElement("div", "font-weight:700;font-size:13px", queued > 0 ? `Диктовка не попала в поле ввода · ещё ${queued}` : "Диктовка не попала в поле ввода");
+			panel.appendChild(recoveryTitle);
+			panel.appendChild(recoveryElement("div", "color:#b6c0d2;max-height:120px;overflow:auto;white-space:pre-wrap", text.length > 400 ? `${text.slice(0, 400)}…` : text));
+			const actions = recoveryElement("div", "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap");
+			const insert = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(40,60,110,.95);color:#fff;font-weight:600", "Вставить");
+			insert.setAttribute("role", "button");
+			insert.addEventListener("click", () => {
+				const result = insertRecoveredText(text, recoveryCurrent?.session);
+				if (result === "already") {
+					dismissCurrentRecovery();
+					showToast("Диктовка уже в поле ввода — вставлять не нужно", true);
+				} else if (result === "wrong-session") {
+					void copyRecoveredText();
+					dismissCurrentRecovery();
+					showToast("Диктовка была в другом чате — текст скопирован, вставьте вручную", false);
+				} else if (result) {
+					dismissCurrentRecovery();
+					showToast("Диктовка вставлена в конец поля", true);
+				} else {
+					showToast("Некуда вставить — текст скопирован. Вставьте в поле ввода", true);
+					void copyRecoveredText();
+				}
+			});
+			const copy = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.9);color:#f2f2f5;font-weight:600", "Скопировать");
+			copy.setAttribute("role", "button");
+			copy.addEventListener("click", () => void copyRecoveredText());
+			const close = recoveryElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.65);color:#b6c0d2;font-weight:600", "Закрыть");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => dismissCurrentRecovery());
+			actions.appendChild(insert);
+			actions.appendChild(copy);
+			actions.appendChild(close);
+			panel.appendChild(actions);
+			if (document.body !== undefined) document.body.appendChild(panel);
+			recoveryPanel = panel;
+		}
+
+		/** Watches the open panel: late insertion should hide it instead of duplicating. */
+		function startRecoveryWatch() {
+			clearInterval(recoveryWatchTimer);
+			recoveryWatchTimer = setInterval(() => {
+				if (recoveryCurrent === undefined) {
+					clearInterval(recoveryWatchTimer);
+					recoveryWatchTimer = undefined;
+					return;
+				}
+				if (!composerContainsText(recoveryCurrent.text)) return;
+				dismissCurrentRecovery();
+				showToast("Диктовка появилась в поле ввода — вставлять не нужно", true);
+			}, 1500);
+		}
+
+		/** Adds one recovered transcript to the queue, skipping duplicates. */
+		function enqueueRecovery(item) {
+			if (item === null || item === undefined) return;
+			const text = String(item.text ?? "");
+			if (text.trim() === "") return;
+			if (composerContainsText(text)) return;
+			const same = (entry) => entry !== undefined && recoveryCompact(entry.text) === recoveryCompact(text);
+			if (same(recoveryCurrent) || recoveryQueue.some(same)) return;
+			const at = Number(item.at) || Date.now();
+			recoveryQueue.push({
+				text,
+				at,
+				endedAt: Number(item.endedAt) || at,
+				session: typeof item.session === "string" ? item.session : undefined,
+			});
+			persistRecoveryQueue();
+			if (recoveryCurrent !== undefined) {
+				if (recoveryTitle !== undefined) recoveryTitle.textContent = `Диктовка не попала в поле ввода · ещё ${recoveryQueue.length}`;
+			} else {
+				showNextRecovery();
+			}
+		}
+
+		/** Public/debug entry point: queue a transcript for recovery. */
+		function showRecoveryPanel(text, at) {
+			enqueueRecovery({ text, at: Number(at) || Date.now(), endedAt: Number(at) || Date.now(), session: currentSessionId() });
+		}
+
+		/** Fetches all recent host transcriptions newer than `after`. */
+		async function fetchTranscriptionsAfter(after) {
+			for (const port of hostPortOrder()) {
 				try {
-					const response = await fetch(`http://127.0.0.1:${port}/last-transcription`, { signal: AbortSignal.timeout(1500) });
+					const response = await fetch(`http://127.0.0.1:${port}/transcriptions?after=${encodeURIComponent(String(after))}`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
-					return await response.json();
+					markHostPort(port);
+					const payload = await response.json();
+					return Array.isArray(payload?.items) ? payload.items : [];
 				} catch (error) {
 					// следующий порт
 				}
 			}
-			return undefined;
+			return [];
+		}
+
+		/** Promise-based sleep for the recovery scheduler. */
+		function recoverySleep(ms) {
+			return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 		}
 
 		/**
-		 * After a recording stops, waits for the transcript and checks that it
-		 * reached the composer. When the window/tab was switched mid-processing,
-		 * the stock plugin may drop the text — we offer it for recovery.
+		 * Processes pending dictations one by one: maps each to its own host
+		 * transcript entry, waits for the stock insertion, and queues recovery
+		 * only when the text really is absent from the composer.
 		 */
-		function scheduleRecoveryCheck() {
-			clearTimeout(recoveryTimer);
-			const endedAt = Date.now();
-			recoveryTimer = setTimeout(async () => {
-				const deadline = Date.now() + 25000;
-				let payload;
-				while (Date.now() < deadline) {
-					payload = await fetchLastTranscriptionInfo();
-					if (payload !== undefined && Number(payload.at) > endedAt && typeof payload.text === "string" && payload.text !== "") break;
-					payload = undefined;
-					await new Promise((resolvePromise) => setTimeout(resolvePromise, 600));
+		async function processPendingRecoveries() {
+			if (recoveryProcessing) return;
+			if (clientDisposed === true) return;
+			recoveryProcessing = true;
+			try {
+				while (true) {
+					if (clientDisposed === true) break;
+					const now = Date.now();
+					pendingDictations = pendingDictations.filter((entry) => entry.resolved !== true && now - entry.endedAt < 60000);
+					const entry = pendingDictations.find((candidate) => candidate.resolved !== true);
+					if (entry === undefined) break;
+					if (entry.transcript === undefined) {
+						const items = await fetchTranscriptionsAfter(entry.endedAt);
+						const candidates = items
+							.map((item) => ({ at: Number(item.at) || 0, text: String(item.text ?? "") }))
+							.filter((item) => item.at > entry.endedAt && item.text !== "" && !claimedTranscripts.has(item.at))
+							.sort((left, right) => left.at - right.at);
+						if (candidates.length === 0) {
+							await recoverySleep(700);
+							continue;
+						}
+						entry.transcript = candidates[0];
+						claimedTranscripts.add(candidates[0].at);
+					}
+					// Даём стоковой вставке и ChronoFlow время завершиться.
+					await recoverySleep(2500);
+					if (!composerContainsText(entry.transcript.text)) {
+						enqueueRecovery({
+							text: entry.transcript.text,
+							at: entry.transcript.at,
+							endedAt: entry.endedAt,
+							session: entry.session,
+						});
+					}
+					entry.resolved = true;
 				}
-				if (payload === undefined) return;
-				// Даём вставке и нашим наблюдателям время сработать: длинная
-				// диктовка в auto/Whisper может распознаваться 10–20 секунд.
-				await new Promise((resolvePromise) => setTimeout(resolvePromise, 2500));
-				if (dictationInsertedAt > endedAt) return;
-				if (composerContainsText(payload.text)) {
-					dictationInsertedAt = Date.now();
-					clearStoredRecovery();
-					return;
-				}
-				showRecoveryPanel(payload.text, Number(payload.at) || Date.now());
-			}, 500);
+			} finally {
+				recoveryProcessing = false;
+			}
 		}
 
-		/** Restores a stored recovery panel after an app reload. */
+		/** Starts or restarts the recovery scheduler. */
+		function scheduleRecoveryProcessing(delay = 600) {
+			clearTimeout(recoveryTimer);
+			recoveryTimer = setTimeout(() => {
+				void processPendingRecoveries();
+			}, delay);
+		}
+
+		/** Restores stored recovery items after an app reload. */
 		function restoreStoredRecovery() {
 			try {
 				const raw = localStorage.getItem(RECOVERY_STORAGE_KEY);
-				if (raw === null) return;
+				if (raw === null || raw === "") return;
 				const parsed = JSON.parse(raw);
-				if (typeof parsed?.text !== "string" || parsed.text.trim() === "") return;
-				if (Date.now() - Number(parsed.at) > 30 * 60 * 1000) {
-					clearStoredRecovery();
-					return;
+				const items = Array.isArray(parsed?.items)
+					? parsed.items
+					: (typeof parsed?.text === "string" ? [parsed] : []);
+				const now = Date.now();
+				for (const item of items) {
+					if (typeof item?.text !== "string" || item.text.trim() === "") continue;
+					if (now - (Number(item.at) || 0) > 30 * 60 * 1000) continue;
+					enqueueRecovery({
+						text: item.text,
+						at: Number(item.at) || now,
+						endedAt: Number(item.endedAt) || Number(item.at) || now,
+						session: typeof item.session === "string" ? item.session : undefined,
+					});
 				}
-				showRecoveryPanel(parsed.text, Number(parsed.at) || Date.now());
 			} catch (error) {
 				// битые данные — просто забываем
 			}
@@ -596,7 +792,8 @@ window.__ModuleLoader__.load({
 
 		/** Marks the moment a dictation recording ended; the insertion follows. */
 		function markDictationEnded(durationMs) {
-			dictationEndedAt = Date.now();
+			const endedAt = Date.now();
+			dictationEndedAt = endedAt;
 			dictationHighlightDismissed = false;
 			dictationHighlightDrawn = false;
 			clearDictationHighlights();
@@ -604,7 +801,17 @@ window.__ModuleLoader__.load({
 			dictationInsertion = null;
 			dictationInsertedAt = 0;
 			dictationBeforeText = lastComposer === null ? null : String(lastComposer.innerText ?? "");
-			if (Number(durationMs) >= 500) scheduleRecoveryCheck();
+			if (Number(durationMs) < 500) return;
+			pendingDictations.push({
+				endedAt,
+				session: dictationSessionId ?? currentSessionId(),
+				resolved: false,
+				transcript: undefined,
+			});
+			if (pendingDictations.length > 12) {
+				pendingDictations = pendingDictations.filter((entry) => entry.resolved !== true).slice(-12);
+			}
+			scheduleRecoveryProcessing(600);
 		}
 
 		/**
@@ -902,10 +1109,11 @@ window.__ModuleLoader__.load({
 		/** Fetches the dictionary from the host half, cached for a short time. */
 		async function fetchDictionary() {
 			if (Date.now() - dictionaryCache.at < DICTIONARY_CACHE_MS) return dictionaryCache;
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/dictionary`, { signal: AbortSignal.timeout(1200) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					const data = await response.json();
 					dictionaryCache = {
 						at: Date.now(),
@@ -923,7 +1131,7 @@ window.__ModuleLoader__.load({
 
 		/** Posts a JSON payload to the first responding dictionary port. */
 		async function postDictionary(path, payload) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}${path}`, {
 						method: "POST",
@@ -932,6 +1140,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1273,10 +1482,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches info about the last transcription from the host. */
 		async function fetchLastTranscription() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/last-transcription`, { signal: AbortSignal.timeout(1200) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// порт не слушается — пробуем следующий
@@ -1401,6 +1611,7 @@ window.__ModuleLoader__.load({
 
 		/** Closes the dictionary modal. */
 		function closeDictionaryModal() {
+			dictionaryOpenGeneration += 1;
 			if (dictionaryModal === undefined) return;
 			const { backdrop } = dictionaryModal;
 			if (typeof backdrop.remove === "function") backdrop.remove();
@@ -1437,10 +1648,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches the engine settings from the host. */
 		async function fetchEngineInfo() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/engine`, { signal: AbortSignal.timeout(1200) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1451,7 +1663,7 @@ window.__ModuleLoader__.load({
 
 		/** Saves the engine choice through the host. */
 		async function saveEngineChoice(engine, merge) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/engine`, {
 						method: "POST",
@@ -1460,6 +1672,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1470,10 +1683,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches term suggestions from the host (garbled terms from transcripts). */
 		async function fetchSuggestions() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/suggestions`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					const payload = await response.json();
 					return Array.isArray(payload?.suggestions) ? payload.suggestions : [];
 				} catch (error) {
@@ -1488,10 +1702,11 @@ window.__ModuleLoader__.load({
 		let reviewCorrupt = false;
 
 		async function fetchReview() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/review`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					const payload = await response.json();
 					reviewCorrupt = payload?.corrupt === true;
 					return Array.isArray(payload?.pairs) ? payload.pairs : [];
@@ -1541,10 +1756,11 @@ window.__ModuleLoader__.load({
 		/** Fetches voice-input settings from the host. */
 		async function fetchSettings() {
 			if (Date.now() - settingsCache.at < 30000) return settingsCache;
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/settings`, { signal: AbortSignal.timeout(1200) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					const payload = await response.json();
 					settingsCache = { at: Date.now(), autoLearn: payload?.autoLearn !== false };
 					return settingsCache;
@@ -1557,7 +1773,7 @@ window.__ModuleLoader__.load({
 
 		/** Saves the auto-learn toggle. */
 		async function saveAutoLearn(value) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/settings`, {
 						method: "POST",
@@ -1566,6 +1782,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					settingsCache = { at: Date.now(), autoLearn: value };
 					return await response.json();
 				} catch (error) {
@@ -1577,10 +1794,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches dynamic dictionary profiles. */
 		async function fetchProfiles() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/profiles`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1591,7 +1809,7 @@ window.__ModuleLoader__.load({
 
 		/** Switches the active dynamic dictionary. */
 		async function switchProfileById(id) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/profiles/switch`, {
 						method: "POST",
@@ -1600,6 +1818,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1610,7 +1829,7 @@ window.__ModuleLoader__.load({
 
 		/** Creates a dynamic dictionary from the current one. */
 		async function createProfileByName(name) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/profiles/create`, {
 						method: "POST",
@@ -1619,6 +1838,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1629,7 +1849,7 @@ window.__ModuleLoader__.load({
 
 		/** Deletes a dynamic dictionary. */
 		async function deleteProfileById(id) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/profiles/delete`, {
 						method: "POST",
@@ -1638,6 +1858,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1648,7 +1869,7 @@ window.__ModuleLoader__.load({
 
 		/** Saves one boolean setting (autoLearn / autoSwitch). */
 		async function saveSetting(partial) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/settings`, {
 						method: "POST",
@@ -1657,6 +1878,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(1500),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1695,10 +1917,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches the voice-input status (engine, model, preparation). */
 		async function fetchVoiceStatus() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/status`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1709,10 +1932,11 @@ window.__ModuleLoader__.load({
 
 		/** Fetches dictionary usage statistics. */
 		async function fetchStats() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/stats`, { signal: AbortSignal.timeout(1500) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1723,7 +1947,7 @@ window.__ModuleLoader__.load({
 
 		/** Removes never-used dictionary words (preview with dryRun). */
 		async function pruneDictionary(dryRun = true) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/stats/prune`, {
 						method: "POST",
@@ -1732,6 +1956,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(2000),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1742,7 +1967,7 @@ window.__ModuleLoader__.load({
 
 		/** Imports a dictionary from a URL. */
 		async function importDictionaryUrl(url) {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/dictionary/import-url`, {
 						method: "POST",
@@ -1756,6 +1981,7 @@ window.__ModuleLoader__.load({
 						return await response.json().catch(() => ({ ok: false, reason: `http-${response.status}` }));
 					}
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1766,10 +1992,11 @@ window.__ModuleLoader__.load({
 
 		/** Runs the health checks. */
 		async function fetchDoctor() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/doctor`, { signal: AbortSignal.timeout(2000) });
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1780,7 +2007,7 @@ window.__ModuleLoader__.load({
 
 		/** Asks the host to prepare the recognition engine and model. */
 		async function prepareModel() {
-			for (const port of DICTIONARY_PORTS) {
+			for (const port of hostPortOrder()) {
 				try {
 					const response = await fetch(`http://127.0.0.1:${port}/model/prepare`, {
 						method: "POST",
@@ -1788,6 +2015,7 @@ window.__ModuleLoader__.load({
 						signal: AbortSignal.timeout(2000),
 					});
 					if (!response.ok) continue;
+					markHostPort(port);
 					return await response.json();
 				} catch (error) {
 					// следующий порт
@@ -1801,6 +2029,7 @@ window.__ModuleLoader__.load({
 
 		/** Closes the settings window. */
 		function closeVoiceSettingsModal() {
+			voiceSettingsGeneration += 1;
 			if (voiceSettingsModal === undefined) return;
 			clearInterval(voiceSettingsModal.poll);
 			const { backdrop } = voiceSettingsModal;
@@ -1915,6 +2144,21 @@ window.__ModuleLoader__.load({
 			const profilesPayload = voiceSettingsModal.profiles;
 			if (profilesPayload === undefined) {
 				body.appendChild(modalElement("div", "padding:4px 10px 6px;color:#8a8a95;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Загрузка…"));
+			} else if (profilesPayload === "error") {
+				const failure = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 10px 6px;color:#e69f9f;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Не удалось загрузить словари: хост не отвечает.");
+				const retry = modalElement("span", "cursor:pointer;color:#9fe6b4;font-weight:700;flex:none", "Повторить");
+				retry.setAttribute("role", "button");
+				retry.addEventListener("click", async () => {
+					if (voiceSettingsModal === undefined) return;
+					voiceSettingsModal.profiles = undefined;
+					renderVoiceSettingsModal();
+					const next = await fetchProfiles();
+					if (voiceSettingsModal === undefined) return;
+					voiceSettingsModal.profiles = next ?? "error";
+					renderVoiceSettingsModal();
+				});
+				failure.appendChild(retry);
+				body.appendChild(failure);
 			} else {
 				const activeId = profilesPayload.active;
 				for (const profile of profilesPayload.profiles ?? []) {
@@ -2061,9 +2305,13 @@ window.__ModuleLoader__.load({
 			doctorButton.addEventListener("click", async () => {
 				const result = await fetchDoctor();
 				if (voiceSettingsModal === undefined) return;
+				if (result === undefined) {
+					showToast("Не удалось проверить: хост не отвечает", false);
+					return;
+				}
 				voiceSettingsModal.doctor = result;
 				renderVoiceSettingsModal();
-				showToast(result?.ok === true ? "Всё в порядке" : "Есть проблемы — смотрите список", result?.ok === true);
+				showToast(result.ok === true ? "Всё в порядке" : "Есть проблемы — смотрите список", result.ok === true);
 			});
 			body.appendChild(doctorButton);
 			if (doctor !== undefined) {
@@ -2080,12 +2328,15 @@ window.__ModuleLoader__.load({
 
 		/** Opens the settings window. */
 		let voiceSettingsOpening = false;
+		let voiceSettingsGeneration = 0;
 		async function openVoiceSettingsModal() {
 			if (voiceSettingsModal !== undefined || voiceSettingsOpening === true) return;
 			voiceSettingsOpening = true;
+			const generation = ++voiceSettingsGeneration;
 			const [status, profiles] = await Promise.all([fetchVoiceStatus(), fetchProfiles()]);
 			voiceSettingsOpening = false;
-			if (clientDisposed === true) return;
+			if (clientDisposed === true || generation !== voiceSettingsGeneration) return;
+			const profilesState = profiles ?? "error";
 			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
 			const panel = modalElement("div", "width:min(540px,92vw);max-height:80vh;display:flex;flex-direction:column;"
 				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
@@ -2122,7 +2373,7 @@ window.__ModuleLoader__.load({
 			panel.appendChild(footer);
 			backdrop.appendChild(panel);
 			if (document.body !== undefined) document.body.appendChild(backdrop);
-			voiceSettingsModal = { backdrop, panel, body, status, profiles, doctor: undefined, poll: undefined };
+			voiceSettingsModal = { backdrop, panel, body, status, profiles: profilesState, doctor: undefined, poll: undefined };
 			renderVoiceSettingsModal();
 			// Пока идёт подготовка — обновляем статус.
 			voiceSettingsModal.poll = setInterval(async () => {
@@ -2194,6 +2445,18 @@ window.__ModuleLoader__.load({
 			const words = allWords.filter((word) => wordFilter === "all" || sourceOfWord(word) === wordFilter);
 			const pairs = Object.entries(dictionary.replacements ?? {}).filter(([heard, chosen]) => query === "" || `${heard} ${chosen}`.toLowerCase().includes(query));
 			while (body.firstChild !== undefined && body.firstChild !== null) body.removeChild(body.firstChild);
+
+			if (dictionaryModal.hostMissing === true) {
+				const failure = modalElement("div", "display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 4px 2px;padding:8px 10px;border-radius:9px;background:rgba(80,30,30,.45);border:1px solid rgba(230,120,120,.3);color:#f0c9c9;font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", "Хост словаря не отвечает: изменения не сохранятся.");
+				const retry = modalElement("span", "cursor:pointer;color:#9fe6b4;font-weight:700;flex:none", "Повторить");
+				retry.setAttribute("role", "button");
+				retry.addEventListener("click", () => {
+					closeDictionaryModal();
+					setTimeout(() => void openDictionaryModal(), 50);
+				});
+				failure.appendChild(retry);
+				body.appendChild(failure);
+			}
 
 			const section = (title, count) => {
 				body.appendChild(modalElement("div", "padding:10px 4px 4px;color:#8a8a95;font:600 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.04em", `${title} (${count})`));
@@ -2571,10 +2834,12 @@ window.__ModuleLoader__.load({
 
 		/** Opens the dictionary modal: search, add field and both lists. */
 		let dictionaryModalOpening = false;
+		let dictionaryOpenGeneration = 0;
 
 		async function openDictionaryModal() {
 			if (dictionaryModal !== undefined || dictionaryModalOpening === true) return;
 			dictionaryModalOpening = true;
+			const generation = ++dictionaryOpenGeneration;
 			const [dictionary, engineInfo, suggestions, review, stats, profiles] = await Promise.all([
 				fetchDictionary(),
 				fetchEngineInfo(),
@@ -2584,6 +2849,8 @@ window.__ModuleLoader__.load({
 				fetchProfiles(),
 			]);
 			dictionaryModalOpening = false;
+			if (generation !== dictionaryOpenGeneration || clientDisposed === true) return;
+			const hostMissing = engineInfo === undefined && profiles === undefined;
 			const backdrop = modalElement("div", "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px");
 			const panel = modalElement("div", "width:min(520px,92vw);max-height:76vh;display:flex;flex-direction:column;"
 				+ "background:rgba(20,20,22,.98);border:1px solid rgba(122,162,255,.35);border-radius:16px;"
@@ -2886,7 +3153,7 @@ window.__ModuleLoader__.load({
 
 			backdrop.appendChild(panel);
 			if (document.body !== undefined) document.body.appendChild(backdrop);
-			dictionaryModal = { backdrop, panel, body, addInput, searchInput, dictionary, engineInfo, suggestions, review, stats, profiles, wordFilter: "all", profilesOpen: false };
+			dictionaryModal = { backdrop, panel, body, addInput, searchInput, dictionary, engineInfo, suggestions, review, stats, profiles, hostMissing, wordFilter: "all", profilesOpen: false };
 			renderDictionaryModal();
 			addInput.focus?.();
 		}
@@ -3088,11 +3355,11 @@ window.__ModuleLoader__.load({
 			const onKeyDown = (event) => {
 				if (event === null || event === undefined) return;
 				if (event.key !== "Escape" && event.keyCode !== 27) return;
-				if (voiceSettingsModal !== undefined) {
+				if (voiceSettingsModal !== undefined || voiceSettingsOpening === true) {
 					closeVoiceSettingsModal();
 					return;
 				}
-				if (dictionaryModal !== undefined) {
+				if (dictionaryModal !== undefined || dictionaryModalOpening === true) {
 					closeDictionaryModal();
 					return;
 				}
@@ -3192,8 +3459,6 @@ window.__ModuleLoader__.load({
 							if (insertion !== undefined) {
 								dictationInsertion = insertion;
 								dictationInsertedAt = Date.now();
-								clearStoredRecovery();
-								hideRecoveryPanel();
 								dictationBeforeText = after;
 								dictationHighlightDismissed = false;
 								dictationHighlightDrawn = false;
@@ -3342,6 +3607,7 @@ window.__ModuleLoader__.load({
 				const tracked = new Proxy(Original, {
 					construct(target, args) {
 						const recorder = Reflect.construct(target, args);
+						dictationSessionId = currentSessionId();
 						const startedAt = Date.now();
 						recorders.add(recorder);
 						recorder.addEventListener("stop", () => {

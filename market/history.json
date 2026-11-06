@@ -346,6 +346,13 @@
     },
     {
       "version": "0.25.1",
+      "date": "2026-11-06T03:15:08+03:00",
+      "strings": 4096,
+      "namespaces": 77,
+      "pluginDescriptions": 564
+    },
+    {
+      "version": "0.25.2",
       "date": "2026-11-06",
       "strings": 4096,
       "namespaces": 77,

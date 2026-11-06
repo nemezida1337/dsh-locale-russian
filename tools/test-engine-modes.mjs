@@ -334,6 +334,12 @@ console.log('last-transcription отдаёт применённые замены
   check('слова совпадают с gigaamText', Array.isArray(info?.words) && info.words.map((word) => word.word).join(' ') === info.gigaamText, JSON.stringify({ words: info?.words, gigaamText: info?.gigaamText }))
   check('длительность аудио в endpoint', info?.audioDurationSeconds === 1, String(info?.audioDurationSeconds))
   check('старые поля не изменились', typeof info?.at === 'number' && info.raw === 'Проверка гитхаб' && info.text === 'Проверка GitHub' && info.mode === 'gigaam', JSON.stringify({ at: info?.at, raw: info?.raw, text: info?.text, mode: info?.mode }))
+  const recent = await fetch(`http://127.0.0.1:${freePort}/transcriptions?after=${info.at - 1}`).then((response) => response.json())
+  check('transcriptions: свежий транскрипт по after', Array.isArray(recent?.items) && recent.items.length === 1 && recent.items[0].text === 'Проверка GitHub', JSON.stringify(recent))
+  const none = await fetch(`http://127.0.0.1:${freePort}/transcriptions?after=${Date.now()}`).then((response) => response.json())
+  check('transcriptions: пусто после текущего времени', Array.isArray(none?.items) && none.items.length === 0, JSON.stringify(none))
+  const sparse = await fetch(`http://127.0.0.1:${freePort}/transcriptions`).then((response) => response.json())
+  check('transcriptions: без параметра отдаёт историю', Array.isArray(sparse?.items) && sparse.items.length === 1, JSON.stringify(sparse))
   check('слова в результате провайдера', Array.isArray(result.words) && result.words.length === 2, JSON.stringify(result.words))
   for (const cleanup of cleanups.reverse()) await cleanup()
   delete process.env.FAKE_TRANSCRIPT

@@ -153,6 +153,7 @@ Object.defineProperty(globalThis, 'navigator', {
 })
 let dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
 let autoLearnSetting = true
+let profilesUnavailable = false
 let profilesState = {
   active: 'default',
   autoSwitch: true,
@@ -183,9 +184,14 @@ Object.defineProperty(globalThis, 'localStorage', {
   },
   configurable: true,
 })
+let fetchDelayMs = 0
+let hostDown = false
 globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body, headers: options.headers ?? {} })
+  if (fetchDelayMs > 0) await new Promise((resolvePromise) => setTimeout(resolvePromise, fetchDelayMs))
+  if (hostDown) return { ok: false, status: 503, json: async () => ({}) }
   if (url.endsWith('/profiles')) {
+    if (profilesUnavailable) return { ok: false, status: 503, json: async () => ({}) }
     return { ok: true, json: async () => ({ ...profilesState }) }
   }
   if (url.endsWith('/stats')) {
@@ -853,6 +859,68 @@ console.log('гонки: закрытие окон во время запрос�
   check('окна закрываются при выгрузке', settingsPanel() === undefined)
 }
 
+console.log('настройки: ошибка загрузки словарей')
+{
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  profilesUnavailable = true
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 180))
+  check('показана ошибка загрузки словарей', settingsTexts().some((text) => text.includes('Не удалось загрузить словари')), JSON.stringify(settingsTexts().slice(0, 4)))
+  profilesUnavailable = false
+  const retry = findInSettings('Повторить')
+  check('есть кнопка повтора', retry !== undefined)
+  retry.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 220))
+  check('после повтора словари загрузились', !settingsTexts().some((text) => text.includes('Не удалось загрузить словари')), JSON.stringify(settingsTexts().slice(0, 4)))
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+}
+
+console.log('открытие: Escape во время загрузки отменяет окно')
+{
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  fetchDelayMs = 120
+  documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  check('настройки не появляются после Escape', settingsPanel() === undefined)
+  if (settingsPanel() !== undefined) closeModal()
+  documentStub.dispatch('keydown', { key: 'd', metaKey: true, shiftKey: true, preventDefault() {} })
+  documentStub.dispatch('keydown', { key: 'Escape' })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  check('словарь не появляется после Escape', modalPanel() === undefined)
+  if (modalPanel() !== undefined) closeModal()
+  fetchDelayMs = 0
+}
+
+console.log('словарь: предупреждение, когда хост не отвечает')
+{
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  hostDown = true
+  await openModal()
+  check('показано предупреждение о хосте', modalTexts().some((text) => text.includes('Хост словаря не отвечает')), JSON.stringify(modalTexts().slice(0, 4)))
+  hostDown = false
+  const findNested = (element, text) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === text) return element
+    for (const child of element.children ?? []) {
+      const found = findNested(child, text)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  const retry = findNested(modalPanel(), 'Повторить')
+  check('есть кнопка повтора', retry !== undefined)
+  retry.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  check('после повтора словарь загрузился', !modalTexts().some((text) => text.includes('Хост словаря не отвечает')))
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+}
+
 console.log('настройки: автопереключение словаря')
 {
   documentStub.dispatch('keydown', { key: ',', metaKey: true, shiftKey: true, preventDefault() {} })
@@ -902,6 +970,45 @@ console.log('восстановление потерянной диктовки'
   check('копирование восстановленного текста', clipboardWrites.some((text) => text.includes('Потерянный текст')), JSON.stringify(clipboardWrites))
   globalThis.__dshLocaleRuRecovery.hide()
   check('панель восстановления закрывается', !documentStub.body.children.some((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null))
+
+  // Очередь: две потерянные диктовки не должны перезаписывать друг друга.
+  console.log('очередь восстановлений')
+  const panelText = (element) => (element?.children ?? []).map((child) => String(child.textContent ?? '')).join(' | ')
+  storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
+  editor.textContent = ''
+  globalThis.__dshLocaleRuRecovery.show('Первая потерянная диктовка про GitHub', Date.now())
+  globalThis.__dshLocaleRuRecovery.show('Вторая потерянная диктовка про Whisper', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
+  const queueState = () => {
+    try { return JSON.parse(storage.get('dsh-locale-ru-recovery') ?? '{}') } catch { return {} }
+  }
+  const queueItems = () => Array.isArray(queueState().items) ? queueState().items : []
+  check('обе диктовки в очереди', queueItems().length === 2, JSON.stringify(queueState()))
+  check('видна первая и счётчик', panelText(recoveryPanel()).includes('ещё 1') && panelText(recoveryPanel()).includes('Первая потерянная'))
+  // Поздняя вставка первой: очередь переключается на вторую.
+  editor.innerText = 'Первая потерянная диктовка про GitHub'
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
+  check('после вставки первой показана вторая', panelText(recoveryPanel()).includes('Вторая потерянная'), panelText(recoveryPanel()))
+  check('в очереди осталась одна', queueItems().length === 1, JSON.stringify(queueState()))
+  // Поздняя вставка второй: панель исчезает, очередь пуста.
+  editor.innerText = 'Первая потерянная диктовка про GitHub Вторая потерянная диктовка про Whisper'
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 1800))
+  check('очередь восстановлений очищена', recoveryPanel() === undefined && storage.get('dsh-locale-ru-recovery') === undefined)
+
+  // Чужой чат: восстанавливать текст в активное поле нельзя.
+  storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
+  editor.textContent = ''
+  globalThis.__dshLocaleRuRecovery.show('Диктовка из другого чата', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-2' }))
+  clipboardWrites.length = 0
+  const foreignPanel = recoveryPanel()
+  const foreignInsert = [...(foreignPanel?.children ?? [])].flatMap((child) => child.children ?? []).find((child) => child.textContent === 'Вставить')
+  foreignInsert.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('в чужой чат текст не вставлен', !String(editor.innerText ?? editor.textContent ?? '').includes('Диктовка из другого чата'))
+  check('текст из другого чата скопирован', clipboardWrites.some((text) => text.includes('Диктовка из другого чата')), JSON.stringify(clipboardWrites))
+  globalThis.__dshLocaleRuRecovery.hide()
   editor.remove()
   storage.clear()
 }

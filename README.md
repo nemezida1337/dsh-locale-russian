@@ -64,7 +64,7 @@ dsh plugin --profile web add dsh-locale-russian
 
 ## Что нового
 
-**0.25.1 — хотфикс:** настройки диктовки снова открываются на DSH 0.2.2 (новый origin `dsh-app://`), а слияние движков больше не переносит фразы из начала в конец.
+**0.25.2 — хотфикс:** recovery больше не дублирует и не путает диктовки, настройки и словарь не зависают при недоступном хосте, а слияние не переносит фразы из начала в конец.
 
 **0.25.0 — скорость, динамические словари и совместимость с DSH 0.2.2.**
 
@@ -120,7 +120,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.25.1"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.25.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 
