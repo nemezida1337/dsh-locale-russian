@@ -567,6 +567,7 @@ console.log('движок читает словарь файлом и перез
   check('движок перезапущен в фоне без диктовки', background.length >= 2, String(background.length))
   const second = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('после изменения словаря распознавание работает', second.text === 'Проверка GitHub и Forge', second.text)
+  check('0.2.2: ответ содержит audioSeconds и inferenceSeconds', typeof second.audioSeconds === 'number' && typeof second.inferenceSeconds === 'number' && second.audioSeconds > 0, JSON.stringify({ audioSeconds: second.audioSeconds, inferenceSeconds: second.inferenceSeconds }))
   delete process.env.FAKE_TRANSCRIPT
   const restarted = readFileSync(argsFile, 'utf8').trim().split('\n')
   check('движок перезапущен с новым файлом', restarted.length >= 2 && restarted[restarted.length - 1].includes('--hotwords-file'), String(restarted.length))
@@ -611,6 +612,7 @@ console.log('проверка обновлений')
       dictionaryPort: port,
       updateFeedUrl: `http://127.0.0.1:${feedPort}/updates.json`,
       updateInstalledVersion: installed,
+      engineBaseUrl: 'http://127.0.0.1:1',
     })
     await new Promise((resolve) => setTimeout(resolve, 250))
     return { port, cleanups }
@@ -628,6 +630,9 @@ console.log('проверка обновлений')
   const fresh = await startHost('1.0.0')
   const update = await fetch(`http://127.0.0.1:${fresh.port}/update-check`).then((response) => response.json())
   check('обновление найдено', update.ok === true && update.installed === '1.0.0' && update.latest === '1.10.0', JSON.stringify(update))
+  // 0.2.2 принимает только шаги подготовки check/model/vad/verify/load.
+  const hostSource = readFileSync(new URL('../lib/index.js', import.meta.url), 'utf8')
+  check('0.2.2: подготовка не шлёт шаг engine', !/step: 'engine'|step\('engine'/u.test(hostSource))
   check('критичность и заметки', update.critical === true && update.notes.fixed[0] === 'Починен баг' && update.requiresRestart === true, JSON.stringify(update))
   for (const cleanup of fresh.cleanups.reverse()) await cleanup()
 
@@ -641,6 +646,22 @@ console.log('проверка обновлений')
   const failure = await fetch(`http://127.0.0.1:${failed.port}/update-check`).then((response) => response.json())
   check('ошибка фида не ломает host', failure.ok === false && failure.reason === 'fetch-failed', JSON.stringify(failure))
   for (const cleanup of failed.cleanups.reverse()) await cleanup()
+
+  // 0.2.2: статус подготовки обязан укладываться в схему шагов.
+  const preparationHost = await startHost('0.0.0')
+  await fetch(`http://127.0.0.1:${preparationHost.port}/model/prepare`, { method: 'POST' }).catch(() => undefined)
+  let preparationState
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    const status = await fetch(`http://127.0.0.1:${preparationHost.port}/status`).then((response) => response.json()).catch(() => undefined)
+    preparationState = status?.preparation
+    if (preparationState?.phase === 'failed' || preparationState?.phase === 'ready' || preparationState?.phase === 'cancelled') break
+  }
+  const allowedPhases = new Set(['cancelled', 'ready', 'unprepared', 'standby', 'downloading', 'checking', 'loading', 'waking', 'cancelling', 'failed'])
+  const allowedSteps = new Set(['check', 'model', 'vad', 'verify', 'load'])
+  check('0.2.2: фаза подготовки допустима', preparationState !== undefined && allowedPhases.has(preparationState.phase), JSON.stringify(preparationState))
+  check('0.2.2: шаги подготовки допустимы', (preparationState?.steps ?? []).every((entry) => allowedSteps.has(entry.kind) && allowedSteps.has(entry.kind)), JSON.stringify(preparationState?.steps))
+  for (const cleanup of preparationHost.cleanups.reverse()) await cleanup()
   await new Promise((resolve) => feedServer.close(resolve))
 }
 
