@@ -875,6 +875,21 @@ console.log('auto: одно предложение с битой латиниц�
   delete process.env.FAKE_WHISPER_TRANSCRIPT
 }
 
+console.log('merge: разная разбивка не дописывает дубли в конец')
+{
+  process.env.FAKE_TRANSCRIPT = 'Итак, смотри, у нас обновилось приложение основное. Смотри, как сейчас у тебя сменилось интересно рассуждение. Ну ладно, это не суть. Суть в чём. Я думаю, что мы будем тестировать наш комбайн на моём собственном продукте, на разате платформ. Оно у нас и в гитхабе, оно у нас, ну, в приват-репе, оно у нас и развёрнуто, и там есть множество всякого всего. Мы, нам есть на чём оттестироваться.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'Итак, смотри, у нас обновилось приложение основное. Смотри, как сейчас у тебя сменилось интересное рассуждение. Ну ладно, это не суть. Суть в чем? Я думаю, что мы будем тестировать наш комбайн на моем собственном продукте. Вот, на Rozatti Platform. Оно у нас и в GitHub, оно у нас, ну, в приватной репе, оно у нас и развернуто. И там есть множество всякого всего: и аутентификации, и разные провайдеры, и базы данных. Нам есть на чем оттестироваться.'
+  const { service, cleanups } = setup({ engine: 'auto', words: ['GitHub'], merge: 'sentences' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const occurrences = (needle) => result.text.split(needle).length - 1
+  check('merge: хвост Whisper не дублирует уже сказанное', !result.text.includes('Вот, на Rozatti Platform'), result.text)
+  check('merge: порядок GigaAM сохранён', result.text.trim().endsWith('оттестироваться.'), result.text)
+  check('merge: предложения не размножились', occurrences('Оно у нас') <= 1, result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('abort: ожидание чужого старта whisper-server прерывается')
 {
   process.env.FAKE_WHISPER_TRANSCRIPT = 'Не должно вернуться'
