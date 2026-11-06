@@ -120,6 +120,15 @@ const documentStub = new FakeEventTarget()
 documentStub.title = 'DeepSeek Harness'
 documentStub.createElement = (tag) => new FakeElement(tag)
 documentStub.body = new FakeElement('body')
+documentStub.createRange = () => ({
+  selectNodeContents() {},
+  collapse() {},
+})
+globalThis.MutationObserver = class {
+  observe() {}
+  disconnect() {}
+  takeRecords() { return [] }
+}
 documentStub.execCommand = (command, _show, value) => {
   documentStub.execCalls.push({ command, value })
   return true
@@ -732,6 +741,11 @@ console.log('окно настроек диктовки')
   toggleLine.dispatch('click')
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
   check('авто-обучение выключено', autoLearnSetting === false && requests.some((request) => request.url.endsWith('/settings') && request.method === 'POST'), JSON.stringify(requests))
+  // Возвращаем настройку: следующие блоки проверяют авто-обучение.
+  const toggleAgain = findLineWithChild('Запоминать исправления после диктовки')
+  toggleAgain.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 120))
+  check('авто-обучение снова включено', autoLearnSetting === true)
   // Динамические словари.
   const profileTexts = settingsTexts()
   check('секция «Динамические словари»', profileTexts.some((text) => text.includes('Динамические словари')), JSON.stringify(profileTexts))
@@ -1004,6 +1018,50 @@ console.log('восстановление потерянной диктовки'
   documentStub.dispatch('keydown', { key: 'Escape' })
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
   check('Escape закрывает панель recovery', recoveryPanel() === undefined && storage.get('dsh-locale-ru-recovery') === undefined)
+
+  // Ручная вставка из recovery должна включать авто-обучение правок.
+  console.log('восстановление: авто-обучение после ручной вставки')
+  storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
+  editor.textContent = ''
+  editor.editable = true
+  editor.innerText = ''
+  globalThis.__dshLocaleRuRecovery.show('Проверка гитхаб', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
+  const findNestedButton = (element, text) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === text) return element
+    for (const child of element.children ?? []) {
+      const found = findNestedButton(child, text)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  const insertFromPanel = findNestedButton(recoveryPanel(), 'Вставить')
+  check('кнопка вставки найдена', insertFromPanel !== undefined)
+  insertFromPanel.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 150))
+  check('текст вставлен из панели', String(editor.innerText ?? '').includes('Проверка гитхаб'), String(editor.innerText ?? ''))
+  requests.length = 0
+  editor.innerText = 'Проверка GitHub'
+  documentStub.dispatch('input', { target: editor })
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 1300))
+  const findConfirm = (element) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === 'Запомнить') return element
+    for (const child of element.children ?? []) {
+      const found = findConfirm(child)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  const remember = [...documentStub.body.children].map((child) => findConfirm(child)).find((found) => found !== undefined)
+  if (remember !== undefined) {
+    remember.dispatch('click')
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 300))
+  }
+  check('правка после recovery выучена', requests.some((request) => request.url.endsWith('/learn') && String(request.body).includes('GitHub')), JSON.stringify(requests.filter((r) => r.url.endsWith('/learn'))))
+  globalThis.__dshLocaleRuRecovery.hide()
+  editor.textContent = ''
 
   // Чужой чат: восстанавливать текст в активное поле нельзя.
   storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))

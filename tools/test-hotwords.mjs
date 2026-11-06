@@ -134,6 +134,35 @@ console.log('словарь из проекта')
   check('отсутствующая папка — ошибка', missing.status !== 0)
 }
 
+console.log('SSRF: IPv6-формы приватных адресов')
+{
+  const { internals } = await import('../lib/index.js')
+  const privateAddresses = [
+    '127.0.0.1',
+    '10.0.0.1',
+    '192.168.1.1',
+    '169.254.1.1',
+    '::1',
+    '::',
+    'fc00::1',
+    'fe80::1',
+    'ff02::1',
+    '::ffff:127.0.0.1',
+    '::ffff:7f00:1',
+    '0:0:0:0:0:ffff:7f00:1',
+    '0:0:0:0:0:0:0:1',
+    '64:ff9b::7f00:1',
+    '2002:7f00:0001::',
+  ]
+  for (const address of privateAddresses) {
+    check(`приватный адрес ${address}`, internals.isPrivateAddress(address) === true)
+  }
+  const publicAddresses = ['8.8.8.8', '1.1.1.1', '2606:4700::1111', '2a00:1450:4001::1']
+  for (const address of publicAddresses) {
+    check(`публичный адрес ${address}`, internals.isPrivateAddress(address) === false)
+  }
+}
+
 console.log('endpoint хоста')
 {
   const { apply } = await import('../lib/index.js')
@@ -424,6 +453,24 @@ console.log('endpoint хоста')
   check('импорт по URL: слово в словаре', afterImport.words.includes('СловоИзURL'), JSON.stringify(afterImport.words))
   const badUrl = await fetch(`http://127.0.0.1:${port}/dictionary/import-url`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: 'file:///etc/passwd' }) }).then((response) => response.status)
   check('импорт по URL: неверная схема отклонена', badUrl === 400, String(badUrl))
+  // CORS/CSRF: dsh-app origin доверяется только с Electron UA и заголовком клиента.
+  const dshApp = { origin: 'dsh-app://app', 'user-agent': 'Mozilla/5.0 DeepSeek Harness Electron/44.7.0' }
+  const transcriptions = await fetch(`http://127.0.0.1:${port}/transcriptions?after=0`, { headers: dshApp })
+  check('transcriptions: dsh-app разрешён', transcriptions.status === 200, String(transcriptions.status))
+  const transcriptionsEvil = await fetch(`http://127.0.0.1:${port}/transcriptions`, { headers: { origin: 'https://evil.example' } })
+  check('transcriptions: чужой origin отклонён', transcriptionsEvil.status === 403, String(transcriptionsEvil.status))
+  const settingsNoHeader = await fetch(`http://127.0.0.1:${port}/settings`, {
+    method: 'POST', headers: { ...dshApp, 'content-type': 'application/json' }, body: JSON.stringify({ autoLearn: true }),
+  })
+  check('POST без клиентского заголовка — csrf 403', settingsNoHeader.status === 403, String(settingsNoHeader.status))
+  const settingsWithHeader = await fetch(`http://127.0.0.1:${port}/settings`, {
+    method: 'POST', headers: { ...dshApp, 'content-type': 'application/json', 'x-dsh-locale-client': '1' }, body: JSON.stringify({ autoLearn: true }),
+  })
+  check('POST с клиентским заголовком разрешён', settingsWithHeader.status === 200, String(settingsWithHeader.status))
+  const preflightEvil = await fetch(`http://127.0.0.1:${port}/settings`, { method: 'OPTIONS', headers: { origin: 'https://evil.example' } })
+  check('preflight чужого origin — 403', preflightEvil.status === 403, String(preflightEvil.status))
+  const fileOrigin = await fetch(`http://127.0.0.1:${port}/transcriptions`, { headers: { origin: 'file://', 'user-agent': 'Mozilla/5.0 Electron/44.7.0' } })
+  check('file:// origin с Electron разрешён', fileOrigin.status === 200, String(fileOrigin.status))
   const engineGet = await fetch(`http://127.0.0.1:${port}/engine`).then((response) => response.json())
   check('engine: текущий движок', engineGet.engine === 'gigaam' && engineGet.merge === 'sentences', JSON.stringify(engineGet))
   const enginePost = await fetch(`http://127.0.0.1:${port}/engine`, {
