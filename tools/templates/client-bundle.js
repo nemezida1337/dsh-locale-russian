@@ -811,7 +811,7 @@ window.__ModuleLoader__.load({
 		function scheduleRecoveryProcessing(delay = 600) {
 			clearTimeout(recoveryTimer);
 			recoveryTimer = setTimeout(() => {
-				void processPendingRecoveries();
+				void processPendingRecoveries().catch(() => {});
 			}, delay);
 		}
 
@@ -846,6 +846,15 @@ window.__ModuleLoader__.load({
 				hide: hideRecoveryPanel,
 				restore: restoreStoredRecovery,
 			};
+			// Тестовый шов: позволяет проверять эвристики на реальном бандле.
+			if (globalThis.__dshLocaleRuDebug === true) {
+				globalThis.__dshLocaleRuDebugApi = {
+					composerContainsText,
+					composerWithText,
+					assignTranscriptsToPending,
+					splitInsertion,
+				};
+			}
 		} catch (error) {
 			// среда без globalThis
 		}
@@ -3780,10 +3789,14 @@ window.__ModuleLoader__.load({
 			ctx.effect(() => () => {
 				clientDisposed = true;
 				clearTimeout(recoveryTimer);
+				clearTimeout(learnTimer);
+				clearDictationHighlights();
 				hideRecoveryPanel();
 				closeAllModalWindows();
 			});
-			setTimeout(() => restoreStoredRecovery(), 2000);
+			setTimeout(() => {
+				if (clientDisposed !== true) restoreStoredRecovery();
+			}, 2000);
 			// Функция онбординга живёт в том же модуле, но вызываем через
 			// globalThis: так её видно из apply независимо от порядка объявлений.
 			setTimeout(() => {

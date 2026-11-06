@@ -146,6 +146,7 @@ const windowStub = new FakeEventTarget()
 windowStub.innerWidth = 1200
 windowStub.__ModuleLoader__ = { load(entry) { windowStub.entry = entry } }
 
+globalThis.__dshLocaleRuDebug = true
 globalThis.window = windowStub
 globalThis.document = documentStub
 globalThis.EventTarget = FakeEventTarget
@@ -1062,6 +1063,23 @@ console.log('восстановление потерянной диктовки'
   check('правка после recovery выучена', requests.some((request) => request.url.endsWith('/learn') && String(request.body).includes('GitHub')), JSON.stringify(requests.filter((r) => r.url.endsWith('/learn'))))
   globalThis.__dshLocaleRuRecovery.hide()
   editor.textContent = ''
+
+  // Проверки recovery-эвристик: токены ChronoFlow не должны мешать.
+  console.log('recovery-эвристики на тексте с токенами')
+  const debugApi = globalThis.__dshLocaleRuDebugApi
+  check('debug API доступен', debugApi !== undefined && typeof debugApi.composerContainsText === 'function')
+  editor.textContent = ''
+  editor.innerText = '⟦01:20 ▮⟧ Проверка ⟦01:23 _⟧ GitHub и фордж ⟦01:46 _⟧'
+  check('текст с токенами найден', debugApi.composerContainsText('Проверка GitHub и фордж') === true)
+  check('другой текст не найден', debugApi.composerContainsText('Совсем другой текст для проверки') === false)
+  editor.innerText = 'Дякую.'
+  check('короткий текст находится', debugApi.composerContainsText('Дякую') === true)
+  editor.innerText = ''
+  const mapping = debugApi.assignTranscriptsToPending(
+    [{ endedAt: 1000 }, { endedAt: 2000 }],
+    [{ at: 1500, text: 'Первая' }, { at: 2500, text: 'Вторая' }],
+  )
+  check('клиентский маппинг: обе диктовки', mapping.size === 2, String(mapping.size))
 
   // Чужой чат: восстанавливать текст в активное поле нельзя.
   storage.set('dsh.sessions.current', JSON.stringify({ sessionId: 'session-1' }))
