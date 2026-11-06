@@ -896,6 +896,55 @@ console.log('merge: разная разбивка не дописывает ду
   delete process.env.FAKE_WHISPER_TRANSCRIPT
 }
 
+console.log('мерж sentences: объединённые фразы не дублируются и не теряются')
+{
+  const pairs = [
+    {
+      gigaam: 'Так, я так понял, что ты сжимал контекст, потому что ты опять вспоминаешь много, да? А ну восстанови follow, как у нас, ну, по трэцу и по всему. У тебя должно быть всё сохранено.',
+      whisper: 'Так, я так понял, что ты сжимал контекст, потому что ты опять вспоминаешь много, да? А ну восстанови флоу, как у нас, ну, по третсу и по всему, у тебя должно быть все сохранено.',
+      check(text) {
+        check('мерж sentences: хвост не продублирован', (text.match(/сохранено/gu) ?? []).length === 1, text)
+        check('мерж sentences: текст не раздут', text.split(/\s+/u).filter(Boolean).length <= 34, text)
+      },
+    },
+    {
+      gigaam: 'Я сейчас захожу в настройки, вот, э-э, в настройки диктовки. И, получается, вот здесь я все кнопки, которые нажимаю, вот здесь нажимаю кнопку, вот здесь нажимаю, получается. Проверить диктовку нажимаю словарь. Мне ошибка выдаётся. Поэтому надо проверять.',
+      whisper: 'Я сейчас захожу в настройки, вот в настройки диктовки и получается вот здесь я все кнопки которые нажимаю вот здесь нажимаю кнопку Вот здесь нажимаю, получается. Проверить диктовку нажимаю. Словарь. Мне ошибка выдается, поэтому надо проверять.',
+      check(text) {
+        check('мерж sentences: объединённая фраза не потеряла смысл', text.includes('Мне ошибка') || text.includes('мне ошибка'), text)
+        check('мерж sentences: нет дубля «захожу в настройки»', (text.match(/захожу в настройки/gu) ?? []).length === 1, text)
+      },
+    },
+  ]
+  for (const pair of pairs) {
+    process.env.FAKE_TRANSCRIPT = pair.gigaam
+    process.env.FAKE_WHISPER_TRANSCRIPT = pair.whisper
+    const { service, cleanups } = setup({ engine: 'hybrid', merge: 'sentences' })
+    const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+    pair.check(result.text)
+    for (const cleanup of cleanups.reverse()) await cleanup()
+  }
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
+console.log('мерж auto: другая разбивка не перемешивает и не дублирует фразы')
+{
+  process.env.FAKE_TRANSCRIPT = 'То есть у нас сейчас уже адаптирована она, и как будет проходить у нас. То есть у нас уже сама локализация, по сути, не главная, да? Вот, ну, сам перевод, он, по сути, не главный. То есть DeepSeek c уже встроил свой перевод. Что тогда? Тогда мы русскую диктовку доделываем, да? И Hoto Flow, получается, это наш основной, получается, момент. То есть, так как уже перевод, ну, если его что-то будет покрывать и фиг с ним, главное — теперь мы работаем с диктовкой, я так понимаю, основной упор на неё.'
+  process.env.FAKE_WHISPER_TRANSCRIPT = 'То есть у нас сейчас уже адаптирована она и как будет проходить все на слой. То есть у нас уже сама локализация по сути не главное, да, вот сам перевод он по сути не главный, то есть DeepSeek уже строил свой перевод. Что тогда? Тогда мы русскую диктовку доделываем, да? И ChronoFlow, получается, это наш основной, получается, момент. То есть, так как уже перевод... Ну, если что-то будет покрывать и фикси, главное... Теперь мы работаем с диктовкой, я так понимаю, основной упор на нее.'
+  const { service, cleanups } = setup({ engine: 'hybrid', merge: 'auto' })
+  const result = await service.provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
+  const count = (needle) => result.text.split(needle).length - 1
+  check('мерж auto: сам перевод не размножился', count('сам перевод') <= 1, result.text)
+  check('мерж auto: «основной момент» не размножился', count('основной, получается, момент') <= 1, result.text)
+  check('мерж auto: порядок сохранён', result.text.indexOf('Что тогда') > result.text.indexOf('DeepSeek') && result.text.trim().endsWith('на неё.') || result.text.trim().endsWith('на нее.'), result.text)
+  function countWords(text) { return text.split(/\s+/u).filter(Boolean).length }
+  check('мерж auto: текст не раздут', countWords(result.text) <= Math.max(countWords(process.env.FAKE_TRANSCRIPT), countWords(process.env.FAKE_WHISPER_TRANSCRIPT)) + 2, result.text)
+  for (const cleanup of cleanups.reverse()) await cleanup()
+  delete process.env.FAKE_TRANSCRIPT
+  delete process.env.FAKE_WHISPER_TRANSCRIPT
+}
+
 console.log('abort: ожидание чужого старта whisper-server прерывается')
 {
   process.env.FAKE_WHISPER_TRANSCRIPT = 'Не должно вернуться'

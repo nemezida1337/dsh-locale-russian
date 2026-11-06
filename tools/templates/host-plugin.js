@@ -2898,25 +2898,54 @@ export function apply(ctx, config = {}) {
     }
     // Опорный порядок — всегда GigaAM: его предложения не теряются и не
     // переставляются. Whisper подменяет предложение только при явном совпадении.
+    // Сначала находим пары, чтобы понять, какие фразы Whisper уже покрывают
+    // несколько коротких фраз GigaAM (иначе они попадут в текст дважды).
     const used = new Set()
-    const merged = []
-    for (const sentence of left) {
+    const matches = new Array(left.length).fill(-1)
+    for (let index = 0; index < left.length; index += 1) {
       let bestIndex = -1
       let bestSimilarity = 0
-      for (let index = 0; index < right.length; index += 1) {
-        if (used.has(index)) continue
-        const similarity = sentenceSimilarity(sentence, right[index])
+      for (let candidate = 0; candidate < right.length; candidate += 1) {
+        if (used.has(candidate)) continue
+        const similarity = sentenceSimilarity(left[index], right[candidate])
         if (similarity > bestSimilarity) {
           bestSimilarity = similarity
-          bestIndex = index
+          bestIndex = candidate
         }
       }
       if (bestIndex >= 0 && bestSimilarity >= 0.5) {
         used.add(bestIndex)
-        merged.push(score(right[bestIndex]) > score(sentence) ? right[bestIndex] : sentence)
-      } else {
-        merged.push(sentence)
+        matches[index] = bestIndex
       }
+    }
+    /** Доля слов фразы, фонетически найденных в другой фразе. */
+    const coverageIn = (sentence, haystack) => {
+      const tokens = String(sentence).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? []
+      if (tokens.length === 0) return 0
+      const hayTokens = String(haystack).toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
+      let covered = 0
+      for (const token of tokens) {
+        if (hayTokens.some((word) => phoneticSimilarity(token, word) >= 0.8)) covered += 1
+      }
+      return covered / tokens.length
+    }
+    // Какие предложения Whisper реально попадут в текст: только выбранные
+    // по score. Права, которые проиграли GigaAM, не должны скрывать соседние
+    // фразы — иначе теряется смысл (например, «Мне ошибка выдаётся»).
+    const chooseRight = left.map((sentence, index) => matches[index] >= 0
+      && score(right[matches[index]]) > score(sentence))
+    const plannedRight = left.map((sentence, index) => (chooseRight[index] ? right[matches[index]] : undefined)).filter(Boolean)
+    const merged = []
+    for (let index = 0; index < left.length; index += 1) {
+      const bestIndex = matches[index]
+      if (bestIndex >= 0) {
+        merged.push(chooseRight[index] ? right[bestIndex] : left[index])
+        continue
+      }
+      // Фраза уже покрыта предложением Whisper, которое войдёт в текст
+      // (он объединил несколько коротких фраз в одну) — не дублируем её.
+      if (plannedRight.some((candidate) => coverageIn(left[index], candidate) >= 0.75)) continue
+      merged.push(left[index])
     }
     // Непарные предложения Whisper дописываем только как действительно новые:
     // если фраза фонетически уже покрыта сказанным (например, «Rozatti Platform»
@@ -2973,7 +3002,8 @@ export function apply(ctx, config = {}) {
   function mergeByAuto(gigaamText, whisperText, dictionary) {
     const left = splitSentences(gigaamText)
     const right = splitSentences(whisperText)
-    if (left.length === 0 || left.length !== right.length) {
+    /** A whole transcript beats a positional mix when the split does not line up. */
+    const wholeText = () => {
       const gigaamLatin = hasLatinToken(gigaamText)
       const whisperLatin = hasLatinToken(whisperText)
       if (whisperLatin && !gigaamLatin) return whisperText
@@ -2982,6 +3012,13 @@ export function apply(ctx, config = {}) {
         return latinTermScore(whisperText, dictionary) > latinTermScore(gigaamText, dictionary) ? whisperText : gigaamText
       }
       return gigaamText
+    }
+    if (left.length === 0 || right.length === 0) return wholeText()
+    if (left.length !== right.length) return wholeText()
+    // Одинаковое число предложений ещё не значит, что они совпадают по смыслу:
+    // у движков разная разбивка, и позиционное слияние перемешивает фразы.
+    for (let index = 0; index < left.length; index += 1) {
+      if (sentenceSimilarity(left[index], right[index]) < 0.4) return wholeText()
     }
     const merged = []
     for (let index = 0; index < left.length; index += 1) {
@@ -2997,7 +3034,11 @@ export function apply(ctx, config = {}) {
         merged.push(gigaamSentence)
       }
     }
-    return merged.join(' ')
+    const mergedText = merged.join(' ')
+    const wordsIn = (value) => String(value ?? '').split(/\s+/u).filter(Boolean).length
+    // Позиционное слияние не должно раздувать текст дублями.
+    if (wordsIn(mergedText) > Math.max(wordsIn(gigaamText), wordsIn(whisperText)) + 2) return wholeText()
+    return mergedText
   }
 
 
@@ -3538,6 +3579,15 @@ export function apply(ctx, config = {}) {
       controller.abort()
       void follow
     }
+  }
+
+  // Отладочный шов для офлайн-аудита слияния на реальных транскриптах.
+  if (config.debugMerge === true) {
+    globalThis.__dshLocaleRuMergePreview = (gigaamText, whisperText, dictionary = []) => ({
+      sentences: mergeBySentences(gigaamText, whisperText, dictionary),
+      words: mergeByWords(gigaamText, whisperText, dictionary),
+      auto: mergeByAuto(gigaamText, whisperText, dictionary),
+    })
   }
 
   // Провайдер появляется только там, где включён голосовой ввод; без сервиса
