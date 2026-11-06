@@ -62,9 +62,11 @@ dsh plugin --profile web add dsh-locale-russian
 
 Строки сняты из трёх источников: клиентских пакетов установленного приложения (`app.asar`), CLI-сборки и репозитория. Пропущенных ключей нет — актуальные цифры и разбивка по namespace на [дашборде покрытия](https://nemezida1337.github.io/dsh-locale-russian/dashboard.html).
 
-## Что нового в 0.25.0
+## Что нового
 
-**Скорость, динамические словари и совместимость с DSH 0.2.2.**
+**0.25.1 — хотфикс:** настройки диктовки снова открываются на DSH 0.2.2 (новый origin `dsh-app://`), а слияние движков больше не переносит фразы из начала в конец.
+
+**0.25.0 — скорость, динамические словари и совместимость с DSH 0.2.2.**
 
 - **Режим `auto` по умолчанию:** GigaAM ~0,15–0,22 с на русском; Whisper — только на английских терминах, транслитерациях и низкой уверенности. Тёплый `whisper-server`, предзагрузка обоих движков.
 - **Длинные диктовки:** нарезка аудио по тихим точкам, prompt «Термины: …», выравнивание предложений по смыслу — пунктуация восстановлена, абзацы не теряются.
@@ -118,7 +120,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.25.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.25.1"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 

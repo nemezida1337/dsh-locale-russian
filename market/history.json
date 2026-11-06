@@ -339,7 +339,14 @@
     },
     {
       "version": "0.25.0",
-      "date": "2026-11-05",
+      "date": "2026-11-06T01:37:00+03:00",
+      "strings": 4096,
+      "namespaces": 77,
+      "pluginDescriptions": 564
+    },
+    {
+      "version": "0.25.1",
+      "date": "2026-11-06",
       "strings": 4096,
       "namespaces": 77,
       "pluginDescriptions": 564
