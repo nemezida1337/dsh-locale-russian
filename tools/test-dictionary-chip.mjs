@@ -871,12 +871,30 @@ console.log('восстановление потерянной диктовки'
 {
   closeModal()
   await openModal()
-  const editor = documentStub.body.children.find((child) => child.getAttribute?.('contenteditable') === 'true') ?? null
+  const editor = new FakeElement('div')
+  editor.setAttribute('contenteditable', 'true')
+  documentStub.body.appendChild(editor)
+  const recoveryPanel = () => documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null)
+  // Если текст уже вставлен (поздняя вставка стока/ChronoFlow), панель — ложная тревога.
+  editor.textContent = 'Потерянный текст диктовки'
+  globalThis.__dshLocaleRuRecovery.show('Потерянный текст диктовки', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('панель не появляется для уже вставленного текста', recoveryPanel() === undefined)
+  check('уже вставленный текст не сохраняется', storage.get('dsh-locale-ru-recovery') === undefined)
+  editor.textContent = ''
   globalThis.__dshLocaleRuRecovery.show('Потерянный текст диктовки', Date.now())
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
-  const panel = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null)
+  const panel = recoveryPanel()
   check('панель восстановления появилась', panel !== undefined)
   check('текст восстановления сохранён', (storage.get('dsh-locale-ru-recovery') ?? '').includes('Потерянный текст'))
+  // Поздняя вставка при открытой панели: закрыть её и не дублировать текст.
+  editor.textContent = 'Потерянный текст диктовки'
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 1700))
+  check('панель закрылась после поздней вставки', recoveryPanel() === undefined)
+  check('recovery очищен после поздней вставки', storage.get('dsh-locale-ru-recovery') === undefined)
+  editor.textContent = ''
+  globalThis.__dshLocaleRuRecovery.show('Потерянный текст диктовки', Date.now())
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
   clipboardWrites.length = 0
   const copy = [...(panel?.children ?? [])].flatMap((child) => child.children ?? []).find((child) => child.textContent === 'Скопировать')
   copy.dispatch('click')
@@ -884,6 +902,7 @@ console.log('восстановление потерянной диктовки'
   check('копирование восстановленного текста', clipboardWrites.some((text) => text.includes('Потерянный текст')), JSON.stringify(clipboardWrites))
   globalThis.__dshLocaleRuRecovery.hide()
   check('панель восстановления закрывается', !documentStub.body.children.some((child) => child.getAttribute?.('data-dsh-locale-ru-recovery') !== null))
+  editor.remove()
   storage.clear()
 }
 
