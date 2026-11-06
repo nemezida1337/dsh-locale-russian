@@ -29,10 +29,12 @@ jobs:
         run: node tools/build-market.mjs
       - name: Собрать дашборд покрытия
         run: node tools/build-dashboard.mjs --out market/dashboard.html
+      - name: Собрать фид обновлений
+        run: node tools/build-updates.mjs
       - name: Собрать сайт
         run: |
           mkdir -p _site
-          cp market/index.json market/history.json market/icon.svg _site/
+          cp market/index.json market/history.json market/updates.json market/icon.svg _site/
           cp market/dashboard.html _site/dashboard.html
           cp -r site/. _site/
       - uses: actions/configure-pages@v5

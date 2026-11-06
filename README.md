@@ -64,7 +64,7 @@ dsh plugin --profile web add dsh-locale-russian
 
 ## Что нового
 
-**0.25.2 — хотфикс:** recovery больше не дублирует и не путает диктовки, настройки и словарь не зависают при недоступном хосте, а слияние не переносит фразы из начала в конец.
+**0.26.0 — уведомления об обновлениях:** тихий чип в углу с версией, «что нового / что починилось / безопасность», отложить или пропустить версию и обновление через штатный plugin-manager DSH. Плюс накопленные хотфиксы recovery, слияния, настроек и безопасности.
 
 **0.25.0 — скорость, динамические словари и совместимость с DSH 0.2.2.**
 
@@ -80,6 +80,17 @@ dsh plugin --profile web add dsh-locale-russian
 ![Главный экран на русском](https://raw.githubusercontent.com/nemezida1337/dsh-locale-russian/main/docs/screenshots/demo.gif)
 
 ![Выбор языка в настройках](https://raw.githubusercontent.com/nemezida1337/dsh-locale-russian/main/docs/screenshots/settings.png)
+
+## Обновления
+
+Плагин сам проверяет новый релиз (при старте и раз в 6 часов) и показывает **тихий чип в левом нижнем углу** — без модалок и перекрытия работы:
+
+- разворот показывает версии, «Новое / Исправлено / Безопасность» и предупреждение о перезапуске;
+- **«Обновить»** использует штатный plugin-manager DSH (он умеет обновлять bundle с откатом); если нативного API нет, копируется команда установщика;
+- **«Позже»** скрывает напоминание на 24 часа, **«Пропустить версию»** — до следующей версии;
+- критичные обновления помечаются в фиде и выглядят заметнее.
+
+Фид `market/updates.json` собирается из [CHANGELOG.md](CHANGELOG.md) командой `npm run updates:build` и публикуется вместе с сайтом. Локальные dev-сборки (`file:`/`link:`) из реестра не обновляются — для канала обновлений нужна установка из npm.
 
 ## Установка
 
@@ -120,7 +131,7 @@ npx dsh-locale-russian-install --desktop
 
 **Без терминала:** включите «Пользовательские рынки плагинов» на странице «Плагины», откройте вкладку «Обзор» → «Источники индексов», добавьте адрес `https://nemezida1337.github.io/dsh-locale-russian/index.json` и установите пакет из «Обзора».
 
-**Вручную:** добавьте `"dsh-locale-russian": "^0.25.2"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
+**Вручную:** добавьте `"dsh-locale-russian": "^0.26.0"` в `~/.dsh/profiles/desktop/package.json` и `dsh-locale-russian` в его `dsh.profile.bundles`, затем выполните `pnpm add dsh-locale-russian` в каталоге профиля. pnpm лежит внутри приложения: `…/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/pnpm/bin/pnpm.mjs`.
 
 **Строкой патча** — когда нужна живая рабочая копия: возьмите копию репозитория в постоянное место и добавьте в `~/.dsh/profiles/desktop/cordis.patch.yml`, сохранив остальные записи:
 

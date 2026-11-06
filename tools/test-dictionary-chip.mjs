@@ -164,6 +164,7 @@ Object.defineProperty(globalThis, 'navigator', {
 let dictionaryWords = ['GitHub', 'Lifeshare', 'GigaAM']
 let autoLearnSetting = true
 let profilesUnavailable = false
+let updatePayload = { ok: true, installed: '0.26.0', latest: '0.26.0', upToDate: true }
 let profilesState = {
   active: 'default',
   autoSwitch: true,
@@ -200,6 +201,9 @@ globalThis.fetch = async (url, options = {}) => {
   requests.push({ url, method: options.method ?? 'GET', body: options.body, headers: options.headers ?? {} })
   if (fetchDelayMs > 0) await new Promise((resolvePromise) => setTimeout(resolvePromise, fetchDelayMs))
   if (hostDown) return { ok: false, status: 503, json: async () => ({}) }
+  if (String(url).includes('/update-check')) {
+    return { ok: true, json: async () => ({ ...updatePayload }) }
+  }
   if (url.endsWith('/profiles')) {
     if (profilesUnavailable) return { ok: false, status: 503, json: async () => ({}) }
     return { ok: true, json: async () => ({ ...profilesState }) }
@@ -1188,6 +1192,85 @@ console.log('вне поля ввода поповера нет')
   const plain = new FakeElement('div')
   await select('гитхаб', plain)
   check('вне contenteditable поповера нет', panel() === undefined)
+}
+
+console.log('уведомление об обновлении')
+{
+  closeModal()
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  storage.clear()
+  updatePayload = {
+    ok: true,
+    installed: '0.26.0',
+    latest: '0.27.0',
+    critical: true,
+    requiresRestart: true,
+    changelogUrl: 'https://example.com/changelog',
+    notes: { new: ['Новая фича'], fixed: ['Починен баг'], security: ['Закрыта уязвимость'] },
+  }
+  const debugApi = globalThis.__dshLocaleRuDebugApi
+  await debugApi.checkUpdate(true)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  const chip = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update') !== null)
+  check('чип обновления появился', chip !== undefined)
+  const chipText = (chip?.children ?? []).map((child) => String(child.textContent ?? '')).join(' ')
+  check('чип показывает версию и критичность', chipText.includes('0.27.0') && chipText.includes('Критично'), chipText)
+  chip.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+  const panel = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update-panel') !== null)
+  check('панель обновления раскрылась', panel !== undefined)
+  const panelTexts = []
+  const walk = (element) => {
+    if (element === undefined) return
+    if (typeof element.textContent === 'string' && element.textContent !== '') panelTexts.push(element.textContent)
+    for (const child of element.children ?? []) walk(child)
+  }
+  walk(panel)
+  check('в панели есть что нового и что починилось', panelTexts.some((text) => text === 'Новая фича') && panelTexts.some((text) => text === 'Починен баг'), JSON.stringify(panelTexts))
+  const findNested = (element, text) => {
+    if (element === undefined) return undefined
+    if (String(element.textContent ?? '') === text) return element
+    for (const child of element.children ?? []) {
+      const found = findNested(child, text)
+      if (found !== undefined) return found
+    }
+    return undefined
+  }
+  clipboardWrites.length = 0
+  findNested(panel, 'Обновить').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 80))
+  check('без нативного remote копируется команда', clipboardWrites.some((text) => text.includes('dsh-locale-russian-install')), JSON.stringify(clipboardWrites))
+  // Позже: чип скрывается на 24 часа.
+  updatePayload = {
+    ok: true, installed: '0.26.0', latest: '0.27.0',
+    notes: { new: ['Новая фича'] },
+  }
+  await debugApi.checkUpdate(true)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const chipAgain = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update') !== null)
+  chipAgain.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+  const panelAgain = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update-panel') !== null)
+  findNested(panelAgain, 'Позже').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('Позже скрывает уведомление', !documentStub.body.children.some((child) => child.getAttribute?.('data-dsh-locale-ru-update') !== null))
+  check('Позже сохраняет snooze', JSON.parse(storage.get('dsh-locale-ru-update-snooze') ?? '{}').version === '0.27.0', storage.get('dsh-locale-ru-update-snooze'))
+  // Пропустить версию: больше не предлагать её.
+  storage.clear()
+  updatePayload = { ok: true, installed: '0.26.0', latest: '0.28.0', notes: {} }
+  await debugApi.checkUpdate(true)
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  const chipSkip = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update') !== null)
+  chipSkip.dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 40))
+  const panelSkip = documentStub.body.children.find((child) => child.getAttribute?.('data-dsh-locale-ru-update-panel') !== null)
+  findNested(panelSkip, 'Пропустить версию').dispatch('click')
+  await new Promise((resolvePromise) => setTimeout(resolvePromise, 60))
+  check('Пропустить сохраняет версию', String(storage.get('dsh-locale-ru-update-skip') ?? '').includes('0.28.0'), storage.get('dsh-locale-ru-update-skip'))
+  check('после пропуска чипа нет', !documentStub.body.children.some((child) => child.getAttribute?.('data-dsh-locale-ru-update') !== null))
+  updatePayload = { ok: true, installed: '0.26.0', latest: '0.26.0', upToDate: true }
+  await debugApi.checkUpdate(true)
+  storage.clear()
 }
 
 console.log('выгрузка')

@@ -25,6 +25,8 @@ window.__ModuleLoader__.load({
 
 		/** Dictionary digest, so a running page can be matched to a pack build. */
 		const DICTIONARY_DIGEST = "__DIGEST__";
+		/** Version of this installed package, for the update notice. */
+		const PACKAGE_VERSION = "__PACKAGE_VERSION__";
 
 		/** Namespace dictionaries: namespace -> key -> Russian copy. */
 		const DICTIONARIES = __DICTIONARIES_JSON__;
@@ -853,6 +855,7 @@ window.__ModuleLoader__.load({
 					composerWithText,
 					assignTranscriptsToPending,
 					splitInsertion,
+					checkUpdate: (force = false) => checkPluginUpdate(force),
 				};
 			}
 		} catch (error) {
@@ -874,6 +877,256 @@ window.__ModuleLoader__.load({
 			}
 		} catch (error) {
 			// среда без window
+		}
+
+		/** Update notice: a quiet chip in the corner, never a full-page modal. */
+		const UPDATE_SNOOZE_KEY = "dsh-locale-ru-update-snooze";
+		const UPDATE_SKIP_KEY = "dsh-locale-ru-update-skip";
+		const UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+		const UPDATE_CHECK_START_MS = 2500;
+		const UPDATE_COMMAND = "npx dsh-locale-russian-install --desktop";
+		let updateCheckTimer;
+		let updateNotice;
+		let updatePanel;
+		let updateInfo;
+		/** Client Cordis context, kept for optional native update calls. */
+		let pluginContext;
+
+		/** Small DOM helper for the update chip/panel. */
+		function updateElement(tag, style, text) {
+			const element = document.createElement(tag);
+			if (style !== undefined && style !== "") element.style.cssText = style;
+			if (text !== undefined) element.textContent = text;
+			return element;
+		}
+
+		/** Reads a JSON value from localStorage, tolerating corrupted entries. */
+		function readUpdateStorage(key) {
+			try {
+				const raw = localStorage.getItem(key);
+				return raw === null || raw === "" ? undefined : JSON.parse(raw);
+			} catch (error) {
+				return undefined;
+			}
+		}
+
+		/** Writes a JSON value to localStorage. */
+		function writeUpdateStorage(key, value) {
+			try {
+				localStorage.setItem(key, JSON.stringify(value));
+			} catch (error) {
+				// localStorage недоступен
+			}
+		}
+
+		/** True when this exact version is snoozed or skipped. */
+		function updateSuppressed(latest) {
+			const snooze = readUpdateStorage(UPDATE_SNOOZE_KEY);
+			if (snooze?.version === latest && Number(snooze.until) > Date.now()) return true;
+			const skipped = readUpdateStorage(UPDATE_SKIP_KEY);
+			const versions = Array.isArray(skipped) ? skipped : typeof skipped === "string" ? [skipped] : [];
+			return versions.includes(latest);
+		}
+
+		/** Fetches update info from the host half. */
+		async function fetchUpdateInfo(force) {
+			for (const port of hostPortOrder()) {
+				try {
+					const response = await fetch(`http://127.0.0.1:${port}/update-check${force ? "?refresh=1" : ""}`, { signal: AbortSignal.timeout(4000) });
+					if (!response.ok) continue;
+					markHostPort(port);
+					return await response.json();
+				} catch (error) {
+					// следующий порт
+				}
+			}
+			return undefined;
+		}
+
+		/** Removes the chip and its expanded panel. */
+		function removeUpdateUi() {
+			if (updatePanel !== undefined) {
+				updatePanel.remove?.();
+				if (updatePanel.parentNode) updatePanel.parentNode.removeChild(updatePanel);
+				updatePanel = undefined;
+			}
+			if (updateNotice !== undefined) {
+				updateNotice.remove?.();
+				if (updateNotice.parentNode) updateNotice.parentNode.removeChild(updateNotice);
+				updateNotice = undefined;
+			}
+		}
+
+		/** Opens the changelog URL in a new tab, when allowed. */
+		function openUpdateChangelog(info) {
+			const url = typeof info?.changelogUrl === "string" && info.changelogUrl !== "" ? info.changelogUrl : "https://github.com/nemezida1337/dsh-locale-russian/releases";
+			try {
+				if (typeof window !== "undefined" && typeof window.open === "function") {
+					window.open(url, "_blank", "noopener");
+					return;
+				}
+			} catch (error) {
+				// ниже — копирование
+			}
+			try {
+				void navigator.clipboard.writeText(url);
+				showToast("Ссылка на изменения скопирована", true);
+			} catch (error) {
+				showToast("Не удалось открыть ссылку", false);
+			}
+		}
+
+		/** Tries the native plugin manager update; falls back to the installer command. */
+		async function applyPluginUpdate(info) {
+			const manager = pluginContext?.remote?.pluginManager
+				?? (typeof pluginContext?.get === "function" ? pluginContext.get("remote")?.pluginManager : undefined);
+			if (manager !== undefined && typeof manager.updateBundle === "function") {
+				showToast(`Обновляем до ${info.latest}…`, true);
+				try {
+					const answer = await manager.updateBundle("dsh-locale-russian", info.latest, {});
+					const value = answer?.ok === true ? answer.value : answer;
+					const application = value?.application;
+					removeUpdateUi();
+					if (application === "restart-required") {
+						showToast("Обновлено. Перезапустите DeepSeek Harness", true);
+					} else if (application === "applied") {
+						showToast("Плагин обновлён", true);
+					} else {
+						showToast("Обновление запущено", true);
+					}
+					return;
+				} catch (error) {
+					showToast("Нативное обновление не удалось — команда скопирована", false);
+				}
+			}
+			try {
+				await navigator.clipboard.writeText(UPDATE_COMMAND);
+				showToast("Команда обновления скопирована", true);
+			} catch (error) {
+				showToast("Не удалось скопировать команду", false);
+			}
+		}
+
+		/** Hides the notice for 24 hours. */
+		function snoozeUpdate(info) {
+			writeUpdateStorage(UPDATE_SNOOZE_KEY, { version: info.latest, until: Date.now() + 24 * 60 * 60 * 1000 });
+			removeUpdateUi();
+			showToast("Напомним позже", true);
+		}
+
+		/** Never reminds about this exact version again. */
+		function skipUpdate(info) {
+			const skipped = readUpdateStorage(UPDATE_SKIP_KEY);
+			const versions = Array.isArray(skipped) ? skipped : typeof skipped === "string" ? [skipped] : [];
+			if (!versions.includes(info.latest)) versions.push(info.latest);
+			writeUpdateStorage(UPDATE_SKIP_KEY, versions);
+			removeUpdateUi();
+			showToast("Эта версия больше не будет предлагаться", true);
+		}
+
+		/** Renders the expanded card: versions, notes and actions. */
+		function renderUpdatePanel(info) {
+			if (updatePanel !== undefined) {
+				updatePanel.remove?.();
+				if (updatePanel.parentNode) updatePanel.parentNode.removeChild(updatePanel);
+				updatePanel = undefined;
+			}
+			const panel = updateElement("div", "position:fixed;left:16px;bottom:56px;z-index:2147483646;width:min(380px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:auto;"
+				+ "display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:14px;background:rgba(18,20,23,.98);border:1px solid rgba(122,162,255,.4);"
+				+ "box-shadow:0 16px 48px rgba(0,0,0,.5);color:#f2f3f5;font:500 12px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+			panel.setAttribute("data-dsh-locale-ru-update-panel", "");
+			const head = updateElement("div", "display:flex;align-items:center;justify-content:space-between;gap:8px");
+			head.appendChild(updateElement("div", "font:600 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", info.critical === true ? "Критичное обновление" : "Доступно обновление"));
+			const close = updateElement("div", "cursor:pointer;color:#8a8a95;font-size:17px;line-height:1;padding:0 4px", "×");
+			close.setAttribute("role", "button");
+			close.addEventListener("click", () => renderUpdatePanelCollapse());
+			head.appendChild(close);
+			panel.appendChild(head);
+			panel.appendChild(updateElement("div", "color:#b6c0d2", `Установлено ${info.installed ?? PACKAGE_VERSION} → доступно ${info.latest}`));
+			if (info.requiresRestart !== false) panel.appendChild(updateElement("div", "color:#d8b26a", "После обновления потребуется перезапуск приложения."));
+			const sections = [
+				["Новое", info.notes?.new],
+				["Исправлено", info.notes?.fixed],
+				["Безопасность", info.notes?.security],
+			];
+			let hasNotes = false;
+			for (const [title, entries] of sections) {
+				if (!Array.isArray(entries) || entries.length === 0) continue;
+				hasNotes = true;
+				panel.appendChild(updateElement("div", "margin-top:2px;color:#8a8a95;font:600 11px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-transform:uppercase;letter-spacing:.04em", title));
+				for (const entry of entries.slice(0, 5)) {
+					const row = updateElement("div", "display:flex;gap:8px;align-items:flex-start");
+					row.appendChild(updateElement("span", "color:#9fe6b4;flex:none", "•"));
+					row.appendChild(updateElement("span", "color:#d8dce4;min-width:0;overflow-wrap:anywhere", String(entry)));
+					panel.appendChild(row);
+				}
+			}
+			if (!hasNotes) panel.appendChild(updateElement("div", "color:#8a8a95", "Список изменений — в CHANGELOG и GitHub Release."));
+			const actions = updateElement("div", "display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px");
+			const later = updateElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.9);color:#f2f2f5;font-weight:600", "Позже");
+			later.setAttribute("role", "button");
+			later.addEventListener("click", () => snoozeUpdate(info));
+			const skip = updateElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.65);color:#b6c0d2;font-weight:600", "Пропустить версию");
+			skip.setAttribute("role", "button");
+			skip.addEventListener("click", () => skipUpdate(info));
+			const changes = updateElement("div", "cursor:pointer;padding:6px 10px;border-radius:8px;background:rgba(60,60,66,.65);color:#b6c0d2;font-weight:600", "Все изменения");
+			changes.setAttribute("role", "button");
+			changes.addEventListener("click", () => openUpdateChangelog(info));
+			const apply = updateElement("div", "cursor:pointer;padding:6px 12px;border-radius:8px;background:rgba(40,60,110,.95);color:#fff;font-weight:600", "Обновить");
+			apply.setAttribute("role", "button");
+			apply.addEventListener("click", () => void applyPluginUpdate(info));
+			actions.appendChild(later);
+			actions.appendChild(skip);
+			actions.appendChild(changes);
+			actions.appendChild(apply);
+			panel.appendChild(actions);
+			if (document.body !== undefined) document.body.appendChild(panel);
+			updatePanel = panel;
+		}
+
+		/** Collapses only the expanded card, keeping the quiet chip. */
+		function renderUpdatePanelCollapse() {
+			if (updatePanel === undefined) return;
+			updatePanel.remove?.();
+			if (updatePanel.parentNode) updatePanel.parentNode.removeChild(updatePanel);
+			updatePanel = undefined;
+		}
+
+		/** Renders the corner chip when an update is available. */
+		function renderUpdateNotice(info) {
+			removeUpdateUi();
+			if (info === null || info === undefined || info.ok !== true || info.upToDate === true) return;
+			const latest = typeof info.latest === "string" ? info.latest : undefined;
+			if (latest === undefined || latest === "") return;
+			const order = latest === PACKAGE_VERSION ? 0 : 1;
+			if (order === 0) return;
+			if (updateSuppressed(latest)) return;
+			updateInfo = info;
+			const chip = updateElement("div", "position:fixed;left:16px;bottom:16px;z-index:2147483646;cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 11px;"
+				+ "border-radius:999px;background:rgba(18,20,23,.97);border:1px solid " + (info.critical === true ? "rgba(230,150,120,.7)" : "rgba(122,162,255,.4)") + ";"
+				+ "box-shadow:0 6px 22px rgba(0,0,0,.4);color:#f2f3f5;font:600 12px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif");
+			chip.setAttribute("data-dsh-locale-ru-update", "");
+			chip.setAttribute("role", "button");
+			chip.setAttribute("title", "Проверить обновление плагина");
+			const dot = updateElement("span", "width:7px;height:7px;border-radius:50%;flex:none;background:" + (info.critical === true ? "#e6a07a" : "#9fe6b4"), "");
+			chip.appendChild(dot);
+			chip.appendChild(updateElement("span", "", info.critical === true ? `Критично: обновление ${latest}` : `Обновление ${latest}`));
+			chip.addEventListener("click", () => {
+				if (updatePanel !== undefined) renderUpdatePanelCollapse();
+				else renderUpdatePanel(info);
+			});
+			if (document.body !== undefined) document.body.appendChild(chip);
+			updateNotice = chip;
+		}
+
+		/** Checks the host for a newer package version. */
+		async function checkPluginUpdate(force = false) {
+			if (clientDisposed === true) return undefined;
+			const info = await fetchUpdateInfo(force);
+			if (clientDisposed === true || info === undefined) return undefined;
+			updateInfo = info;
+			renderUpdateNotice(info);
+			return info;
 		}
 
 		/** Marks the moment a dictation recording ended; the insertion follows. */
@@ -3783,6 +4036,7 @@ window.__ModuleLoader__.load({
 			// Патч диктовки ставится сразу: он должен успеть до монтирования
 			// интерфейса голосового ввода. Локаль регистрируем на следующем тике.
 			const restoreVoice = installVoiceKeepAlive();
+			pluginContext = ctx;
 			const restoreChip = installDictionaryChip();
 			const restoreCaret = installDictationCaretFix();
 			const restoreHighlights = installHighlightMaintenance();
@@ -3790,6 +4044,8 @@ window.__ModuleLoader__.load({
 				clientDisposed = true;
 				clearTimeout(recoveryTimer);
 				clearTimeout(learnTimer);
+				clearInterval(updateCheckTimer);
+				removeUpdateUi();
 				clearDictationHighlights();
 				hideRecoveryPanel();
 				closeAllModalWindows();
@@ -3797,6 +4053,14 @@ window.__ModuleLoader__.load({
 			setTimeout(() => {
 				if (clientDisposed !== true) restoreStoredRecovery();
 			}, 2000);
+			setTimeout(() => {
+				if (clientDisposed !== true) void checkPluginUpdate(false);
+			}, UPDATE_CHECK_START_MS);
+			updateCheckTimer = setInterval(() => {
+				if (clientDisposed !== true) void checkPluginUpdate(false);
+			}, UPDATE_CHECK_INTERVAL_MS);
+			// В Node-тестах длинный интервал не должен держать процесс живым.
+			updateCheckTimer?.unref?.();
 			// Функция онбординга живёт в том же модуле, но вызываем через
 			// globalThis: так её видно из apply независимо от порядка объявлений.
 			setTimeout(() => {

@@ -27,6 +27,7 @@ node tools/check-imports.mjs      # согласованность импорт�
 node tools/check-app.mjs          # покрытие на сборке приложения из фида обновлений
 node tools/build-dashboard.mjs    # дашборд покрытия для GitHub Pages
 node tools/build-history.mjs      # история покрытия по тегам (market/history.json)
+node tools/build-updates.mjs      # фид обновлений из CHANGELOG (market/updates.json)
 node tools/demo-gif.mjs           # GIF-демонстрация интерфейса для README (нужен запущенный сервер)
 node bin/dsh-locale-russian-install.mjs --desktop # установка в профиль приложения (bin, входит в пакет)
 node tools/translate-batches.mjs  # черновой перевод дельты провайдером (mock/command/openai)

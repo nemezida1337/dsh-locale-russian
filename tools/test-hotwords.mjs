@@ -574,6 +574,76 @@ console.log('движок читает словарь файлом и перез
   delete process.env.ARGS_FILE
 }
 
+console.log('проверка обновлений')
+{
+  const { internals } = await import('../lib/index.js')
+  check('semver: 1.10 новее 1.9', internals.compareVersions('1.10.0', '1.9.0') === 1)
+  check('semver: prerelease старее релиза', internals.compareVersions('1.2.0-rc.1', '1.2.0') === -1)
+  check('semver: мусор не версия', internals.compareVersions('nope', '1.0.0') === undefined)
+  const notes = internals.normalizeUpdateNotes({ ru: { new: ['Фича'], fixed: ['Баг'], security: ['Уязвимость'] } })
+  check('notes: секции нормализованы', notes.new[0] === 'Фича' && notes.fixed[0] === 'Баг' && notes.security[0] === 'Уязвимость', JSON.stringify(notes))
+
+  let feedBody = { versions: [] }
+  let feedStatus = 200
+  const feedServer = createHttpServer((request, response) => {
+    response.writeHead(feedStatus, { 'content-type': 'application/json' })
+    response.end(JSON.stringify(feedBody))
+  })
+  const feedPort = await new Promise((resolve) => {
+    feedServer.listen(0, '127.0.0.1', () => resolve(feedServer.address().port))
+  })
+  const hotwordsFile = join(workspace, 'update-hotwords.txt')
+  const startHost = async (installed) => {
+    writeFileSync(hotwordsFile, '# Hotwords\n')
+    const port = await new Promise((resolve) => {
+      const probe = createServer()
+      probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+    })
+    const service = { register() { return async () => {} }, snapshot() { return { selection: { providerId: 'gigaam-local' } } }, async *follow() {} }
+    const cleanups = []
+    const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
+    const { apply } = await import('../lib/index.js')
+    apply({ inject(names, cb) { cb(scoped) }, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }, {
+      binaryPath: join(workspace, 'no-engine'),
+      modelDir: join(workspace, 'models'),
+      hotwordsFile,
+      replacementsFile: join(workspace, 'update-replacements.json'),
+      dictionaryPort: port,
+      updateFeedUrl: `http://127.0.0.1:${feedPort}/updates.json`,
+      updateInstalledVersion: installed,
+    })
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    return { port, cleanups }
+  }
+
+  feedBody = {
+    versions: [{
+      version: '1.10.0',
+      critical: true,
+      requiresRestart: true,
+      changelogUrl: 'https://example.com/changelog',
+      notes: { ru: { new: ['Новая фича'], fixed: ['Починен баг'], security: ['Закрыта уязвимость'] } },
+    }],
+  }
+  const fresh = await startHost('1.0.0')
+  const update = await fetch(`http://127.0.0.1:${fresh.port}/update-check`).then((response) => response.json())
+  check('обновление найдено', update.ok === true && update.installed === '1.0.0' && update.latest === '1.10.0', JSON.stringify(update))
+  check('критичность и заметки', update.critical === true && update.notes.fixed[0] === 'Починен баг' && update.requiresRestart === true, JSON.stringify(update))
+  for (const cleanup of fresh.cleanups.reverse()) await cleanup()
+
+  const actual = await startHost('2.0.0')
+  const upToDate = await fetch(`http://127.0.0.1:${actual.port}/update-check`).then((response) => response.json())
+  check('актуальная версия без обновления', upToDate.ok === true && upToDate.upToDate === true, JSON.stringify(upToDate))
+  for (const cleanup of actual.cleanups.reverse()) await cleanup()
+
+  feedStatus = 500
+  const failed = await startHost('1.0.0')
+  const failure = await fetch(`http://127.0.0.1:${failed.port}/update-check`).then((response) => response.json())
+  check('ошибка фида не ломает host', failure.ok === false && failure.reason === 'fetch-failed', JSON.stringify(failure))
+  for (const cleanup of failed.cleanups.reverse()) await cleanup()
+  await new Promise((resolve) => feedServer.close(resolve))
+}
+
 rmSync(workspace, { recursive: true, force: true })
 if (failures.length > 0) {
   console.error(`провалено проверок: ${failures.length}`)

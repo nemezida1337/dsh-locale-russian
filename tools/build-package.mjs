@@ -139,7 +139,7 @@ const template = readFileSync(resolve(here, 'templates/client-bundle.js'), 'utf8
 const fill = (source, placeholder, value) => source.split(placeholder).join(value)
 const clientBundle = fill(
   fill(
-    fill(fill(template, '__MODULE_ID__', manifestName), '__DIGEST__', digest),
+    fill(fill(fill(template, '__MODULE_ID__', manifestName), '__DIGEST__', digest), '__PACKAGE_VERSION__', existingManifest.version ?? '0.0.0'),
     '__DICTIONARIES_JSON__',
     dictionaryJson,
   ),
