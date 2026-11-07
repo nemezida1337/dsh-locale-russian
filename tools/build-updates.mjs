@@ -29,8 +29,9 @@ function plain(text) {
     .trim()
 }
 
-const CRITICAL = /(?:\[critical\]|\bcritical\b)/iu
-const SECURITY = /(?:безопасн|уязвим|SSRF|CSRF|XSS|инъекц|поддел|утечк)/iu
+// Только явная пометка, иначе описание самой фичи «critical» делает релиз критичным.
+const CRITICAL = /\[critical\]/iu
+const SECURITY = /(?:SSRF|CSRF|XSS|уязвим|инъекц|поддел|утечк|безопасност[ьи] импорта|security)/iu
 const FIX = /(?:исправ|починен|баг|регресс|фикс|fix|ошибк)/iu
 
 const criticalFile = existsSync(criticalPath) ? JSON.parse(readFileSync(criticalPath, 'utf8')) : {}
