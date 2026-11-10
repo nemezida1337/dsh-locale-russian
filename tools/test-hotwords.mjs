@@ -535,6 +535,10 @@ console.log('движок читает словарь файлом и перез
   const file = join(dir, 'hotwords.txt')
   writeFileSync(file, '# Hotwords\nDeepSeek Harness\n')
   process.env.ARGS_FILE = argsFile
+  const enginePort = await new Promise((resolve) => {
+    const probe = createServer()
+    probe.listen(0, '127.0.0.1', () => { const value = probe.address().port; probe.close(() => resolve(value)) })
+  })
   const service = { register(provider) { this.provider = provider; return async () => {} }, snapshot() { return { selection: { providerId: 'gigaam-local' } } }, async *follow() {} }
   const cleanups = []
   const scoped = { speechToText: service, effect(cb) { const d = cb(); cleanups.push(typeof d === 'function' ? d : () => {}); return d } }
@@ -544,7 +548,7 @@ console.log('движок читает словарь файлом и перез
     hotwordsFile: file,
     replacementsFile: join(dir, 'replacements.json'),
     prewarm: false,
-    dictionaryPort: 0,
+    dictionaryPort: enginePort,
     hotwordsWatchMs: 50,
   })
   const wav = readFileSync(join(import.meta.dirname, '..', 'test', 'fixtures', 'ru-sample.wav'))
@@ -568,6 +572,12 @@ console.log('движок читает словарь файлом и перез
   const second = await provider.transcribe({ audio: wav }, AbortSignal.timeout(30_000))
   check('после изменения словаря распознавание работает', second.text === 'Проверка GitHub и Forge', second.text)
   check('0.2.2: ответ содержит audioSeconds и inferenceSeconds', typeof second.audioSeconds === 'number' && typeof second.inferenceSeconds === 'number' && second.audioSeconds > 0, JSON.stringify({ audioSeconds: second.audioSeconds, inferenceSeconds: second.inferenceSeconds }))
+  const takeover = await fetch(`http://127.0.0.1:${enginePort}/transcribe-audio`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-dsh-locale-client': '1' },
+    body: JSON.stringify({ audio: wav.toString('base64') }),
+  }).then((response) => response.json())
+  check('takeover: аудио распознано через host', takeover.ok === true && takeover.text === 'Проверка GitHub и Forge', JSON.stringify(takeover))
   delete process.env.FAKE_TRANSCRIPT
   const restarted = readFileSync(argsFile, 'utf8').trim().split('\n')
   check('движок перезапущен с новым файлом', restarted.length >= 2 && restarted[restarted.length - 1].includes('--hotwords-file'), String(restarted.length))

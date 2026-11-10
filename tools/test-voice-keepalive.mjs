@@ -59,6 +59,11 @@ class FakeMediaRecorder extends FakeEventTarget {
   }
 
   stop() {
+    if (this.nextData !== undefined) {
+      const data = this.nextData
+      this.nextData = undefined
+      this.dispatchEvent({ type: 'dataavailable', data })
+    }
     this.state = 'inactive'
     this.dispatchEvent({ type: 'stop' })
   }
@@ -85,17 +90,31 @@ const windowStub = new FakeEventTarget()
 windowStub.EventTarget = FakeEventTarget
 windowStub.MediaRecorder = FakeMediaRecorder
 windowStub.__ModuleLoader__ = { load(entry) { windowStub.entry = entry } }
+const storage = {
+  data: new Map([['dsh.sessions.current', JSON.stringify({ sessionId: 'session-a' })]]),
+  getItem(key) { return this.data.has(key) ? this.data.get(key) : null },
+  setItem(key, value) { this.data.set(key, String(value)) },
+  removeItem(key) { this.data.delete(key) },
+}
+globalThis.localStorage = storage
 const documentStub = new FakeEventTarget()
 documentStub.title = 'DeepSeek Harness'
 documentStub.hidden = false
 // Минимальный DOM для бейджа.
 const created = []
-documentStub.createElement = () => {
+documentStub.createElement = (tag) => {
   const element = {
+    tag,
     style: {},
     textContent: '',
     attributes: {},
+    children: [],
+    listeners: new Map(),
     setAttribute(name, value) { this.attributes[name] = value },
+    getAttribute(name) { return this.attributes[name] },
+    appendChild(child) { this.children.push(child); child.parentNode = this },
+    addEventListener(type, listener) { this.listeners.set(type, listener) },
+    querySelector(selector) { return selector === 'button' ? this.children.find((child) => child.tag === 'button') : undefined },
     remove() { this.removed = true },
   }
   created.push(element)
@@ -180,6 +199,55 @@ console.log('скрытая страница подавлена')
   documentStub.hidden = false
   recorder.stop()
   check('индикатор снят', documentStub.title === 'DeepSeek Harness')
+}
+
+console.log('смена сессии не обрывает запись')
+{
+  const track = { stopped: false, stop() { this.stopped = true } }
+  const recorder = new windowStub.MediaRecorder()
+  recorder.stream = { getTracks: () => [track] }
+  storage.setItem('dsh.sessions.current', JSON.stringify({ sessionId: 'session-b' }))
+  recorder.stop()
+  check('запись пережила смену сессии', recorder.state === 'recording')
+  check('дорожка микрофона не остановлена', track.stopped === false)
+  const takeover = documentStub.body.children.find((element) => element.getAttribute?.('data-dsh-locale-ru-takeover') !== undefined)
+  check('показана плашка продолжения записи', takeover !== undefined)
+  check('у плашки есть кнопка Стоп', takeover?.children.some((child) => child.textContent === 'Стоп') === true)
+  // Завершение перехваченной записи: стоп-кнопка, отправка аудио и вставка.
+  storage.setItem('dsh.sessions.current', JSON.stringify({ sessionId: 'session-a' }))
+  recorder.nextData = new Blob(['audio'], { type: 'audio/webm' })
+  const requests = []
+  globalThis.fetch = async (url) => {
+    requests.push(String(url))
+    return { ok: true, json: async () => ({ ok: true, text: 'Текст из фоновой диктовки' }) }
+  }
+  class FakeAudioContext {
+    async decodeAudioData() { return { duration: 0.2 } }
+    async close() {}
+  }
+  class FakeOfflineAudioContext {
+    constructor() { this.destination = {} }
+    createBufferSource() { return { buffer: null, connect() {}, start() {} } }
+    async startRendering() { return { getChannelData: () => new Float32Array(3200) } }
+  }
+  windowStub.AudioContext = FakeAudioContext
+  globalThis.OfflineAudioContext = FakeOfflineAudioContext
+  if (typeof globalThis.btoa !== 'function') globalThis.btoa = (value) => Buffer.from(value, 'binary').toString('base64')
+  takeover?.children.find((child) => child.textContent === 'Стоп')?.listeners.get('click')?.()
+  await new Promise((resolve) => setTimeout(resolve, 350))
+  check('стоп-кнопка остановила запись', recorder.state === 'inactive')
+  check('аудио ушло в host /transcribe-audio', requests.some((url) => url.includes('/transcribe-audio')), JSON.stringify(requests))
+  check('плашка takeover убрана', takeover?.removed === true || documentStub.body.children.every((element) => element.getAttribute?.('data-dsh-locale-ru-takeover') === undefined))
+
+  // Обычная остановка в той же сессии не перехватывается.
+  const normal = new windowStub.MediaRecorder()
+  normal.stream = { getTracks: () => [{ stop() {} }] }
+  normal.stop()
+  check('обычная остановка работает', normal.state === 'inactive')
+  // Убираем takeover перед снятием патча.
+  for (const cleanup of cleanups.reverse()) cleanup()
+  check('takeover остановлен при выгрузке', recorder.state === 'inactive')
+  cleanups.length = 0
 }
 
 console.log('снятие патча')
