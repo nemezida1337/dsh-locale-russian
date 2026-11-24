@@ -1,0 +1,15 @@
+{
+  "id": "p3-118-delta-023",
+  "namespace": "liveshare",
+  "translations": {
+    "dialog.capabilities.global": "Разрешения плагина",
+    "dialog.capabilities.global.all": "Разрешить все",
+    "dialog.capabilities.global.custom": "Выборочно",
+    "dialog.capabilities.global.none": "Запретить все",
+    "dialog.capabilities.partial": "Частично",
+    "dialog.capabilities.tier.all": "Все методы",
+    "dialog.ptcSandboxWarning": "Внимание: песочница PTC в LiveShare пока неполная — зритель может читать или записывать файлы за пределами общей рабочей области через run_code. Делитесь только с теми, кому доверяете.",
+    "viewer.dismiss": "Скрыть",
+    "viewer.pluginUnsupported": "Плагин {plugin} недоступен в этом общем доступе; часть возможностей недоступна."
+  }
+}

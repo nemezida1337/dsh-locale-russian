@@ -1,0 +1,8 @@
+{
+  "id": "p3-121-delta-023",
+  "namespace": "pluginMarket",
+  "translations": {
+    "update": "Обновить",
+    "updateTitle": "Обновить {name} до {version}"
+  }
+}

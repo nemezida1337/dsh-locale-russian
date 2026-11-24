@@ -1,0 +1,8 @@
+{
+  "id": "p3-122-delta-023",
+  "namespace": "session-log-download",
+  "translations": {
+    "dialog.preparingDescription": "Готовим ZIP с выбранной сессией, её подсессиями и вложениями.",
+    "dialog.session": "Сессия: {sessionId}"
+  }
+}

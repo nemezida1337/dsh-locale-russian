@@ -1,0 +1,26 @@
+{
+  "id": "p3-015",
+  "namespace": "session-log-download",
+  "priority": "p3",
+  "count": 2,
+  "items": [
+    {
+      "namespace": "session-log-download",
+      "key": "dialog.preparingDescription",
+      "en": "Preparing a ZIP containing the selected Session, its sub-Sessions, and attachments.",
+      "zh": "正在准备包含指定 Session、子 Session 和附件的 ZIP 文件",
+      "context": "dsh-session-log-export",
+      "currentRu": "Готовим ZIP-архив с этой сессией, её дочерними сессиями и вложениями.",
+      "priority": "p3",
+      "previousEn": "Preparing a ZIP containing this Session, its sub-Sessions, and attachments."
+    },
+    {
+      "namespace": "session-log-download",
+      "key": "dialog.session",
+      "en": "Session: {sessionId}",
+      "zh": "Session：{sessionId}",
+      "context": "dsh-session-log-export",
+      "priority": "p3"
+    }
+  ]
+}

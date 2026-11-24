@@ -1,0 +1,16 @@
+{
+  "id": "p3-004",
+  "namespace": "contextMenu",
+  "priority": "p3",
+  "count": 1,
+  "items": [
+    {
+      "namespace": "contextMenu",
+      "key": "back",
+      "en": "Back",
+      "zh": "返回",
+      "context": "dsh-client-ui-context-menu",
+      "priority": "p3"
+    }
+  ]
+}

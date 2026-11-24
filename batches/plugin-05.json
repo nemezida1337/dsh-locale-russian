@@ -5,6 +5,90 @@
   "items": [
     {
       "kind": "description",
+      "en": "TypeScript client SDK for driving a DeepSeek Harness runtime subprocess over stdio JSON-RPC: the DeepSeekHarness high-level turns API and the lower-level HarnessClient",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-client"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "TypeScript project analyzer and model-driven Typert artifact generator",
+      "packages": [
+        "@deepseek-ai/dsh-typert-generator"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Unified client resource model: protocol-registered providers turn URL addresses into live values, consumed through the useResource global standard hook",
+      "packages": [
+        "@deepseek-ai/dsh-client-resources"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Unified Web @file and @session reference source",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-reference"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Upload a chat export ZIP from the DeepSeek website with the button next to New session; each conversation becomes a session in the workspace you choose.",
+      "packages": [
+        "@deepseek-ai/dsh-deepseek-chat-import"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "User-approval seam (ctx.approval) for the DeepSeek Harness: one-shot permission decisions dispatched to composed answerers over the approval/request waterfall, fail-closed by default",
+      "packages": [
+        "@deepseek-ai/dsh-user-approval"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "User-facing permission presets (ctx.permissionPresets) for the DeepSeek Harness: one product-level Permissions select bundling the sandbox-mode and approval-policy knobs, written through to their own session events",
+      "packages": [
+        "@deepseek-ai/dsh-permission-presets"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "View shared tasks for the subagent tree.",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "View team members and shared tasks, and navigate to member conversations.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-client-ui-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "View, create, replace, and insert text through the filesystem service.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-str-replace-editor"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web application entry: vite build over the @deepseek-ai/dsh-client-web shell library; dist/ served by apps/cli's dsh web",
+      "packages": [
+        "@deepseek-ai/dsh-web-frontend"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Web ask_user_question composer takeover and plan-review presentation UI",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-user-questions"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Web band above the prompt for Claude Code mods: draws each session's mod tree and sends button presses back to the bridge",
       "packages": [
         "@deepseek-ai/dsh-experimental-client-ui-claude-code-mods"
@@ -187,6 +271,13 @@
     },
     {
       "kind": "title",
+      "en": "Team collaboration",
+      "packages": [
+        "@deepseek-ai/dsh-agent-team"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Remote access control",
       "packages": [
         "@deepseek-ai/dsh-api-remote-access"
@@ -201,9 +292,23 @@
     },
     {
       "kind": "title",
+      "en": "Account notifications",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-account-notifications"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Action card display",
       "packages": [
         "@deepseek-ai/dsh-client-ui-action-cards"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Task board",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-agent-team"
       ]
     },
     {
@@ -264,6 +369,13 @@
     },
     {
       "kind": "title",
+      "en": "Computer provider registry",
+      "packages": [
+        "@deepseek-ai/dsh-computer-use"
+      ]
+    },
+    {
+      "kind": "title",
       "en": "Personalized pages",
       "packages": [
         "@deepseek-ai/dsh-creation-recommendations"
@@ -271,16 +383,37 @@
     },
     {
       "kind": "title",
-      "en": "Deliverable file references",
+      "en": "Computer Use service",
       "packages": [
-        "@deepseek-ai/dsh-deliverable-file-references"
+        "@deepseek-ai/dsh-cua"
       ]
     },
     {
       "kind": "title",
-      "en": "Team collaboration",
+      "en": "Computer use",
       "packages": [
-        "@deepseek-ai/dsh-experimental-agent-team"
+        "@deepseek-ai/dsh-cua-bundle"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "DeepSeek account",
+      "packages": [
+        "@deepseek-ai/dsh-deepseek-account"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "DeepSeek chat import",
+      "packages": [
+        "@deepseek-ai/dsh-deepseek-chat-import"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Deliverable file references",
+      "packages": [
+        "@deepseek-ai/dsh-deliverable-file-references"
       ]
     },
     {
@@ -344,6 +477,13 @@
       "en": "Voice recording",
       "packages": [
         "@deepseek-ai/dsh-experimental-client-ui-voice-input"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "macOS Computer Use provider",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-cua-macos"
       ]
     },
     {
@@ -491,146 +631,6 @@
       "en": "Local filesystem",
       "packages": [
         "@deepseek-ai/dsh-fs-local"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Harness development context",
-      "packages": [
-        "@deepseek-ai/dsh-harness-dev-context"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Headless profile",
-      "packages": [
-        "@deepseek-ai/dsh-headless"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Static frontend server",
-      "packages": [
-        "@deepseek-ai/dsh-host-frontend-static"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "MCP client",
-      "packages": [
-        "@deepseek-ai/dsh-mcp-client"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Message quotes",
-      "packages": [
-        "@deepseek-ai/dsh-message-quotes"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Personalized recommendations",
-      "packages": [
-        "@deepseek-ai/dsh-personalized-recommendations"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Plugin indexes",
-      "packages": [
-        "@deepseek-ai/dsh-plugin-market"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Plugin recommendations",
-      "packages": [
-        "@deepseek-ai/dsh-plugin-recommendations"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Local PowerShell execution",
-      "packages": [
-        "@deepseek-ai/dsh-pwsh-local"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Task scheduling",
-      "packages": [
-        "@deepseek-ai/dsh-schedule"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "SDK profile",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-app"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "SDK server",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-jsonrpc-server"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "All-message session titles",
-      "packages": [
-        "@deepseek-ai/dsh-session-title-all-prompts-llm"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Office skills",
-      "packages": [
-        "@deepseek-ai/dsh-skill-office"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Time awareness",
-      "packages": [
-        "@deepseek-ai/dsh-time-context"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "tmux context",
-      "packages": [
-        "@deepseek-ai/dsh-tmux-context"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Native tool execution",
-      "packages": [
-        "@deepseek-ai/dsh-tool-executor-native"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "PTC tool execution",
-      "packages": [
-        "@deepseek-ai/dsh-tool-executor-ptc"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Scheduling tools",
-      "packages": [
-        "@deepseek-ai/dsh-tool-schedule"
-      ]
-    },
-    {
-      "kind": "title",
-      "en": "Session history tools",
-      "packages": [
-        "@deepseek-ai/dsh-tool-session-query"
       ]
     }
   ]

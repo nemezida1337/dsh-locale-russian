@@ -1,0 +1,314 @@
+{
+  "id": "p3-017",
+  "namespace": "settings.models",
+  "priority": "p3",
+  "count": 38,
+  "items": [
+    {
+      "namespace": "settings.models",
+      "key": "addCustomHint",
+      "en": "Connect a relay, a self-hosted server, or any other OpenAI-, Anthropic-, or Gemini-compatible endpoint by its base URL, protocol, and models.",
+      "zh": "连接中转站、自部署服务或其他兼容 OpenAI / Anthropic / Gemini 协议的接口，需填写 API 地址、协议和模型。",
+      "context": "packages/client/ui-settings-models/src/client/locales.ts",
+      "currentRu": "Подключите ретранслятор, собственный сервер или любой другой адрес, совместимый с OpenAI или Anthropic, указав его базовый URL, протокол и модели.",
+      "priority": "p3",
+      "previousEn": "Connect a relay, a self-hosted server, or any other OpenAI- or Anthropic-compatible endpoint by its base URL, protocol, and models."
+    },
+    {
+      "namespace": "settings.models",
+      "key": "customGeminiBaseUrlPlaceholder",
+      "en": "https://gateway.example/v1beta",
+      "zh": "https://gateway.example/v1beta",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "keyRemoveApplied",
+      "en": "Key cleared. Apply again to finish settings; this deletion cannot be undone.",
+      "zh": "密钥已清除，请重试保存以完成配置更新；此删除无法撤销",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "keyRemovePending",
+      "en": "Apply to clear the saved API key and use environment authentication.",
+      "zh": "保存以清除已保存的 API key，并改用环境认证。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "keyRemovePendingEnvironment",
+      "en": "Apply to clear the saved API key. Environment authentication will be used ({hint}).",
+      "zh": "保存以清除已保存的 API key。之后使用环境认证（{hint}）。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "keyReplacePending",
+      "en": "Apply to replace the saved API key.",
+      "zh": "保存以替换已保存的 API key。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "keySaved",
+      "en": "Use the existing saved API key.",
+      "zh": "使用已保存的 API key。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "modelReasoningLevelsOnly",
+      "en": "This API protocol accepts only the minimal, low, medium, and high levels, each with its level name as the API value. Change or remove the other levels.",
+      "zh": "此 API 协议仅接受 minimal、low、medium 和 high 档位，且每个档位的 API 参数值须与档位名称相同。请修改或删除其他档位。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "protocolGemini",
+      "en": "Gemini API",
+      "zh": "Gemini API",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryAlwaysHint",
+      "en": "Failed requests retry until they succeed or the turn is stopped.",
+      "zh": "失败的请求会持续重试，直到成功或本轮被停止。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryBackoff",
+      "en": "Backoff",
+      "zh": "退避",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeAdd",
+      "en": "Add",
+      "zh": "添加",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeCustom",
+      "en": "Custom error code",
+      "zh": "自定义错误码",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeEmptyResponse",
+      "en": "Empty response",
+      "zh": "空响应",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeMalformedResponse",
+      "en": "Malformed response",
+      "zh": "响应格式错误",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeQuota",
+      "en": "Quota exceeded",
+      "zh": "配额已用尽",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeRateLimit",
+      "en": "Rate limited",
+      "zh": "请求限流",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeServer",
+      "en": "Server error",
+      "zh": "服务器错误",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeStreamClosed",
+      "en": "Stream closed early",
+      "zh": "流提前结束",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeTimeout",
+      "en": "Timeout",
+      "zh": "超时",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodeTransport",
+      "en": "Network error",
+      "zh": "网络错误",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodes",
+      "en": "Error codes",
+      "zh": "错误码",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodesDuplicate",
+      "en": "Each error code may appear once.",
+      "zh": "每个错误码只能出现一次。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryCodesInvalid",
+      "en": "Error codes must be non-empty text.",
+      "zh": "错误码必须是非空文本。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryDelayOrder",
+      "en": "Initial delay cannot exceed max delay.",
+      "zh": "初始延迟不能大于最大延迟。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryInitialDelay",
+      "en": "Initial delay (ms)",
+      "zh": "初始延迟 (ms)",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryJitter",
+      "en": "Jitter ratio",
+      "zh": "抖动比例",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryMaxDelay",
+      "en": "Max delay (ms)",
+      "zh": "最大延迟 (ms)",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryMaxRetries",
+      "en": "Max retries",
+      "zh": "最大重试次数",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryModeAlways",
+      "en": "All errors",
+      "zh": "所有错误",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryModeDefault",
+      "en": "Default ({mode})",
+      "zh": "默认（{mode}）",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryModeNormal",
+      "en": "Transient errors",
+      "zh": "仅临时错误",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryPolicy",
+      "en": "Retry policy",
+      "zh": "重试策略",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryValueInteger",
+      "en": "Enter a whole number.",
+      "zh": "请输入整数。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryValueMax",
+      "en": "Must be at most {max}.",
+      "zh": "不能大于 {max}。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryValueMin",
+      "en": "Must be at least {min}.",
+      "zh": "不能小于 {min}。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryValueNumber",
+      "en": "Enter a number.",
+      "zh": "请输入数字。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.models",
+      "key": "retryValuePositive",
+      "en": "Must be greater than 0.",
+      "zh": "必须大于 0。",
+      "context": "dsh-client-ui-settings-models",
+      "priority": "p3"
+    }
+  ]
+}

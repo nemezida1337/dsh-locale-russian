@@ -1,0 +1,24 @@
+{
+  "id": "p3-014",
+  "namespace": "pluginMarket",
+  "priority": "p3",
+  "count": 2,
+  "items": [
+    {
+      "namespace": "pluginMarket",
+      "key": "update",
+      "en": "Update",
+      "zh": "更新",
+      "context": "dsh-client-ui-plugin-market",
+      "priority": "p3"
+    },
+    {
+      "namespace": "pluginMarket",
+      "key": "updateTitle",
+      "en": "Update {name} to {version}",
+      "zh": "将 {name} 更新到 {version}",
+      "context": "dsh-client-ui-plugin-market",
+      "priority": "p3"
+    }
+  ]
+}

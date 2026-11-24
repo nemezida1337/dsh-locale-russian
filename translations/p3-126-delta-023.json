@@ -1,0 +1,8 @@
+{
+  "id": "p3-126-delta-023",
+  "namespace": "sidebar",
+  "translations": {
+    "panels.unpin": "Открепить «{name}» от боковой панели",
+    "panels.unpinTooltip": "Открепить от левой боковой панели"
+  }
+}

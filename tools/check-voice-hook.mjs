@@ -42,10 +42,12 @@ if (path === undefined) {
 const source = readFileSync(path, 'utf8')
 const problems = []
 
-/** Extracts a listener body by its declaration prefix. */
+/** Extracts a listener body by its declaration prefix (spacing-insensitive). */
 function bodyOf(prefix) {
-  const start = source.indexOf(prefix)
-  if (start === -1) return undefined
+  const pattern = new RegExp(prefix.source, 'u')
+  const match = pattern.exec(source)
+  if (match === null) return undefined
+  const start = match.index
   const open = source.indexOf('{', start)
   if (open === -1) return undefined
   let depth = 0
@@ -60,21 +62,24 @@ function bodyOf(prefix) {
 }
 
 // Наш патч узнаёт обработчики по источнику: в нём есть cancel и фаза записи.
+// Сборка минифицирована, поэтому префикс ищем без привязки к пробелам и кавычкам.
 const checks = [
-  { name: 'blur', prefix: 'const blur = () =>', marker: 'addEventListener("blur"' },
-  { name: 'visibilitychange', prefix: 'const visibility = () =>', marker: 'addEventListener("visibilitychange"' },
+  { name: 'blur', prefix: /const\s+blur\s*=/u, marker: 'blur' },
+  { name: 'visibilitychange', prefix: /const\s+visibility\s*=/u, marker: 'visibilitychange' },
 ]
 for (const check of checks) {
   const body = bodyOf(check.prefix)
   if (body === undefined) {
-    problems.push(`не найден обработчик ${check.name} (${check.prefix}) — возможно, DSH изменил код отмены`)
+    problems.push(`не найден обработчик ${check.name} (${String(check.prefix)}) — возможно, DSH изменил код отмены`)
     continue
   }
   if (!body.includes('cancel')) problems.push(`обработчик ${check.name} больше не вызывает cancel`)
   if (!body.includes('recording') && !body.includes('transcribing')) {
     problems.push(`обработчик ${check.name} не упоминает фазу записи — наш патч его не узнает`)
   }
-  if (!source.includes(check.marker)) problems.push(`обработчик ${check.name} больше не подписывается на ${check.name}`)
+  // Подписка минифицирована: имя события может быть в кавычках любого вида.
+  const subscribe = new RegExp(`addEventListener\\(\\s*[\`'"]${check.marker}[\`'"]`, 'u')
+  if (!subscribe.test(source)) problems.push(`обработчик ${check.name} больше не подписывается на ${check.name}`)
 }
 
 if (problems.length > 0) {

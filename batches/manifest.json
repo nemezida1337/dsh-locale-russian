@@ -1,4 +1,159 @@
 {
   "batchSize": 120,
-  "batches": []
+  "batches": [
+    {
+      "id": "p3-001",
+      "namespace": "account.notifications",
+      "priority": "p3",
+      "count": 1,
+      "file": "p3-001.json"
+    },
+    {
+      "id": "p3-002",
+      "namespace": "agent-team",
+      "priority": "p3",
+      "count": 18,
+      "file": "p3-002.json"
+    },
+    {
+      "id": "p3-003",
+      "namespace": "chat",
+      "priority": "p3",
+      "count": 12,
+      "file": "p3-003.json"
+    },
+    {
+      "id": "p3-004",
+      "namespace": "contextMenu",
+      "priority": "p3",
+      "count": 1,
+      "file": "p3-004.json"
+    },
+    {
+      "id": "p3-005",
+      "namespace": "conversation",
+      "priority": "p3",
+      "count": 14,
+      "file": "p3-005.json"
+    },
+    {
+      "id": "p3-006",
+      "namespace": "cuaPermissions",
+      "priority": "p3",
+      "count": 17,
+      "file": "p3-006.json"
+    },
+    {
+      "id": "p3-007",
+      "namespace": "deepseekChatImport",
+      "priority": "p3",
+      "count": 31,
+      "file": "p3-007.json"
+    },
+    {
+      "id": "p3-008",
+      "namespace": "entryCustomization",
+      "priority": "p3",
+      "count": 2,
+      "file": "p3-008.json"
+    },
+    {
+      "id": "p3-009",
+      "namespace": "forgePanel",
+      "priority": "p3",
+      "count": 120,
+      "file": "p3-009.json"
+    },
+    {
+      "id": "p3-010",
+      "namespace": "forgePanel",
+      "priority": "p3",
+      "count": 54,
+      "file": "p3-010.json"
+    },
+    {
+      "id": "p3-011",
+      "namespace": "liveshare",
+      "priority": "p3",
+      "count": 9,
+      "file": "p3-011.json"
+    },
+    {
+      "id": "p3-012",
+      "namespace": "open-in-app",
+      "priority": "p3",
+      "count": 1,
+      "file": "p3-012.json"
+    },
+    {
+      "id": "p3-013",
+      "namespace": "pluginManager",
+      "priority": "p3",
+      "count": 2,
+      "file": "p3-013.json"
+    },
+    {
+      "id": "p3-014",
+      "namespace": "pluginMarket",
+      "priority": "p3",
+      "count": 2,
+      "file": "p3-014.json"
+    },
+    {
+      "id": "p3-015",
+      "namespace": "session-log-download",
+      "priority": "p3",
+      "count": 2,
+      "file": "p3-015.json"
+    },
+    {
+      "id": "p3-016",
+      "namespace": "settings",
+      "priority": "p3",
+      "count": 23,
+      "file": "p3-016.json"
+    },
+    {
+      "id": "p3-017",
+      "namespace": "settings.models",
+      "priority": "p3",
+      "count": 38,
+      "file": "p3-017.json"
+    },
+    {
+      "id": "p3-018",
+      "namespace": "settings.webSearch",
+      "priority": "p3",
+      "count": 31,
+      "file": "p3-018.json"
+    },
+    {
+      "id": "p3-019",
+      "namespace": "sidebar",
+      "priority": "p3",
+      "count": 2,
+      "file": "p3-019.json"
+    },
+    {
+      "id": "p3-020",
+      "namespace": "sidebarFiles",
+      "priority": "p3",
+      "count": 32,
+      "file": "p3-020.json"
+    },
+    {
+      "id": "p3-021",
+      "namespace": "sidebarTerminal",
+      "priority": "p3",
+      "count": 5,
+      "file": "p3-021.json"
+    },
+    {
+      "id": "p3-022",
+      "namespace": "subagent",
+      "priority": "p3",
+      "count": 7,
+      "file": "p3-022.json"
+    }
+  ]
 }

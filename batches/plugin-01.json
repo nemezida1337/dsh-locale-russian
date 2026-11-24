@@ -488,6 +488,13 @@
     },
     {
       "kind": "description",
+      "en": "Currently supports macOS; Windows support is in development. Loads computer use for existing and new PTC sessions. Switch to PTC mode and grant Accessibility and Screen Recording permissions to use it.",
+      "packages": [
+        "@deepseek-ai/dsh-cua-bundle"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Customize plugin entries in the left sidebar, conversation views, and right sidebar, and quickly create new plugins.",
       "packages": [
         "@deepseek-ai/dsh-client-ui-entry-customization"
@@ -565,6 +572,13 @@
     },
     {
       "kind": "description",
+      "en": "Dependency-free HarnessError base class with a stable machine-routable code for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-error"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Deprecated tool presentation selector; use dsh-tool-executor-native or dsh-tool-executor-ptc directly",
       "packages": [
         "@deepseek-ai/dsh-agent-tool-presentation"
@@ -575,6 +589,13 @@
       "en": "Desktop product event collection and authenticated Host reporting",
       "packages": [
         "@deepseek-ai/dsh-client-product-analytics"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Display account notifications and refresh localized content",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-account-notifications"
       ]
     },
     {
@@ -610,27 +631,6 @@
       "en": "dsh CLI: profile launch, plugin management, and configuration inspection",
       "packages": [
         "@deepseek-ai/dsh"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Duplicate-install-safe value primitives for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-util-values"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Durable image offload for image-capable routes: replace over-budget request images with placeholders and retry",
-      "packages": [
-        "@deepseek-ai/dsh-compaction-image-offload"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Durable immutable attachment storage seam for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-attachment"
       ]
     }
   ]

@@ -1,0 +1,266 @@
+{
+  "id": "p3-020",
+  "namespace": "sidebarFiles",
+  "priority": "p3",
+  "count": 32,
+  "items": [
+    {
+      "namespace": "sidebarFiles",
+      "key": "emptyHidden",
+      "en": "Hidden entries are not shown",
+      "zh": "隐藏项未显示",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.clear",
+      "en": "Clear search",
+      "zh": "清空搜索",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.empty",
+      "en": "No matches",
+      "zh": "没有匹配项",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.all",
+      "en": "Hidden entries, excluded files and directories, and those ignored by ignore files such as .gitignore, are not shown.",
+      "zh": "隐藏项、排除的文件和目录，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.both",
+      "en": "Hidden entries and excluded files and directories are not shown.",
+      "zh": "隐藏项以及排除的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.excluded",
+      "en": "Excluded files and directories are not shown.",
+      "zh": "排除的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.excludedIgnored",
+      "en": "Excluded files and directories, and those ignored by ignore files such as .gitignore, are not shown.",
+      "zh": "排除的文件和目录，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.hidden",
+      "en": "Hidden entries are not shown.",
+      "zh": "隐藏项不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.hiddenIgnored",
+      "en": "Hidden entries, and files and directories ignored by ignore files such as .gitignore, are not shown.",
+      "zh": "隐藏项，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.ignored",
+      "en": "Files and directories ignored by ignore files such as .gitignore are not shown.",
+      "zh": "被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.emptyHint.label",
+      "en": "Why there are no matches",
+      "zh": "为什么没有匹配项",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.failed",
+      "en": "Search failed: {message}",
+      "zh": "搜索失败：{message}",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.incomplete",
+      "en": "The search passed its file limit, or some directories could not be read, so results may be incomplete.",
+      "zh": "文件数超过搜索上限，或部分目录未能读取，因此结果可能不完整。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.placeholder",
+      "en": "Search files",
+      "zh": "搜索文件",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.results",
+      "en": "Results: {count}",
+      "zh": "{count} 个结果",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.retry",
+      "en": "Retry",
+      "zh": "重试",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.settings",
+      "en": "Search settings",
+      "zh": "搜索设置",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.showHidden",
+      "en": "Show hidden entries",
+      "zh": "显示隐藏项",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "search.truncated",
+      "en": "Showing only the first {count} results. Narrow the search to see the rest.",
+      "zh": "只显示前 {count} 个结果，请缩小搜索范围。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.add",
+      "en": "Add file or directory",
+      "zh": "添加文件或目录",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.close",
+      "en": "Close",
+      "zh": "关闭",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.description",
+      "en": "Only affects search results, not the file tree.",
+      "zh": "只影响搜索结果，不影响文件树。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.invalid.absolute",
+      "en": "Use a path relative to the workspace.",
+      "zh": "请使用相对于工作区的路径。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.invalid.empty",
+      "en": "Enter a name or relative path.",
+      "zh": "请输入名称或相对路径。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.invalid.glob",
+      "en": "The path cannot contain wildcards * ? [ ] { } !.",
+      "zh": "路径不能包含通配符 * ? [ ] { } !。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.invalid.nul",
+      "en": "The path cannot contain a NUL character.",
+      "zh": "路径不能包含 NUL 字符。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.invalid.parent",
+      "en": "The path cannot contain . or .. segments.",
+      "zh": "路径不能包含 . 或 .. 段。",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.remove",
+      "en": "Remove {path}",
+      "zh": "删除 {path}",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.respectGitignore",
+      "en": "Respect ignore files (.gitignore, etc.)",
+      "zh": "尊重忽略文件（.gitignore 等）",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.restore",
+      "en": "Restore default list",
+      "zh": "还原默认列表",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.title",
+      "en": "Excluded files and directories",
+      "zh": "排除的文件和目录",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarFiles",
+      "key": "settings.toggle",
+      "en": "Exclude {path}",
+      "zh": "排除 {path}",
+      "context": "dsh-client-ui-sidebar-files",
+      "priority": "p3"
+    }
+  ]
+}

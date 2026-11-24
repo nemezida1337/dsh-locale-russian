@@ -1,0 +1,24 @@
+{
+  "id": "p3-019",
+  "namespace": "sidebar",
+  "priority": "p3",
+  "count": 2,
+  "items": [
+    {
+      "namespace": "sidebar",
+      "key": "panels.unpin",
+      "en": "Unpin {name} from sidebar",
+      "zh": "从侧边栏取消固定{name}",
+      "context": "dsh-client-ui-sidebar",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebar",
+      "key": "panels.unpinTooltip",
+      "en": "Unpin from left sidebar",
+      "zh": "从左侧栏取消固定",
+      "context": "dsh-client-ui-sidebar",
+      "priority": "p3"
+    }
+  ]
+}

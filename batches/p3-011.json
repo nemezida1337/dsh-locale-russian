@@ -1,0 +1,80 @@
+{
+  "id": "p3-011",
+  "namespace": "liveshare",
+  "priority": "p3",
+  "count": 9,
+  "items": [
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.global",
+      "en": "Plugin permissions",
+      "zh": "插件权限",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.global.all",
+      "en": "Allow all",
+      "zh": "允许全部",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.global.custom",
+      "en": "Custom",
+      "zh": "自定义",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.global.none",
+      "en": "Deny all",
+      "zh": "拒绝全部",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.partial",
+      "en": "Partial",
+      "zh": "部分",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.capabilities.tier.all",
+      "en": "All methods",
+      "zh": "全部方法",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "dialog.ptcSandboxWarning",
+      "en": "Note: LiveShare’s PTC sandbox is not yet complete - a viewer may read or write files outside the shared workspace through run_code. Share only with people you trust.",
+      "zh": "注意：LiveShare 的 PTC 沙箱尚不完善——被分享者可能通过 run_code 读写分享工作区之外的文件，请只分享给可信任的人。",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "viewer.dismiss",
+      "en": "Dismiss",
+      "zh": "关闭",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    },
+    {
+      "namespace": "liveshare",
+      "key": "viewer.pluginUnsupported",
+      "en": "Plugin {plugin} is not available in this share; some features are unavailable.",
+      "zh": "插件 {plugin} 未适配当前分享，部分功能不可用。",
+      "context": "dsh-experimental-liveshare",
+      "priority": "p3"
+    }
+  ]
+}

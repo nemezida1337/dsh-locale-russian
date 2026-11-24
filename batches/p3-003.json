@@ -1,0 +1,104 @@
+{
+  "id": "p3-003",
+  "namespace": "chat",
+  "priority": "p3",
+  "count": 12,
+  "items": [
+    {
+      "namespace": "chat",
+      "key": "chat.historyStart",
+      "en": "Start of conversation",
+      "zh": "已到会话开头",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "chat.loadingOlder",
+      "en": "Loading earlier",
+      "zh": "正在加载",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "chat.processingOlder",
+      "en": "Processing",
+      "zh": "正在处理",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "chat.retryOlder",
+      "en": "Retry loading",
+      "zh": "重新加载",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.continuation.requested",
+      "en": "Requested to continue generation",
+      "zh": "已请求继续生成",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.stepProcess.done.context",
+      "en": "Injected context",
+      "zh": "已注入上下文",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.aborted",
+      "en": "Subagent run stopped",
+      "zh": "子智能体任务已停止",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.completed",
+      "en": "Subagent run completed",
+      "zh": "子智能体已完成任务",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.error",
+      "en": "Subagent run failed",
+      "zh": "子智能体执行失败",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.maxTokens",
+      "en": "Subagent reached the token limit",
+      "zh": "子智能体已达 token 上限",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.refusal",
+      "en": "Subagent declined the task",
+      "zh": "子智能体拒绝执行",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    },
+    {
+      "namespace": "chat",
+      "key": "message.trigger.subagent.unknown",
+      "en": "Subagent run ended unexpectedly",
+      "zh": "子智能体异常结束",
+      "context": "dsh-client-ui-chat",
+      "priority": "p3"
+    }
+  ]
+}

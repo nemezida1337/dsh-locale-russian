@@ -1,0 +1,124 @@
+{
+  "id": "p3-005",
+  "namespace": "conversation",
+  "priority": "p3",
+  "count": 14,
+  "items": [
+    {
+      "namespace": "conversation",
+      "key": "detail.field.agentDescription",
+      "en": "Agent task description",
+      "zh": "智能体任务描述",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.field.agentName",
+      "en": "Agent name",
+      "zh": "智能体名称",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.status.corrupt",
+      "en": "Corrupt",
+      "zh": "已损坏",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.status.unavailable",
+      "en": "Unavailable",
+      "zh": "不可用",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.status.unsupported",
+      "en": "Unsupported",
+      "zh": "不支持",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.wait.ended",
+      "en": "Wait ended",
+      "zh": "等待已结束",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "detail.wait.title",
+      "en": "Wait result",
+      "zh": "等待结果",
+      "context": "packages/client/ui-conversation/src/client/locales.ts",
+      "currentRu": "Активность субагентов",
+      "priority": "p3",
+      "previousEn": "Subagent activity"
+    },
+    {
+      "namespace": "conversation",
+      "key": "header.more",
+      "en": "More actions",
+      "zh": "更多操作",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "input.continue",
+      "en": "Continue generating",
+      "zh": "继续生成",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "tool.title.officeConvert",
+      "en": "Convert document",
+      "zh": "转换文档",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "tool.title.officeRecalculate",
+      "en": "Recalculate workbook",
+      "zh": "重算工作簿",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "tool.title.officeRender",
+      "en": "Render document",
+      "zh": "渲染文档",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "tool.title.subagentFork",
+      "en": "Fork subagent",
+      "zh": "派生子智能体",
+      "context": "dsh-client-ui-conversation",
+      "priority": "p3"
+    },
+    {
+      "namespace": "conversation",
+      "key": "tool.title.waitAgent",
+      "en": "Waiting for messages…",
+      "zh": "等待消息…",
+      "context": "packages/client/ui-conversation/src/client/locales.ts",
+      "currentRu": "Дождаться субагента",
+      "priority": "p3",
+      "previousEn": "Wait for subagent"
+    }
+  ]
+}

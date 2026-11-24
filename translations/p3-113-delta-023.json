@@ -1,0 +1,20 @@
+{
+  "id": "p3-113-delta-023",
+  "namespace": "conversation",
+  "translations": {
+    "detail.field.agentDescription": "Описание задачи агента",
+    "detail.field.agentName": "Имя агента",
+    "detail.status.corrupt": "Повреждено",
+    "detail.status.unavailable": "Недоступно",
+    "detail.status.unsupported": "Не поддерживается",
+    "detail.wait.ended": "Ожидание завершено",
+    "detail.wait.title": "Результат ожидания",
+    "header.more": "Другие действия",
+    "input.continue": "Продолжить генерацию",
+    "tool.title.officeConvert": "Преобразовать документ",
+    "tool.title.officeRecalculate": "Пересчитать книгу",
+    "tool.title.officeRender": "Отрисовать документ",
+    "tool.title.subagentFork": "Ответвить субагента",
+    "tool.title.waitAgent": "Ожидание сообщений…"
+  }
+}

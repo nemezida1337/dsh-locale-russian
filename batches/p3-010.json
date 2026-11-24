@@ -1,0 +1,448 @@
+{
+  "id": "p3-010",
+  "namespace": "forgePanel",
+  "priority": "p3",
+  "count": 54,
+  "items": [
+    {
+      "namespace": "forgePanel",
+      "key": "thread.onCommit",
+      "en": "on {commit}",
+      "zh": "在 {commit} 上",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.openAll",
+      "en": "View on GitHub",
+      "zh": "在 GitHub 中查看",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.openOnHost",
+      "en": "View on GitHub",
+      "zh": "在 GitHub 中查看",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.originalFailed",
+      "en": "Could not read the file at that commit: {message}",
+      "zh": "无法读取当时的文件：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.originalLoading",
+      "en": "Reading the file at that commit…",
+      "zh": "正在读取当时的文件…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.originally",
+      "en": "Originally {range}",
+      "zh": "原在 {range}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.outdatedSection",
+      "en": "{count} outdated threads: later commits changed their code",
+      "zh": "{count} 条讨论已过期：所在代码已被后续提交修改",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.outdatedTag",
+      "en": "Outdated",
+      "zh": "已过期",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.replies",
+      "en": "{count} replies",
+      "zh": "{count} 条回复",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.reply",
+      "en": "Reply",
+      "zh": "回复",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.replyActions",
+      "en": "Reply options",
+      "zh": "回复选项",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.replyPlaceholder",
+      "en": "Reply…",
+      "zh": "回复…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.resolve",
+      "en": "Resolve thread",
+      "zh": "解决讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.resolvedRow",
+      "en": "Resolved thread · {author}",
+      "zh": "已解决的讨论 · {author}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.save",
+      "en": "Save",
+      "zh": "保存",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.saving",
+      "en": "Saving…",
+      "zh": "保存中…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.treeCount",
+      "en": "{count} unresolved threads",
+      "zh": "{count} 条未解决的讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.truncated",
+      "en": "Too many threads; showing the first {count}",
+      "zh": "讨论太多，只显示了前 {count} 个",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.unresolve",
+      "en": "Unresolve thread",
+      "zh": "取消解决",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.unresolvedAria",
+      "en": "{name} has {count} unresolved threads; go to the next one",
+      "zh": "{name} 有 {count} 条未解决的讨论，跳到下一条",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.unresolvedCount",
+      "en": "{count} unresolved",
+      "zh": "{count} 条未解决",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.unwrap",
+      "en": "Do not wrap lines",
+      "zh": "取消自动换行",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.viewOriginal",
+      "en": "View file at that commit",
+      "zh": "查看当时的文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.wrap",
+      "en": "Wrap lines",
+      "zh": "自动换行",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.writeFailed",
+      "en": "GitHub did not apply this: {message}",
+      "zh": "GitHub 未执行此操作：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.writeStale",
+      "en": "The PR has new commits. The threads are read again at the new head; check them, then retry.",
+      "zh": "PR 已有新提交。讨论会按新提交重新读取，请核对后重试",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.writeUnknown",
+      "en": "Could not confirm whether GitHub applied this. The threads are being read again; check them before retrying.",
+      "zh": "无法确认 GitHub 是否已执行。正在重新读取讨论，请核对后再重试",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.writeUnsupported",
+      "en": "This code host does not support changing threads here.",
+      "zh": "此代码托管服务不支持在这里修改讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.actionUnknown",
+      "en": "Could not confirm whether the action on {name} took effect. Check it in the browser before trying again.",
+      "zh": "未能确认对 {name} 的操作是否已生效，请在浏览器中查看后再重试",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.archiveCleanupFailed",
+      "en": "Archived; worktree cleanup failed. The branch is retained. Check the worktree.",
+      "zh": "已归档，工作树清理失败。分支已保留，请检查工作树。",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.archiveCleanupScheduled",
+      "en": "Archived; the worktree will be cleaned up",
+      "zh": "已归档，工作树将被清理",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.branchUpdateFailed",
+      "en": "Could not update the branch: {message}",
+      "zh": "无法更新分支：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.branchUpdateStale",
+      "en": "{name} has new commits. Review them before updating.",
+      "zh": "{name} 已有新提交，请重新检查后再更新",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.branchUpdated",
+      "en": "Started updating the branch of {name}",
+      "zh": "已开始更新 {name} 的分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.rerunFailed",
+      "en": "Could not rerun the checks: {message}",
+      "zh": "无法重跑检查：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.rerunRequested",
+      "en": "Requested a rerun of the checks of {name}",
+      "zh": "已请求重跑 {name} 的检查",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.rerunStale",
+      "en": "{name} has new commits. Check the new commit's checks before rerunning.",
+      "zh": "{name} 已有新提交，请查看新提交的检查后再重跑",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.reviewRequestFailed",
+      "en": "Could not request the review: {message}",
+      "zh": "无法请求评审：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "toast.reviewRequested",
+      "en": "Requested a review of {name} from {login}",
+      "zh": "已请求 {login} 评审 {name}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.aria",
+      "en": "Mark {name} as viewed",
+      "zh": "将 {name} 标记为已审阅",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.changed",
+      "en": "Changed since viewed",
+      "zh": "有新改动",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.count",
+      "en": "{viewed}/{total}",
+      "zh": "{viewed}/{total}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.hint",
+      "en": "Press V to toggle the current file",
+      "zh": "按 V 切换当前文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.hintHost",
+      "en": "Saved on GitHub · Press V to toggle the current file",
+      "zh": "保存在 GitHub · 按 V 切换当前文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.label",
+      "en": "Viewed",
+      "zh": "已审阅",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.progress",
+      "en": "{viewed} / {total} viewed",
+      "zh": "已审阅 {viewed} / {total}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.progressAria",
+      "en": "Viewed files",
+      "zh": "已审阅的文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.readFailed",
+      "en": "Could not read viewed files from GitHub, so files cannot be marked: {message}",
+      "zh": "未能读取 GitHub 上的已审阅状态，暂时不能标记文件：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.saveFailed",
+      "en": "Could not save the viewed state",
+      "zh": "无法保存已审阅状态",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.saving",
+      "en": "Saving to GitHub…",
+      "zh": "正在保存到 GitHub…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.syncFailed",
+      "en": "Could not save the viewed mark to GitHub: {message}",
+      "zh": "已审阅状态未能保存到 GitHub：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.syncStale",
+      "en": "The PR has new commits, so the viewed mark was not saved. Refresh and mark the file again.",
+      "zh": "PR 已有新提交，已审阅状态未保存。请刷新后再标记",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.syncUnknown",
+      "en": "Could not confirm that the viewed mark was saved: {message}. Refresh to see where it stands.",
+      "zh": "未能确认已审阅状态是否已保存：{message}。刷新后可查看实际状态",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "viewed.unavailable",
+      "en": "Could not read viewed files from GitHub",
+      "zh": "未能读取 GitHub 上的已审阅状态",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    }
+  ]
+}

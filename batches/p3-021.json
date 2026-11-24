@@ -1,0 +1,48 @@
+{
+  "id": "p3-021",
+  "namespace": "sidebarTerminal",
+  "priority": "p3",
+  "count": 5,
+  "items": [
+    {
+      "namespace": "sidebarTerminal",
+      "key": "badge.agent",
+      "en": "Agent",
+      "zh": "Agent",
+      "context": "dsh-client-ui-sidebar-terminal",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarTerminal",
+      "key": "badge.agentHint",
+      "en": "Opened by the agent. Typing here takes over; the agent can then only read it.",
+      "zh": "由 Agent 打开。你一输入就由你接管，Agent 之后只能读取。",
+      "context": "dsh-client-ui-sidebar-terminal",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarTerminal",
+      "key": "badge.readOnlyHint",
+      "en": "Commands run in the agent's read-only sandbox, including commands you type here.",
+      "zh": "命令在 Agent 的只读沙箱里运行，包括你在这里输入的命令。",
+      "context": "dsh-client-ui-sidebar-terminal",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarTerminal",
+      "key": "badge.sandbox",
+      "en": "Sandbox",
+      "zh": "沙箱",
+      "context": "dsh-client-ui-sidebar-terminal",
+      "priority": "p3"
+    },
+    {
+      "namespace": "sidebarTerminal",
+      "key": "badge.workspaceWriteHint",
+      "en": "Commands run in the agent's workspace sandbox, including commands you type here.",
+      "zh": "命令在 Agent 的工作区沙箱里运行，包括你在这里输入的命令。",
+      "context": "dsh-client-ui-sidebar-terminal",
+      "priority": "p3"
+    }
+  ]
+}

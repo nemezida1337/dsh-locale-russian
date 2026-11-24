@@ -32,7 +32,7 @@
     "updateRunning": "Обновление",
     "updateSource": "Откуда установить",
     "updateStepChecking": "Проверить {version}",
-    "updateStepInstalling": "Установить {version} из {registry}",
+    "updateStepInstalling": "Установить {version} из {source}",
     "updateStepRemoving": "Остановить и удалить {version}",
     "updateStepRestoring": "Установить {version} заново",
     "updateTitle": "Обновить {name}",

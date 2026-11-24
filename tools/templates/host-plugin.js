@@ -91,8 +91,17 @@ const MODEL_FILES = [
   'v3_e2e_rnnt_vocab.txt',
 ]
 
+/** Engine executable name on a platform: Windows CreateProcess needs the .exe suffix. */
+function engineBinaryName(platform = process.platform) {
+  return platform === 'win32' ? 'gigastt.exe' : 'gigastt'
+}
+/** Whisper CLI follows the same executable naming rule. */
+function whisperBinaryName(platform = process.platform) {
+  return platform === 'win32' ? 'whisper-cli.exe' : 'whisper-cli'
+}
+
 const DSH_HOME = process.env.DSH_HOME ?? join(homedir(), '.dsh')
-const DEFAULT_BINARY = join(DSH_HOME, 'bin', 'gigastt')
+const DEFAULT_BINARY = join(DSH_HOME, 'bin', engineBinaryName())
 const DEFAULT_MODEL_DIR = join(homedir(), '.gigastt', 'models')
 const READY_TIMEOUT_MS = 120_000
 const STOP_TIMEOUT_MS = 3_000
@@ -180,6 +189,26 @@ async function installEngine({ binaryPath, engineVersion, engineBaseUrl, onProgr
   } finally {
     rmSync(tempDir, { recursive: true, force: true })
   }
+}
+
+/** Moves the pre-0.26.1 extensionless Windows engine aside to the real .exe path. */
+function migrateLegacyWindowsBinary(binaryPath, log, platform = process.platform) {
+  if (platform !== 'win32' || !binaryPath.toLowerCase().endsWith('.exe') || existsSync(binaryPath)) return false
+  const legacy = binaryPath.slice(0, -4)
+  if (!existsSync(legacy)) return false
+  try {
+    renameSync(legacy, binaryPath)
+  } catch {
+    try {
+      copyFileSync(legacy, binaryPath)
+      rmSync(legacy, { force: true })
+    } catch (error) {
+      log?.('cannot migrate legacy engine binary', error instanceof Error ? error.message : String(error))
+      return false
+    }
+  }
+  log?.('migrated legacy engine binary', legacy, '→', binaryPath)
+  return true
 }
 
 /** Reads the release checksum file; undefined when it is unavailable. */
@@ -369,12 +398,14 @@ export function apply(ctx, config = {}) {
   const modelDir = config.modelDir ?? DEFAULT_MODEL_DIR
   const debug = config.debug === true
   const log = debug ? (...args) => console.log('[dsh-locale-russian]', ...args) : () => {}
+  migrateLegacyWindowsBinary(binaryPath, log)
   const hotwordsFile = config.hotwordsFile ?? DEFAULT_HOTWORDS_FILE
   /** Engine mode: GigaAM only, Whisper only, or both with a merge. */
   const engineMode = config.engine === 'whisper' || config.engine === 'hybrid' || config.engine === 'auto'
     ? config.engine
     : 'gigaam'
-  const whisperBinaryPath = config.whisperBinaryPath ?? join(DSH_HOME, 'bin', 'whisper-cli')
+  const whisperBinaryPath = config.whisperBinaryPath ?? join(DSH_HOME, 'bin', whisperBinaryName())
+  migrateLegacyWindowsBinary(whisperBinaryPath, log)
   const whisperModelPath = config.whisperModelPath ?? join(DSH_HOME, 'speech-ru', 'whisper', 'ggml-large-v3-turbo-q5_0.bin')
   const whisperLanguage = config.whisperLanguage ?? 'ru'
   // Замены «как услышали → как надо» живут рядом со словарём.
@@ -3911,4 +3942,4 @@ export function apply(ctx, config = {}) {
 }
 
 /** Test seam: helpers and data exercised by the offline tests. */
-export const internals = { engineTarget, installEngine, modelFiles: MODEL_FILES, isPrivateAddress, assignTranscriptsToDictations, compareVersions, normalizeUpdateNotes }
+export const internals = { engineTarget, engineBinaryName, whisperBinaryName, migrateLegacyWindowsBinary, installEngine, modelFiles: MODEL_FILES, isPrivateAddress, assignTranscriptsToDictations, compareVersions, normalizeUpdateNotes }

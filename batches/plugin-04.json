@@ -5,9 +5,86 @@
   "items": [
     {
       "kind": "description",
+      "en": "Sandbox-consuming implementation of the DeepSeek Harness PowerShell executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
+      "packages": [
+        "@deepseek-ai/dsh-pwsh-sandbox"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Sandbox-enforcing implementation of the DeepSeek Harness filesystem seam: fences write/edit by the per-call sandbox mode (read-only denies mutation, workspace-write contains it to the workspace + temp roots) while reads pass through",
+      "packages": [
+        "@deepseek-ai/dsh-fs-sandbox"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Sandboxed Web browser tabs for the right Sidebar",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-sidebar-browser"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Save tmux pane and window locations for each step when needed.",
+      "packages": [
+        "@deepseek-ai/dsh-tmux-context"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Scoped MCP resource discovery and reading through shared model tools",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-resources"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Scoped-context registration primitive (scope tags, scope-filtered event dispatch) for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-scope"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Scriptable Messages HTTP/SSE fault server for LLM recovery tests",
+      "packages": [
+        "@deepseek-ai/dsh-llm-mock-server"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Search session history and read trajectories and events according to workspace permissions.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-session-query"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Semantic session durability checkpoints before model requests and tool side effects",
+      "packages": [
+        "@deepseek-ai/dsh-session-checkpoint-policy"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Serve SDK clients in separate processes through JSON-RPC over standard input and output.",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-jsonrpc-server"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Serve the Web application's entry page and static files, reject paths outside their directory, and return 404 for missing resources.",
       "packages": [
         "@deepseek-ai/dsh-host-frontend-static"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Session application submenus and native opening controls for directories and previewed files",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-open-in-app"
       ]
     },
     {
@@ -89,6 +166,13 @@
     },
     {
       "kind": "description",
+      "en": "Settings page for web search and fetch on the dsh web client's Plugins page: the Search and Fetch provider menus, the DeepSeek Search API result count, DeepSeek Search and Fetch API billing, and legacy Messages search settings",
+      "packages": [
+        "@deepseek-ai/dsh-client-ui-settings-web-search"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Settings page of Subagent delegation on the dsh web client's Plugins page: recursion depth, parallel capacity, and the models agents may choose for subagents",
       "packages": [
         "@deepseek-ai/dsh-client-ui-settings-subagent"
@@ -99,13 +183,6 @@
       "en": "Settings page of the agent loop on the dsh web client's Plugins page: the parallel tool-call cap of the agent-loop namespace",
       "packages": [
         "@deepseek-ai/dsh-client-ui-settings-agent-loop"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Settings page of the DeepSeek web-search provider on the dsh web client's Plugins page: its API key, endpoint, and per-request search budget",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-settings-web-search"
       ]
     },
     {
@@ -141,13 +218,6 @@
       "en": "Shared Claude Code / Codex hook wire protocol: matcher engine, stdin/exit-code/stdout codec, multi-hook merge, and hook/* session events",
       "packages": [
         "@deepseek-ai/dsh-hook-protocol"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Shared Computer Use application objects, authorization, and logged tool execution",
-      "packages": [
-        "@deepseek-ai/dsh-cua"
       ]
     },
     {
@@ -250,7 +320,7 @@
     },
     {
       "kind": "description",
-      "en": "Show the proposal card after an answer with location choice, creation progress, retention and undo.",
+      "en": "Show the proposal card after an answer with location choice, creation progress, undo and restore.",
       "packages": [
         "@deepseek-ai/dsh-client-ui-creation-recommendations"
       ]
@@ -274,6 +344,13 @@
       "en": "Sidebar plugin: session multi-level tree, search, grouping, state dots",
       "packages": [
         "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Sign in to DeepSeek and manage account credentials and notifications",
+      "packages": [
+        "@deepseek-ai/dsh-deepseek-account"
       ]
     },
     {
@@ -554,83 +631,6 @@
       "en": "Typert Remote Host dispatcher and Client API endpoint",
       "packages": [
         "@deepseek-ai/dsh-api-gateway"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "TypeScript client SDK for driving a DeepSeek Harness runtime subprocess over stdio JSON-RPC: the DeepSeekHarness high-level turns API and the lower-level HarnessClient",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-client"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "TypeScript project analyzer and model-driven Typert artifact generator",
-      "packages": [
-        "@deepseek-ai/dsh-typert-generator"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Unified client resource model: protocol-registered providers turn URL addresses into live values, consumed through the useResource global standard hook",
-      "packages": [
-        "@deepseek-ai/dsh-client-resources"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Unified Web @file and @session reference source",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-reference"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "User-approval seam (ctx.approval) for the DeepSeek Harness: one-shot permission decisions dispatched to composed answerers over the approval/request waterfall, fail-closed by default",
-      "packages": [
-        "@deepseek-ai/dsh-user-approval"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "User-facing permission presets (ctx.permissionPresets) for the DeepSeek Harness: one product-level Permissions select bundling the sandbox-mode and approval-policy knobs, written through to their own session events",
-      "packages": [
-        "@deepseek-ai/dsh-permission-presets"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "View team members and shared tasks, and navigate to member conversations.",
-      "packages": [
-        "@deepseek-ai/dsh-experimental-client-ui-agent-team"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "View, create, replace, and insert text through the filesystem service.",
-      "packages": [
-        "@deepseek-ai/dsh-tool-str-replace-editor"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web \"Open In...\" controls: the Session-header split button opening the workspace directory in an installed application, and the document preview's default-application controls for one file",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-open-in-app"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web application entry: vite build over the @deepseek-ai/dsh-client-web shell library; dist/ served by apps/cli's dsh web",
-      "packages": [
-        "@deepseek-ai/dsh-web-frontend"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Web ask_user_question composer takeover and plan-review presentation UI",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-user-questions"
       ]
     }
   ]

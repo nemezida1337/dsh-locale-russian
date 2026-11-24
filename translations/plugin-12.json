@@ -1,0 +1,31 @@
+{
+  "id": "plugin-12",
+  "kind": "plugin-meta",
+  "translations": {
+    "Dependency-free HarnessError base class with a stable machine-routable code for the DeepSeek Harness": "Базовый класс HarnessError без зависимостей со стабильным машинно-разбираемым кодом для DeepSeek Harness",
+    "Display account notifications and refresh localized content": "Показывает уведомления учётной записи и обновляет локализованный контент",
+    "Give agents tools to manage their shared task board.": "Даёт агентам инструменты для управления их общей доской задач.",
+    "Gives the agent terminals that open as sidebar tabs you can watch and take over by typing in them. Processes keep running between tool calls, so it can start a dev server or REPL and come back later to read output; it can also read terminals you open yourself.": "Даёт агенту терминалы, которые открываются вкладками в боковой панели: вы можете за ними наблюдать и перехватить управление, набрав текст. Процессы продолжают работать между вызовами инструментов, поэтому агент может запустить dev-сервер или REPL и вернуться позже, чтобы прочитать вывод; он также может читать терминалы, открытые вами.",
+    "Lets the agent view document pages as images, convert documents to other formats, and recalculate spreadsheets.": "Позволяет агенту просматривать страницы документов как изображения, преобразовывать документы в другие форматы и пересчитывать таблицы.",
+    "Manage the MCP servers configured in Settings or registered by plugins, and report their connection status.": "Управляет MCP-серверами, настроенными в настройках или зарегистрированными плагинами, и сообщает их состояние подключения.",
+    "Manage the shared task board for a subagent tree.": "Управляет общей доской задач для дерева субагентов.",
+    "Official DeepSeek Harness brand artwork and click-triggered home background": "Официальная графика бренда DeepSeek Harness и фон главного экрана, запускаемый нажатием",
+    "Packaged ripgrep resolution and subprocess streaming helpers": "Встроенное разрешение ripgrep и помощники потокового вывода подпроцессов",
+    "Renders, converts, and recalculates Word, Excel, and PowerPoint documents for previews and the Office tools.": "Отрисовывает, преобразует и пересчитывает документы Word, Excel и PowerPoint для предпросмотров и инструментов Office.",
+    "Run the agent's persistent terminals as sidebar tabs the user can watch and take over, and let the agent read the user's own terminals.": "Запускает постоянные терминалы агента вкладками в боковой панели, за которыми пользователь может наблюдать и перехватывать управление, и позволяет агенту читать терминалы самого пользователя.",
+    "Session application submenus and native opening controls for directories and previewed files": "Подменю приложений для сессий и системные элементы открытия каталогов и просматриваемых файлов",
+    "Settings page for web search and fetch on the dsh web client's Plugins page: the Search and Fetch provider menus, the DeepSeek Search API result count, DeepSeek Search and Fetch API billing, and legacy Messages search settings": "Страница настроек веб-поиска и веб-загрузки на странице «Плагины» веб-клиента DSH: меню провайдеров Search и Fetch, число результатов DeepSeek Search API, оплата DeepSeek Search и Fetch API и устаревшие настройки поиска Messages",
+    "Show the proposal card after an answer with location choice, creation progress, undo and restore.": "Показывает карточку предложения после ответа: выбор расположения, ход создания, отмена и восстановление.",
+    "Sign in to DeepSeek and manage account credentials and notifications": "Вход в DeepSeek и управление учётными данными и уведомлениями учётной записи",
+    "Upload a chat export ZIP from the DeepSeek website with the button next to New session; each conversation becomes a session in the workspace you choose.": "Загружает ZIP с экспортом чатов с сайта DeepSeek кнопкой рядом с «Новая сессия»; каждый диалог становится сессией в выбранной вами рабочей области.",
+    "View shared tasks for the subagent tree.": "Показывает общие задачи для дерева субагентов.",
+    "Account notifications": "Уведомления учётной записи",
+    "Task board": "Доска задач",
+    "DeepSeek account": "Учётная запись DeepSeek",
+    "DeepSeek chat import": "Импорт чатов DeepSeek",
+    "MCP server manager": "Менеджер MCP-серверов",
+    "Office kit": "Набор Office",
+    "Sidebar terminal backend": "Бэкенд терминалов боковой панели",
+    "Office tools": "Инструменты Office"
+  }
+}

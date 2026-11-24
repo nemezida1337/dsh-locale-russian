@@ -1,0 +1,8 @@
+{
+  "id": "p3-116-delta-023",
+  "namespace": "entryCustomization",
+  "translations": {
+    "pin": "Закрепить «{name}» в боковой панели",
+    "pinTooltip": "Закрепить в левой боковой панели"
+  }
+}

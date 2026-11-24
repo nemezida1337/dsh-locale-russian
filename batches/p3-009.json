@@ -1,0 +1,980 @@
+{
+  "id": "p3-009",
+  "namespace": "forgePanel",
+  "priority": "p3",
+  "count": 120,
+  "items": [
+    {
+      "namespace": "forgePanel",
+      "key": "branch.behind",
+      "en": "Behind {base}",
+      "zh": "落后于 {base}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.changed",
+      "en": "New commits arrived. Review them, then open this menu again.",
+      "zh": "提交已更新，请重新检查后再打开更新菜单",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.confirm",
+      "en": "Confirm update",
+      "zh": "确认更新",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.method.merge",
+      "en": "Update with merge commit",
+      "zh": "合并更新",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.method.rebase",
+      "en": "Update with rebase",
+      "zh": "变基更新",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.note.merge",
+      "en": "Adds a merge commit to the branch",
+      "zh": "在分支上新增一个合并提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.note.rebase",
+      "en": "Rebases the branch's commits onto {base}, rewriting them",
+      "zh": "把分支上的提交逐个变基到 {base}，会改写这些提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.update",
+      "en": "Update branch",
+      "zh": "更新分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "branch.updateTitle",
+      "en": "Update {head} with new commits from {base}",
+      "zh": "用 {base} 的新提交更新 {head}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "change.threads",
+      "en": "{count} unresolved threads",
+      "zh": "{count} 条未解决讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.allPassed",
+      "en": "All {count} checks passed",
+      "zh": "{count} 项检查全部通过",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.group.cancelled",
+      "en": "Cancelled",
+      "zh": "已取消",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.group.failed",
+      "en": "Failed",
+      "zh": "失败",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.group.other",
+      "en": "Skipped and other",
+      "zh": "跳过与其他",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true,
+      "pair": "checks.group",
+      "siblingIsOne": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.group.passed",
+      "en": "Passed",
+      "zh": "通过",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.group.running",
+      "en": "Running",
+      "zh": "进行中",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.rerunFailed",
+      "en": "Rerun failed",
+      "zh": "重跑失败项",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "checks.showQuiet",
+      "en": "Show {count} more (passed, skipped)",
+      "zh": "显示其余 {count} 项（通过、跳过）",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.all",
+      "en": "All commits",
+      "zh": "全部提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.aria",
+      "en": "Commits shown: {commits}",
+      "zh": "查看的提交：{commits}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.count",
+      "en": "{count} commits",
+      "zh": "{count} 个提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.failed",
+      "en": "Could not load commits",
+      "zh": "无法读取提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.loading",
+      "en": "Loading commits…",
+      "zh": "正在读取提交…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.missing",
+      "en": "The selected commits are no longer included",
+      "zh": "所选的提交已不在其中",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.notLinear",
+      "en": "These commits are not on one line of history",
+      "zh": "这些提交不在同一条提交链上",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.range",
+      "en": "{from}…{to}",
+      "zh": "{from}…{to}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.shiftHint",
+      "en": "Hold Shift to select consecutive commits",
+      "zh": "按住 Shift 选择连续多个提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.showAll",
+      "en": "Show all commits",
+      "zh": "查看全部提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.truncatedNewest",
+      "en": "Only the latest {count} commits are listed",
+      "zh": "只列出了最新的 {count} 个提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "commits.truncatedOldest",
+      "en": "Only the earliest {count} commits are listed",
+      "zh": "只列出了最早的 {count} 个提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.aria",
+      "en": "Base branch: {base}",
+      "zh": "基准分支：{base}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.automatic",
+      "en": "Default",
+      "zh": "默认",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.empty",
+      "en": "No matching branches",
+      "zh": "没有匹配的分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.loading",
+      "en": "Reading branches…",
+      "zh": "正在读取分支…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.local",
+      "en": "Local branches",
+      "zh": "本地分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.note",
+      "en": "Compared with the merge base of HEAD and the selected branch, including uncommitted changes",
+      "zh": "与 HEAD 和所选分支的合并基准比较，包含未提交的修改",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.remote",
+      "en": "Remote branches",
+      "zh": "远程分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.search",
+      "en": "Search branches",
+      "zh": "搜索分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.uncommitted",
+      "en": "Including uncommitted changes",
+      "zh": "包含未提交的修改",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.base.worktree",
+      "en": "Worktree start",
+      "zh": "工作树起点",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.baseMissing",
+      "en": "The base branch {base} was not found; it may have been deleted",
+      "zh": "找不到基准分支 {base}，它可能已被删除",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.baseUnrelated",
+      "en": "{base} shares no history with HEAD",
+      "zh": "{base} 与 HEAD 没有共同历史",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.moreOptions",
+      "en": "More view options",
+      "zh": "更多视图选项",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "diff.useAutomaticBase",
+      "en": "Use the default base branch",
+      "zh": "使用默认基准分支",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "issues.aria",
+      "en": "Open issue {label}: {title}",
+      "zh": "打开 issue {label}：{title}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "issues.label",
+      "en": "Linked issues",
+      "zh": "关联 issue",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "issues.more",
+      "en": " and more",
+      "zh": " 等",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "issues.separator",
+      "en": ", ",
+      "zh": "、",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.all",
+      "en": "All",
+      "zh": "全部",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.aria",
+      "en": "Review layer",
+      "zh": "分层透镜",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.empty",
+      "en": "No files to show",
+      "zh": "没有要显示的文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.implementation",
+      "en": "Implementation",
+      "zh": "实现",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.interface",
+      "en": "Interface",
+      "zh": "接口",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.menuAria",
+      "en": "Review layer: {lens}",
+      "zh": "分层透镜：{lens}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.test",
+      "en": "Tests",
+      "zh": "测试",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "lens.testHidden",
+      "en": "Test files are hidden",
+      "zh": "测试文件已隐藏",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.browserDraft",
+      "en": "Browser draft",
+      "zh": "浏览器草稿",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.browserDrafts",
+      "en": "{count} comment drafts are saved only in this browser, not in your pending GitHub review. Add them to the review or delete them first.",
+      "zh": "有 {count} 条评论草稿只保存在此浏览器中，不在 GitHub 的待提交评审里。请先将它们加入评审或删除",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.discard",
+      "en": "Discard review",
+      "zh": "丢弃评审",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.discardConfirm",
+      "en": "Discard your pending review and its {count} comments? This cannot be undone.",
+      "zh": "丢弃待提交的评审及其中的 {count} 条评论？此操作无法撤销",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.discarded",
+      "en": "Review discarded",
+      "zh": "已丢弃评审",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.discarding",
+      "en": "Discarding…",
+      "zh": "丢弃中…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "review.ownChangeRequest",
+      "en": "This is your own PR. GitHub lets you comment on it, but not approve it or request changes.",
+      "zh": "这是你自己的 PR，GitHub 只允许评论，不能批准或请求更改",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.approved",
+      "en": "Approved",
+      "zh": "已批准",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.bot",
+      "en": "Bot",
+      "zh": "bot",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.changesRequested",
+      "en": "Changes requested",
+      "zh": "要求修改",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.codeOwner",
+      "en": "Code owner",
+      "zh": "代码所有者",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.commented",
+      "en": "Commented",
+      "zh": "已评论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.dismissed",
+      "en": "Dismissed",
+      "zh": "已被撤销",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.empty",
+      "en": "No matching people",
+      "zh": "没有匹配的成员",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.loadFailed",
+      "en": "Could not list people",
+      "zh": "无法列出成员",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.loading",
+      "en": "Loading people",
+      "zh": "正在加载成员",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.none",
+      "en": "No reviewers yet",
+      "zh": "还没有评审者",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.older",
+      "en": "Before the latest commit",
+      "zh": "早于最新提交",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.pending",
+      "en": "Awaiting review",
+      "zh": "待评审",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.requestMore",
+      "en": "Request a review from someone else…",
+      "zh": "请求其他人评审…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.rerequestAria",
+      "en": "Re-request a review from {login}",
+      "zh": "重新请求 {login} 评审",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.search",
+      "en": "Search people",
+      "zh": "搜索成员",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.suggested",
+      "en": "Suggested",
+      "zh": "建议",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.team",
+      "en": "Team",
+      "zh": "团队",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "reviewers.truncated",
+      "en": "Some reviewers are not listed; open the change request for all of them",
+      "zh": "评审者较多，完整列表请在浏览器中查看",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.readOnly",
+      "en": "This deployment stores settings read-only.",
+      "zh": "此部署以只读方式保存设置。",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.retainOnArchive.description",
+      "en": "When on, archiving a Session keeps the worktree it created; when off, a clean, unreferenced worktree is removed while its branch and commits remain.",
+      "zh": "开启后，归档会话时保留它创建的工作树；关闭时，干净且无人引用的工作树会被删除，分支和提交仍然保留。",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.retainOnArchive.title",
+      "en": "Keep worktrees when archiving",
+      "zh": "归档时不删除工作树",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.save",
+      "en": "Save",
+      "zh": "保存",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.saveFailed",
+      "en": "The deployment did not accept these values; they were left for you to correct.",
+      "zh": "此部署未接受这些值，已保留以便修改。",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.saving",
+      "en": "Saving…",
+      "zh": "保存中…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "settings.unavailable",
+      "en": "Worktree settings are unavailable.",
+      "zh": "工作树设置不可用。",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "tests.hide",
+      "en": "Hide test files",
+      "zh": "隐藏测试文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "tests.hideHint",
+      "en": "Hides tests, snapshots, locale files, lockfiles, and generated files",
+      "zh": "不显示测试、快照、本地化文件、锁文件和生成的文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.author",
+      "en": "Author",
+      "zh": "作者",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.back",
+      "en": "Back to changes",
+      "zh": "返回变更",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.bot",
+      "en": "bot",
+      "zh": "bot",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.close",
+      "en": "Close the thread list",
+      "zh": "关闭讨论列表",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.codeBlock",
+      "en": "Code block",
+      "zh": "代码块",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.collapse",
+      "en": "Collapse",
+      "zh": "收起",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.commentActions",
+      "en": "Actions for the comment by {author}",
+      "zh": "{author} 的评论操作",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.copied",
+      "en": "Copied",
+      "zh": "复制成功",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.copy",
+      "en": "Copy",
+      "zh": "复制",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.deleteConfirm",
+      "en": "Delete this comment?",
+      "zh": "删除这条评论？",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.deleteLast",
+      "en": "Delete this comment? It is the only comment, so the thread is deleted too.",
+      "zh": "删除这条评论？它是讨论中唯一的评论，讨论也会一并删除",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.deletedAuthor",
+      "en": "Deleted account",
+      "zh": "已删除的账号",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.deleting",
+      "en": "Deleting…",
+      "zh": "删除中…",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.editAria",
+      "en": "Edit comment",
+      "zh": "编辑评论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.elsewhereTag",
+      "en": "Not in the chosen commits",
+      "zh": "不在所选提交中",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.empty",
+      "en": "No review threads yet",
+      "zh": "还没有评审讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.expand",
+      "en": "Expand",
+      "zh": "展开",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.fileLevel",
+      "en": "File thread",
+      "zh": "文件级讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.filter.all",
+      "en": "All",
+      "zh": "全部",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.filter.resolved",
+      "en": "Resolved",
+      "zh": "已解决",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.filter.unresolved",
+      "en": "Unresolved",
+      "zh": "未解决",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.filterAria",
+      "en": "Filter threads",
+      "zh": "筛选讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.footnotes",
+      "en": "Footnotes",
+      "zh": "脚注",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.hideOriginal",
+      "en": "Hide file at that commit",
+      "zh": "收起当时的文件",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.inputFailed",
+      "en": "The input could not take this thread; try again later",
+      "zh": "输入框暂时无法添加这个讨论，请稍后重试",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.list",
+      "en": "Threads",
+      "zh": "讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.listAria",
+      "en": "Review threads, {count} in total",
+      "zh": "讨论列表，共 {count} 个",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.loadFailed",
+      "en": "Could not read GitHub threads: {message}",
+      "zh": "无法读取 GitHub 讨论：{message}",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.next",
+      "en": "Go to the next unresolved thread",
+      "zh": "跳到下一条未解决的讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    },
+    {
+      "namespace": "forgePanel",
+      "key": "thread.none",
+      "en": "No threads match this filter",
+      "zh": "没有符合筛选条件的讨论",
+      "context": "dsh-experimental-client-ui-forge",
+      "priority": "p3"
+    }
+  ]
+}

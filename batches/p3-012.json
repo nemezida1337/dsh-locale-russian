@@ -1,0 +1,16 @@
+{
+  "id": "p3-012",
+  "namespace": "open-in-app",
+  "priority": "p3",
+  "count": 1,
+  "items": [
+    {
+      "namespace": "open-in-app",
+      "key": "menu.openIn",
+      "en": "Open in",
+      "zh": "在应用中打开",
+      "context": "dsh-client-ui-open-in-app",
+      "priority": "p3"
+    }
+  ]
+}

@@ -5,6 +5,27 @@
   "items": [
     {
       "kind": "description",
+      "en": "Duplicate-install-safe value primitives for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-util-values"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Durable image offload for image-capable routes: replace over-budget request images with placeholders and retry",
+      "packages": [
+        "@deepseek-ai/dsh-compaction-image-offload"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Durable immutable attachment storage seam for the DeepSeek Harness",
+      "packages": [
+        "@deepseek-ai/dsh-attachment"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Durable workflow-run Conversation Node and nested member disclosure for dsh web",
       "packages": [
         "@deepseek-ai/dsh-client-ui-workflow-run"
@@ -64,13 +85,6 @@
       "en": "Exclusive named browser-use provider registration",
       "packages": [
         "@deepseek-ai/dsh-browser-use"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Exclusive named computer-use provider registration",
-      "packages": [
-        "@deepseek-ai/dsh-computer-use"
       ]
     },
     {
@@ -229,6 +243,13 @@
     },
     {
       "kind": "description",
+      "en": "Give agents tools to manage their shared task board.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Give the model the Harness source directory and Web URL without changing its system prompt.",
       "packages": [
         "@deepseek-ai/dsh-harness-dev-context"
@@ -236,7 +257,7 @@
     },
     {
       "kind": "description",
-      "en": "Gives the agent terminals whose processes keep running in the background between tool calls, so it can start a dev server or REPL and come back later to read output or type input.",
+      "en": "Gives the agent terminals that open as sidebar tabs you can watch and take over by typing in them. Processes keep running between tool calls, so it can start a dev server or REPL and come back later to read output; it can also read terminals you open yourself.",
       "packages": [
         "@deepseek-ai/dsh-experimental-terminal-bundle"
       ]
@@ -425,6 +446,13 @@
     },
     {
       "kind": "description",
+      "en": "Lets the agent view document pages as images, convert documents to other formats, and recalculate spreadsheets.",
+      "packages": [
+        "@deepseek-ai/dsh-tool-office"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Lets the agent you talk to split a job among named teammates, track it on a shared task board, and report back with their results.",
       "packages": [
         "@deepseek-ai/dsh-experimental-agent-team-profile"
@@ -523,9 +551,9 @@
     },
     {
       "kind": "description",
-      "en": "macOS native provider for shared Computer Use application and window objects",
+      "en": "Manage application access, permissions, and logged tool execution for Computer Use.",
       "packages": [
-        "@deepseek-ai/dsh-experimental-cua-macos"
+        "@deepseek-ai/dsh-cua"
       ]
     },
     {
@@ -565,6 +593,20 @@
     },
     {
       "kind": "description",
+      "en": "Manage the MCP servers configured in Settings or registered by plugins, and report their connection status.",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-manager"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Manage the shared task board for a subagent tree.",
+      "packages": [
+        "@deepseek-ai/dsh-agent-team"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Masks recognized keys, tokens, and passwords in sent messages.",
       "packages": [
         "@deepseek-ai/dsh-client-ui-secret-mask"
@@ -589,48 +631,6 @@
       "en": "Model-facing ask_user_question tool over the ctx.userQuestions seam",
       "packages": [
         "@deepseek-ai/dsh-tool-ask-user"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing background job control tools (job_output, job_list, job_kill) over the ctx.jobs registry",
-      "packages": [
-        "@deepseek-ai/dsh-tool-jobs"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing bash tool with optional generic background-job and sandbox-escalation support",
-      "packages": [
-        "@deepseek-ai/dsh-tool-bash"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing filesystem discovery tools (glob, grep) backed by the packaged ripgrep binary (@vscode/ripgrep)",
-      "packages": [
-        "@deepseek-ai/dsh-tool-fs-search"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing filesystem tools (read, write, edit) over the DeepSeek Harness filesystem seam (ctx.fs)",
-      "packages": [
-        "@deepseek-ai/dsh-tool-fs"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing fresh-agent Ralph loop over the workflow and subagent seams",
-      "packages": [
-        "@deepseek-ai/dsh-tool-ralph"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Model-facing lsp tool over the DeepSeek Harness LSP capability seam (ctx.lsp) — one read-only tool with goToDefinition/findReferences/goToImplementation/hover operations, one-based UTF-16 cursor coordinates, bounded location rendering, and hover normalization",
-      "packages": [
-        "@deepseek-ai/dsh-tool-lsp"
       ]
     }
   ]

@@ -1,8 +1,176 @@
 {
   "id": "plugin-06",
   "kind": "plugin-meta",
-  "count": 11,
+  "count": 35,
   "items": [
+    {
+      "kind": "title",
+      "en": "Harness development context",
+      "packages": [
+        "@deepseek-ai/dsh-harness-dev-context"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Headless profile",
+      "packages": [
+        "@deepseek-ai/dsh-headless"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Static frontend server",
+      "packages": [
+        "@deepseek-ai/dsh-host-frontend-static"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "MCP client",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-client"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "MCP server manager",
+      "packages": [
+        "@deepseek-ai/dsh-mcp-manager"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Message quotes",
+      "packages": [
+        "@deepseek-ai/dsh-message-quotes"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Office kit",
+      "packages": [
+        "@deepseek-ai/dsh-office-kit"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Personalized recommendations",
+      "packages": [
+        "@deepseek-ai/dsh-personalized-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin indexes",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-market"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Plugin recommendations",
+      "packages": [
+        "@deepseek-ai/dsh-plugin-recommendations"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Local PowerShell execution",
+      "packages": [
+        "@deepseek-ai/dsh-pwsh-local"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Task scheduling",
+      "packages": [
+        "@deepseek-ai/dsh-schedule"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "SDK profile",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-app"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "SDK server",
+      "packages": [
+        "@deepseek-ai/dsh-sdk-jsonrpc-server"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "All-message session titles",
+      "packages": [
+        "@deepseek-ai/dsh-session-title-all-prompts-llm"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Office skills",
+      "packages": [
+        "@deepseek-ai/dsh-skill-office"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Sidebar terminal backend",
+      "packages": [
+        "@deepseek-ai/dsh-terminal-panel"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Time awareness",
+      "packages": [
+        "@deepseek-ai/dsh-time-context"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "tmux context",
+      "packages": [
+        "@deepseek-ai/dsh-tmux-context"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Native tool execution",
+      "packages": [
+        "@deepseek-ai/dsh-tool-executor-native"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "PTC tool execution",
+      "packages": [
+        "@deepseek-ai/dsh-tool-executor-ptc"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Office tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-office"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Scheduling tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-schedule"
+      ]
+    },
+    {
+      "kind": "title",
+      "en": "Session history tools",
+      "packages": [
+        "@deepseek-ai/dsh-tool-session-query"
+      ]
+    },
     {
       "kind": "title",
       "en": "Text editor tools",

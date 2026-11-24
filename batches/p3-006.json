@@ -1,0 +1,144 @@
+{
+  "id": "p3-006",
+  "namespace": "cuaPermissions",
+  "priority": "p3",
+  "count": 17,
+  "items": [
+    {
+      "namespace": "cuaPermissions",
+      "key": "applicationInteraction",
+      "en": "Application interaction",
+      "zh": "应用交互",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "approvalRiskNotice",
+      "en": "The agent can access only apps you approve, and can read and control them in the background.\n\nOnline games, messaging apps, and other apps may restrict automation. Violating their rules could result in your account with that app being suspended or banned.\n\nProceed at your own risk. To stop automated control at any time, press Stop in DeepSeek Harness.",
+      "zh": "智能体只能访问你已授权的应用，并可在后台读取应用内容、操作应用。\n\n网络游戏、即时通讯等应用可能对自动化操作有所限制。违反相关规则可能导致你在该应用中的账号被暂停使用或封禁。\n\n请自行承担使用风险。如需停止自动化操作，可随时点击 DeepSeek Harness 中的停止按钮。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "approvalRiskTitle",
+      "en": "Computer use risks",
+      "zh": "Computer Use 风险提示",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "approvalRisks",
+      "en": "Risks",
+      "zh": "风险提示",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "available",
+      "en": "Available",
+      "zh": "可用",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "elevated",
+      "en": "The native component is running with administrator privileges.",
+      "zh": "本机组件正以管理员权限运行。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "locked",
+      "en": "Locked or disconnected",
+      "zh": "已锁定或断开连接",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "standardPrivileges",
+      "en": "The native component is running with standard user privileges.",
+      "zh": "本机组件正以普通用户权限运行。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "unavailable",
+      "en": "Unavailable",
+      "zh": "不可用",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsCapture",
+      "en": "Window capture",
+      "zh": "窗口截图",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsCaptureUnavailable",
+      "en": "This Windows session does not support window capture. Check the Windows version and graphics driver, then check again.",
+      "zh": "当前 Windows 会话不支持窗口截图。请检查 Windows 版本和显卡驱动，然后重新检测。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsDesktop",
+      "en": "Interactive desktop",
+      "zh": "交互桌面",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsDesktopUse",
+      "en": "An unlocked desktop is required for observation and input.",
+      "zh": "观察和输入需要已解锁的桌面。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsInstructions",
+      "en": "Keep the Windows desktop unlocked. Some input needs the target application in front. Applications running with higher privileges can refuse access.",
+      "zh": "请保持 Windows 桌面解锁。部分输入需要将目标应用切到前台，运行权限更高的应用可能拒绝访问。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsSessionUnknown",
+      "en": "No interactive Windows desktop was verified. Run DSH in a signed-in desktop session, then check again.",
+      "zh": "尚未确认可交互的 Windows 桌面。请在已登录的桌面会话中运行 DSH，然后重新检测。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsSetupBody",
+      "en": "Unlock the Windows desktop, then check again. DSH asks before accessing each application.",
+      "zh": "请解锁 Windows 桌面，然后重新检测。DSH 会在访问每个应用前询问授权。",
+      "context": "dsh-cua",
+      "priority": "p3"
+    },
+    {
+      "namespace": "cuaPermissions",
+      "key": "windowsSetupTitle",
+      "en": "Check Windows desktop access",
+      "zh": "检查 Windows 桌面访问状态",
+      "context": "dsh-cua",
+      "priority": "p3"
+    }
+  ]
+}

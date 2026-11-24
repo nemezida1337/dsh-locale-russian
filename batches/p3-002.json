@@ -1,0 +1,155 @@
+{
+  "id": "p3-002",
+  "namespace": "agent-team",
+  "priority": "p3",
+  "count": 18,
+  "items": [
+    {
+      "namespace": "agent-team",
+      "key": "command.done",
+      "en": "Completed",
+      "zh": "已完成",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "command.failed",
+      "en": "Failed",
+      "zh": "执行失败",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "command.failedReason",
+      "en": "Failed: {reason}",
+      "zh": "执行失败：{reason}",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "command.running",
+      "en": "Running",
+      "zh": "执行中",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "command.title",
+      "en": "Agent teamwork",
+      "zh": "智能体团队协作",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.cancel",
+      "en": "Cancel",
+      "zh": "取消",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.close",
+      "en": "Close",
+      "zh": "关闭",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.confirm",
+      "en": "Disable",
+      "zh": "确认停用",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.description",
+      "en": "Disabling agent teamwork during a conversation stops the use of shared task tools and team coordination instructions.",
+      "zh": "对话过程中停用智能体团队协作，将停止共享任务工具和团队协调指令。",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.title",
+      "en": "Disable agent teamwork?",
+      "zh": "确认停用智能体团队协作？",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "disable.warning",
+      "en": "Disabling it may affect cache reuse, increase subsequent token usage and costs, and affect collaboration on the current task.",
+      "zh": "停用后可能影响缓存复用、增加后续 token 用量与开销，并影响当前任务的协作效果。",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "mode.description",
+      "en": "Coordinate work and progress across agents with a shared task board for better results on complex tasks, with correspondingly higher token costs.",
+      "zh": "通过共享任务板协调多个智能体的分工与进度，复杂任务表现更佳，token 开销也相应更高。",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "mode.failed",
+      "en": "Could not confirm the agent teamwork setting was saved. Try again: {message}",
+      "zh": "无法确认智能体团队协作设置已保存，请重试：{message}",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "mode.infoLabel",
+      "en": "About agent teamwork",
+      "zh": "关于智能体团队协作",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "mode.label",
+      "en": "Enable agent teamwork",
+      "zh": "启用智能体团队协作",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3"
+    },
+    {
+      "namespace": "agent-team",
+      "key": "progress.active",
+      "en": "{count} in progress",
+      "zh": "{count} 进行中",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "agent-team",
+      "key": "progress.completed",
+      "en": "{count} completed",
+      "zh": "{count} 已完成",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "agent-team",
+      "key": "progress.pending",
+      "en": "{count} pending",
+      "zh": "{count} 待处理",
+      "context": "dsh-client-ui-agent-team",
+      "priority": "p3",
+      "plural": true
+    }
+  ]
+}

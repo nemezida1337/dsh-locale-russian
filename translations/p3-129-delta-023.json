@@ -1,0 +1,13 @@
+{
+  "id": "p3-129-delta-023",
+  "namespace": "subagent",
+  "translations": {
+    "load.idle": "Субагенты не загружены",
+    "progress.active": "{count} выполняется",
+    "progress.completed": "{count} завершено",
+    "progress.external": "{count} внешних",
+    "progress.inactive": "{count} не выполняется",
+    "section.empty": "Субагентов нет",
+    "section.title": "Субагенты"
+  }
+}

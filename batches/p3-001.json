@@ -1,0 +1,16 @@
+{
+  "id": "p3-001",
+  "namespace": "account.notifications",
+  "priority": "p3",
+  "count": 1,
+  "items": [
+    {
+      "namespace": "account.notifications",
+      "key": "close",
+      "en": "Close",
+      "zh": "关闭",
+      "context": "dsh-client-ui-account-notifications",
+      "priority": "p3"
+    }
+  ]
+}

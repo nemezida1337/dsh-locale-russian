@@ -1,0 +1,18 @@
+{
+  "id": "p3-111-delta-023",
+  "namespace": "chat",
+  "translations": {
+    "chat.historyStart": "Начало диалога",
+    "chat.loadingOlder": "Загрузка более ранних",
+    "chat.processingOlder": "Обработка",
+    "chat.retryOlder": "Повторить загрузку",
+    "message.continuation.requested": "Запрошено продолжение генерации",
+    "message.stepProcess.done.context": "Внедрённый контекст",
+    "message.trigger.subagent.aborted": "Запуск субагента остановлен",
+    "message.trigger.subagent.completed": "Запуск субагента завершён",
+    "message.trigger.subagent.error": "Запуск субагента завершился ошибкой",
+    "message.trigger.subagent.maxTokens": "Субагент достиг лимита токенов",
+    "message.trigger.subagent.refusal": "Субагент отказался от задачи",
+    "message.trigger.subagent.unknown": "Запуск субагента завершился неожиданно"
+  }
+}

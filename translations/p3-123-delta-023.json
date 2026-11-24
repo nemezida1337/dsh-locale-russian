@@ -1,0 +1,29 @@
+{
+  "id": "p3-123-delta-023",
+  "namespace": "settings",
+  "translations": {
+    "desktop.channel.description": "Стабильный канал подходит для повседневной работы. Разработческий даёт ранний доступ к новым возможностям, но может быть нестабильным.",
+    "desktop.channel.details": "Подробности",
+    "desktop.channel.error": "Не удалось применить настройки обновлений. Откройте индикатор обновлений приложения, чтобы узнать подробности.",
+    "desktop.channel.nightly": "Разработческий",
+    "desktop.channel.readError": "Не удалось прочитать канал обновлений. Перезапустите приложение.",
+    "desktop.channel.result.applied": "Канал обновлений изменён",
+    "desktop.channel.result.apply": "Ошибка сохранения настроек",
+    "desktop.channel.result.configuration": "Ошибка файла настроек; обновления приостановлены",
+    "desktop.channel.result.format": "Не удалось сохранить: неверный файл настроек",
+    "desktop.channel.result.permission": "Не удалось сохранить: доступ запрещён",
+    "desktop.channel.result.save": "Не удалось сохранить",
+    "desktop.channel.result.uncertain": "Ошибка сохранения настроек",
+    "desktop.channel.stable": "Стабильный",
+    "desktop.channel.title": "Канал обновлений",
+    "desktop.channel.unavailable": "Конфигурация недоступна",
+    "desktop.update.configuration.channel": "Обновления приостановлены: канал должен быть ночным или стабильным",
+    "desktop.update.configuration.cleanup": "Обновления приостановлены: не удаётся удалить предыдущее обновление; перезапустите приложение",
+    "desktop.update.configuration.format": "Обновления приостановлены: неверный файл настроек",
+    "desktop.update.configuration.read": "Обновления приостановлены: не удаётся прочитать файл настроек",
+    "desktop.update.configurationFailed": "Не удалось применить настройки обновлений. Откройте индикатор обновлений приложения, чтобы узнать подробности.",
+    "desktop.update.downloadBusyFailed": "Файл обновления используется. Закройте программу, которая его держит, и повторите.",
+    "desktop.update.downloadPermissionFailed": "Не удаётся записать файлы обновления. Проверьте права на папку и повторите.",
+    "desktop.update.downloadSpaceFailed": "Недостаточно места на диске для загрузки обновления. Освободите место и повторите."
+  }
+}

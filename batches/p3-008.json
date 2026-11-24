@@ -1,0 +1,24 @@
+{
+  "id": "p3-008",
+  "namespace": "entryCustomization",
+  "priority": "p3",
+  "count": 2,
+  "items": [
+    {
+      "namespace": "entryCustomization",
+      "key": "pin",
+      "en": "Pin {name} to sidebar",
+      "zh": "将{name}固定到侧边栏",
+      "context": "dsh-client-ui-entry-customization",
+      "priority": "p3"
+    },
+    {
+      "namespace": "entryCustomization",
+      "key": "pinTooltip",
+      "en": "Pin to left sidebar",
+      "zh": "固定到左侧栏",
+      "context": "dsh-client-ui-entry-customization",
+      "priority": "p3"
+    }
+  ]
+}

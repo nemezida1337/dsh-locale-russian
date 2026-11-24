@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T18:06:27.301Z",
+  "generatedAt": "2026-11-23T07:02:35.636Z",
   "sources": {
     "app": {
       "present": true,
@@ -15,15 +15,31 @@
     }
   },
   "stats": {
-    "namespaces": 76,
-    "keys": 4045,
-    "fromApp": 3839,
-    "fromInstalled": 145,
-    "fromRepo": 61,
-    "plural": 225,
-    "wordingChanged": 93
+    "namespaces": 79,
+    "keys": 4492,
+    "fromApp": 4269,
+    "fromInstalled": 150,
+    "fromRepo": 73,
+    "plural": 256,
+    "wordingChanged": 104
   },
   "namespaces": {
+    "account.notifications": {
+      "sources": [
+        "dsh-client-ui-account-notifications"
+      ],
+      "presentIn": [
+        "app"
+      ],
+      "keys": {
+        "close": {
+          "en": "Close",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-client-ui-account-notifications"
+        }
+      }
+    },
     "actionCards": {
       "sources": [
         "dsh-client-ui-action-cards"
@@ -120,6 +136,7 @@
     },
     "agent-team": {
       "sources": [
+        "dsh-client-ui-agent-team",
         "dsh-experimental-client-ui-agent-team",
         "packages/experimental/client-ui-agent-team/src/client/locales.ts"
       ],
@@ -132,154 +149,265 @@
           "en": "Blocked by dependencies",
           "zh": "被依赖阻塞",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "blockedBy": {
           "en": "Blocked by",
           "zh": "依赖",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
+        },
+        "command.done": {
+          "en": "Completed",
+          "zh": "已完成",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "command.failed": {
+          "en": "Failed",
+          "zh": "执行失败",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "command.failedReason": {
+          "en": "Failed: {reason}",
+          "zh": "执行失败：{reason}",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "command.running": {
+          "en": "Running",
+          "zh": "执行中",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "command.title": {
+          "en": "Agent teamwork",
+          "zh": "智能体团队协作",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
         },
         "current": {
           "en": "Current chat",
           "zh": "当前会话",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.cancel": {
+          "en": "Cancel",
+          "zh": "取消",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.close": {
+          "en": "Close",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.confirm": {
+          "en": "Disable",
+          "zh": "确认停用",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.description": {
+          "en": "Disabling agent teamwork during a conversation stops the use of shared task tools and team coordination instructions.",
+          "zh": "对话过程中停用智能体团队协作，将停止共享任务工具和团队协调指令。",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.title": {
+          "en": "Disable agent teamwork?",
+          "zh": "确认停用智能体团队协作？",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "disable.warning": {
+          "en": "Disabling it may affect cache reuse, increase subsequent token usage and costs, and affect collaboration on the current task.",
+          "zh": "停用后可能影响缓存复用、增加后续 token 用量与开销，并影响当前任务的协作效果。",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
         },
         "empty": {
           "en": "No shared tasks yet. Create them through the conversation.",
           "zh": "暂无共享任务，可以通过对话创建",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "failure": {
           "en": "Invalid persisted team record: {message}",
           "zh": "团队持久记录无效：{message}",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team",
+          "context": "dsh-client-ui-agent-team",
           "wordingChangedFrom": "Invalid persisted Team record: {message}"
         },
         "loading": {
           "en": "Loading team…",
           "zh": "正在加载团队…",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team",
+          "context": "dsh-client-ui-agent-team",
           "wordingChangedFrom": "Loading Team…"
         },
         "memberStatus.failed": {
           "en": "Failed",
           "zh": "失败",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "memberStatus.inactive": {
           "en": "Inactive",
           "zh": "未运行",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "memberStatus.provisioning": {
           "en": "Provisioning",
           "zh": "准备中",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "memberStatus.running": {
           "en": "Running",
           "zh": "运行中",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
+        },
+        "mode.description": {
+          "en": "Coordinate work and progress across agents with a shared task board for better results on complex tasks, with correspondingly higher token costs.",
+          "zh": "通过共享任务板协调多个智能体的分工与进度，复杂任务表现更佳，token 开销也相应更高。",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "mode.failed": {
+          "en": "Could not confirm the agent teamwork setting was saved. Try again: {message}",
+          "zh": "无法确认智能体团队协作设置已保存，请重试：{message}",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "mode.infoLabel": {
+          "en": "About agent teamwork",
+          "zh": "关于智能体团队协作",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
+        },
+        "mode.label": {
+          "en": "Enable agent teamwork",
+          "zh": "启用智能体团队协作",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team"
         },
         "model": {
           "en": "Model",
           "zh": "模型",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "open": {
           "en": "Open member conversation",
           "zh": "打开成员会话",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "owner": {
           "en": "Owner",
           "zh": "Owner",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
+        },
+        "progress.active": {
+          "en": "{count} in progress",
+          "zh": "{count} 进行中",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team",
+          "plural": true
+        },
+        "progress.completed": {
+          "en": "{count} completed",
+          "zh": "{count} 已完成",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team",
+          "plural": true
+        },
+        "progress.pending": {
+          "en": "{count} pending",
+          "zh": "{count} 待处理",
+          "origin": "app",
+          "context": "dsh-client-ui-agent-team",
+          "plural": true
         },
         "ready": {
           "en": "Ready",
           "zh": "可开始",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "roster": {
           "en": "Members",
           "zh": "成员",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "status.completed": {
           "en": "Completed",
           "zh": "已完成",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "status.in_progress": {
           "en": "In progress",
           "zh": "进行中",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "status.pending": {
           "en": "Pending",
           "zh": "待处理",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "task.collapse": {
           "en": "Show less",
           "zh": "收起",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "task.expand": {
           "en": "Show more",
           "zh": "展开",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "tasks": {
           "en": "Shared tasks",
           "zh": "共享任务",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "trigger": {
           "en": "Agent team",
           "zh": "智能体团队",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team",
+          "context": "dsh-client-ui-agent-team",
           "wordingChangedFrom": "Agent Team"
         },
         "unavailable": {
           "en": "Team is unavailable",
           "zh": "Team 暂不可用",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "unowned": {
           "en": "Unowned",
           "zh": "未分配",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         },
         "writeScopes": {
           "en": "Write scopes",
           "zh": "写入范围",
           "origin": "app",
-          "context": "dsh-experimental-client-ui-agent-team"
+          "context": "dsh-client-ui-agent-team"
         }
       }
     },
@@ -362,6 +490,12 @@
           "origin": "app",
           "context": "dsh-client-ui-chat"
         },
+        "chat.historyStart": {
+          "en": "Start of conversation",
+          "zh": "已到会话开头",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
         "chat.loadError": {
           "en": "Failed to load history: {message} ({code})",
           "zh": "历史加载失败：{message}（{code}）",
@@ -377,6 +511,24 @@
         "chat.loadingHistory": {
           "en": "Loading history…",
           "zh": "载入历史…",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "chat.loadingOlder": {
+          "en": "Loading earlier",
+          "zh": "正在加载",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "chat.processingOlder": {
+          "en": "Processing",
+          "zh": "正在处理",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "chat.retryOlder": {
+          "en": "Retry loading",
+          "zh": "重新加载",
           "origin": "app",
           "context": "dsh-client-ui-chat"
         },
@@ -664,6 +816,12 @@
           "origin": "app",
           "context": "dsh-client-ui-chat"
         },
+        "message.continuation.requested": {
+          "en": "Requested to continue generation",
+          "zh": "已请求继续生成",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
         "message.extraBlock": {
           "en": "Extra content block",
           "zh": "附加内容块",
@@ -799,6 +957,12 @@
         "message.stepProcess.done.commands": {
           "en": "Ran commands",
           "zh": "执行了命令",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.stepProcess.done.context": {
+          "en": "Injected context",
+          "zh": "已注入上下文",
           "origin": "app",
           "context": "dsh-client-ui-chat"
         },
@@ -1179,6 +1343,42 @@
         "message.trigger.subagent": {
           "en": "Subtask status updated",
           "zh": "子任务状态更新",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.aborted": {
+          "en": "Subagent run stopped",
+          "zh": "子智能体任务已停止",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.completed": {
+          "en": "Subagent run completed",
+          "zh": "子智能体已完成任务",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.error": {
+          "en": "Subagent run failed",
+          "zh": "子智能体执行失败",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.maxTokens": {
+          "en": "Subagent reached the token limit",
+          "zh": "子智能体已达 token 上限",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.refusal": {
+          "en": "Subagent declined the task",
+          "zh": "子智能体拒绝执行",
+          "origin": "app",
+          "context": "dsh-client-ui-chat"
+        },
+        "message.trigger.subagent.unknown": {
+          "en": "Subagent run ended unexpectedly",
+          "zh": "子智能体异常结束",
           "origin": "app",
           "context": "dsh-client-ui-chat"
         },
@@ -2083,6 +2283,12 @@
         "app"
       ],
       "keys": {
+        "back": {
+          "en": "Back",
+          "zh": "返回",
+          "origin": "app",
+          "context": "dsh-client-ui-context-menu"
+        },
         "failed": {
           "en": "Could not complete the action. Try again.",
           "zh": "操作失败，请重试",
@@ -2387,6 +2593,18 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "detail.field.agentDescription": {
+          "en": "Agent task description",
+          "zh": "智能体任务描述",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "detail.field.agentName": {
+          "en": "Agent name",
+          "zh": "智能体名称",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "detail.field.agents": {
           "en": "Agents started",
           "zh": "启动智能体数",
@@ -2444,7 +2662,7 @@
         "detail.field.depth": {
           "en": "Depth",
           "zh": "层级",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-conversation"
         },
         "detail.field.diagnostics": {
@@ -3030,6 +3248,12 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "detail.status.corrupt": {
+          "en": "Corrupt",
+          "zh": "已损坏",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "detail.status.deleted": {
           "en": "Deleted",
           "zh": "已删除",
@@ -3087,6 +3311,18 @@
         "detail.status.running": {
           "en": "Running",
           "zh": "运行中",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "detail.status.unavailable": {
+          "en": "Unavailable",
+          "zh": "不可用",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "detail.status.unsupported": {
+          "en": "Unsupported",
+          "zh": "不支持",
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
@@ -3179,6 +3415,12 @@
         "detail.wait.changed": {
           "en": "Change detected",
           "zh": "检测到变化",
+          "origin": "repo",
+          "context": "dsh-client-ui-conversation"
+        },
+        "detail.wait.ended": {
+          "en": "Wait ended",
+          "zh": "等待已结束",
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
@@ -3190,15 +3432,16 @@
         },
         "detail.wait.timeout": {
           "en": "Wait timed out",
-          "zh": "等待超时",
+          "zh": "等待已超时",
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
         "detail.wait.title": {
-          "en": "Subagent activity",
-          "zh": "子智能体状态",
+          "en": "Wait result",
+          "zh": "等待结果",
           "origin": "app",
-          "context": "dsh-client-ui-conversation"
+          "context": "dsh-client-ui-conversation",
+          "wordingChangedFrom": "Subagent activity"
         },
         "detail.weekday.1": {
           "en": "Mon",
@@ -3366,6 +3609,12 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "header.more": {
+          "en": "More actions",
+          "zh": "更多操作",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "hero.chooseWorkspace": {
           "en": "Choose workspace",
           "zh": "选择工作区",
@@ -3524,6 +3773,12 @@
           "context": "dsh-client-ui-conversation",
           "wordingChangedFrom": "Commands"
         },
+        "input.continue": {
+          "en": "Continue generating",
+          "zh": "继续生成",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "input.file": {
           "en": "File",
           "zh": "文件",
@@ -3575,7 +3830,7 @@
         "placeholder.parentOffline": {
           "en": "Parent session offline; sending is unavailable but you can still stop the run",
           "zh": "父会话已离线，无法继续发送；仍可停止当前运行",
-          "origin": "app",
+          "origin": "installed",
           "context": "dsh-client-ui-conversation"
         },
         "placeholder.plan": {
@@ -4129,8 +4384,8 @@
           "context": "dsh-client-ui-conversation"
         },
         "tool.title.applyPatch": {
-          "en": "Apply patch",
-          "zh": "应用补丁",
+          "en": "Edit",
+          "zh": "编辑",
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
@@ -4318,6 +4573,24 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "tool.title.officeConvert": {
+          "en": "Convert document",
+          "zh": "转换文档",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "tool.title.officeRecalculate": {
+          "en": "Recalculate workbook",
+          "zh": "重算工作簿",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
+        "tool.title.officeRender": {
+          "en": "Render document",
+          "zh": "渲染文档",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "tool.title.openTerminal": {
           "en": "Open terminal",
           "zh": "创建终端",
@@ -4432,6 +4705,12 @@
           "origin": "app",
           "context": "dsh-client-ui-conversation"
         },
+        "tool.title.subagentFork": {
+          "en": "Fork subagent",
+          "zh": "派生子智能体",
+          "origin": "app",
+          "context": "dsh-client-ui-conversation"
+        },
         "tool.title.traceEvent": {
           "en": "Trace event",
           "zh": "追踪事件",
@@ -4470,10 +4749,11 @@
           "context": "dsh-client-ui-conversation"
         },
         "tool.title.waitAgent": {
-          "en": "Wait for subagent",
-          "zh": "等待子智能体",
+          "en": "Waiting for messages…",
+          "zh": "等待消息…",
           "origin": "app",
-          "context": "dsh-client-ui-conversation"
+          "context": "dsh-client-ui-conversation",
+          "wordingChangedFrom": "Wait for subagent"
         },
         "tool.title.webFetch": {
           "en": "Fetch",
@@ -5229,12 +5509,6 @@
           "origin": "app",
           "context": "dsh-client-ui-creation-recommendations"
         },
-        "keep": {
-          "en": "Keep",
-          "zh": "保留",
-          "origin": "app",
-          "context": "dsh-client-ui-creation-recommendations"
-        },
         "kept": {
           "en": "Kept",
           "zh": "已保留",
@@ -5313,12 +5587,6 @@
           "origin": "app",
           "context": "dsh-client-ui-creation-recommendations"
         },
-        "scope": {
-          "en": "You can remove it at any time",
-          "zh": "可随时移除",
-          "origin": "app",
-          "context": "dsh-client-ui-creation-recommendations"
-        },
         "sidebar-left": {
           "en": "Global page",
           "zh": "全局页面",
@@ -5393,6 +5661,412 @@
         }
       }
     },
+    "cuaPermissions": {
+      "sources": [
+        "dsh-cua"
+      ],
+      "presentIn": [
+        "app"
+      ],
+      "keys": {
+        "accessibility": {
+          "en": "Accessibility",
+          "zh": "辅助功能",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "accessibilityPermission": {
+          "en": "In System Settings, allow {application} to read interface controls, click, and type.",
+          "zh": "在系统设置中允许 {application} 读取界面、点击和输入。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "accessibilityUse": {
+          "en": "Read interface controls, click, and type.",
+          "zh": "读取界面控件、点击和输入文字",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "allowedApps": {
+          "en": "Always-allowed applications",
+          "zh": "始终允许的应用",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "applicationInteraction": {
+          "en": "Application interaction",
+          "zh": "应用交互",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "applicationsFailed": {
+          "en": "Could not load application access: {message}",
+          "zh": "无法读取应用授权：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "applicationsTitle": {
+          "en": "Manage applications computer use can access",
+          "zh": "管理 Computer Use 可访问的应用",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "approvalRiskNotice": {
+          "en": "The agent can access only apps you approve, and can read and control them in the background.\n\nOnline games, messaging apps, and other apps may restrict automation. Violating their rules could result in your account with that app being suspended or banned.\n\nProceed at your own risk. To stop automated control at any time, press Stop in DeepSeek Harness.",
+          "zh": "智能体只能访问你已授权的应用，并可在后台读取应用内容、操作应用。\n\n网络游戏、即时通讯等应用可能对自动化操作有所限制。违反相关规则可能导致你在该应用中的账号被暂停使用或封禁。\n\n请自行承担使用风险。如需停止自动化操作，可随时点击 DeepSeek Harness 中的停止按钮。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "approvalRiskTitle": {
+          "en": "Computer use risks",
+          "zh": "Computer Use 风险提示",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "approvalRisks": {
+          "en": "Risks",
+          "zh": "风险提示",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "available": {
+          "en": "Available",
+          "zh": "可用",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "blockedApps": {
+          "en": "Applications not allowed",
+          "zh": "不允许访问的应用",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "close": {
+          "en": "Close",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultBody": {
+          "en": "Computer use is available only in PTC mode.",
+          "zh": "Computer Use 仅在 PTC 模式中可用。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultConfirm": {
+          "en": "Set to PTC",
+          "zh": "设为 PTC",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultFailed": {
+          "en": "Could not change the default mode: {message}",
+          "zh": "无法切换默认模式：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultNotSaved": {
+          "en": "The default mode was not saved. Try again.",
+          "zh": "默认模式未保存，请重试",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultReadOnly": {
+          "en": "Default-mode settings are read-only.",
+          "zh": "默认模式设置为只读",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultSet": {
+          "en": "PTC is the default",
+          "zh": "已设为 PTC",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultTitle": {
+          "en": "Default mode for new sessions",
+          "zh": "新会话默认模式",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "defaultUnavailable": {
+          "en": "Could not read the default mode. Check it in Settings.",
+          "zh": "无法读取默认模式，请在设置中检查",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "elevated": {
+          "en": "The native component is running with administrator privileges.",
+          "zh": "本机组件正以管理员权限运行。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "failed": {
+          "en": "Could not update permissions: {message}",
+          "zh": "无法更新权限：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "granted": {
+          "en": "Allowed",
+          "zh": "已允许",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "iconsFailed": {
+          "en": "Could not load application icons: {message}",
+          "zh": "无法读取应用图标：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "later": {
+          "en": "Later",
+          "zh": "稍后",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "locked": {
+          "en": "Locked or disconnected",
+          "zh": "已锁定或断开连接",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "noApps": {
+          "en": "No always-allowed or blocked applications.",
+          "zh": "暂无始终允许或不允许访问的应用。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "openSetup": {
+          "en": "Open settings",
+          "zh": "前往设置",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "opened": {
+          "en": "System Settings opened",
+          "zh": "已打开系统设置",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "permissionHint": {
+          "en": "Manage Accessibility and Screen Recording permissions in System Settings.",
+          "zh": "在系统设置中管理辅助功能和屏幕录制权限",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentBody": {
+          "en": "Keep variables and application objects across tool calls. Switching restarts the PTC runtime.",
+          "zh": "跨工具调用保留变量和应用对象。切换会重启 PTC 执行器。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentConfirm": {
+          "en": "Use persistent mode",
+          "zh": "设为持久化",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentFailed": {
+          "en": "Could not change the PTC execution mode: {message}",
+          "zh": "无法切换 PTC 执行方式：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentNotSaved": {
+          "en": "The PTC execution mode was not saved. Try again.",
+          "zh": "PTC 执行方式未保存，请重试",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentReadOnly": {
+          "en": "PTC execution settings are read-only.",
+          "zh": "PTC 执行方式设置为只读",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentSet": {
+          "en": "Persistent mode enabled",
+          "zh": "已设为持久化",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentTitle": {
+          "en": "PTC execution mode",
+          "zh": "PTC 执行方式",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "persistentUnavailable": {
+          "en": "Could not read the PTC execution mode. Check it in Settings.",
+          "zh": "无法读取 PTC 执行方式，请在设置中检查",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "queryFailed": {
+          "en": "Could not check permissions: {message}",
+          "zh": "无法检测权限：{message}",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "request": {
+          "en": "Request permission",
+          "zh": "申请权限",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "requested": {
+          "en": "Follow the guide at the bottom of System Settings",
+          "zh": "请按系统设置底部的引导完成授权",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "retry": {
+          "en": "Retry",
+          "zh": "重试",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "retryAllowed": {
+          "en": "The next application selection will ask again; access has not been granted",
+          "zh": "下次选择此应用时将重新询问，当前尚未授权",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "retryApproval": {
+          "en": "Allow asking again",
+          "zh": "允许再次询问",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "revoke": {
+          "en": "Revoke",
+          "zh": "撤销",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "revoked": {
+          "en": "Application access revoked",
+          "zh": "已撤销应用访问权限",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "screenRecording": {
+          "en": "Screen Recording",
+          "zh": "屏幕录制",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "screenRecordingPermission": {
+          "en": "In System Settings, allow {application} to capture application windows.",
+          "zh": "在系统设置中允许 {application} 截取应用窗口。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "screenRecordingUse": {
+          "en": "Capture the selected application window.",
+          "zh": "截取所选应用的窗口",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "settings": {
+          "en": "Open System Settings",
+          "zh": "打开系统设置",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "setupBody": {
+          "en": "computer use is enabled. Before using it, switch to PTC mode and grant Accessibility and Screen Recording permissions. Open the plugin details to complete setup.",
+          "zh": "Computer Use 插件已开启。使用前请切换到 PTC 模式，并授予辅助功能和屏幕录制权限。请前往插件详情页完成设置。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "setupQueryFailed": {
+          "en": "computer use is enabled, but system permissions could not be checked. Open the plugin details to see the error and retry.",
+          "zh": "Computer Use 插件已开启，但暂时无法检测系统权限。请前往插件详情页查看原因并重试。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "setupTitle": {
+          "en": "Set up computer use before use",
+          "zh": "使用 Computer Use 前需要设置",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "standardPrivileges": {
+          "en": "The native component is running with standard user privileges.",
+          "zh": "本机组件正以普通用户权限运行。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "title": {
+          "en": "Authorize computer use",
+          "zh": "给 Computer Use 授权",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "unavailable": {
+          "en": "Unavailable",
+          "zh": "不可用",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "unknown": {
+          "en": "Unknown",
+          "zh": "未确认",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsCapture": {
+          "en": "Window capture",
+          "zh": "窗口截图",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsCaptureUnavailable": {
+          "en": "This Windows session does not support window capture. Check the Windows version and graphics driver, then check again.",
+          "zh": "当前 Windows 会话不支持窗口截图。请检查 Windows 版本和显卡驱动，然后重新检测。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsDesktop": {
+          "en": "Interactive desktop",
+          "zh": "交互桌面",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsDesktopUse": {
+          "en": "An unlocked desktop is required for observation and input.",
+          "zh": "观察和输入需要已解锁的桌面。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsInstructions": {
+          "en": "Keep the Windows desktop unlocked. Some input needs the target application in front. Applications running with higher privileges can refuse access.",
+          "zh": "请保持 Windows 桌面解锁。部分输入需要将目标应用切到前台，运行权限更高的应用可能拒绝访问。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsSessionUnknown": {
+          "en": "No interactive Windows desktop was verified. Run DSH in a signed-in desktop session, then check again.",
+          "zh": "尚未确认可交互的 Windows 桌面。请在已登录的桌面会话中运行 DSH，然后重新检测。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsSetupBody": {
+          "en": "Unlock the Windows desktop, then check again. DSH asks before accessing each application.",
+          "zh": "请解锁 Windows 桌面，然后重新检测。DSH 会在访问每个应用前询问授权。",
+          "origin": "app",
+          "context": "dsh-cua"
+        },
+        "windowsSetupTitle": {
+          "en": "Check Windows desktop access",
+          "zh": "检查 Windows 桌面访问状态",
+          "origin": "app",
+          "context": "dsh-cua"
+        }
+      }
+    },
     "deepseek-model-label-1017": {
       "sources": [
         "dsh-client-ui-deepseek-model-label-1017",
@@ -5408,6 +6082,209 @@
           "zh": "1017",
           "origin": "app",
           "context": "dsh-client-ui-deepseek-model-label-1017"
+        }
+      }
+    },
+    "deepseekChatImport": {
+      "sources": [
+        "dsh-deepseek-chat-import"
+      ],
+      "presentIn": [
+        "app"
+      ],
+      "keys": {
+        "action.label": {
+          "en": "Import DeepSeek chats",
+          "zh": "导入 DeepSeek 会话",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.cancel": {
+          "en": "Cancel",
+          "zh": "取消",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.changeFile": {
+          "en": "Change",
+          "zh": "重新选择",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.chooseFile": {
+          "en": "Choose file…",
+          "zh": "选择文件…",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.chooseWorkspace": {
+          "en": "Choose workspace",
+          "zh": "选择工作区",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.close": {
+          "en": "Close",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.description": {
+          "en": "Choose the ZIP file exported from the DeepSeek website (deepseek_data-*.zip) and the workspace that receives the sessions.",
+          "zh": "选择从 DeepSeek 官网导出的 ZIP 文件（deepseek_data-*.zip），以及接收这些会话的工作区。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.done": {
+          "en": "Done",
+          "zh": "完成",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.file": {
+          "en": "Export file",
+          "zh": "导出文件",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.import": {
+          "en": "Import",
+          "zh": "导入",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.importing": {
+          "en": "Importing…",
+          "zh": "正在导入…",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.importingCount": {
+          "en": "Importing {done}/{total}",
+          "zh": "正在导入 {done}/{total}",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "dialog.title": {
+          "en": "Import DeepSeek chat history",
+          "zh": "导入 DeepSeek 会话记录",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.uploading": {
+          "en": "Uploading {percent}%",
+          "zh": "正在上传 {percent}%",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "dialog.workspace": {
+          "en": "Workspace",
+          "zh": "工作区",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.busy": {
+          "en": "Another import is running. Try again later.",
+          "zh": "已有一个导入正在进行，请稍后再试。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.missing-index": {
+          "en": "This is not a DeepSeek export: chat_session_index.json is missing or unreadable.",
+          "zh": "这不是 DeepSeek 导出数据：缺少 chat_session_index.json，或该文件无法读取。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.missing-manifest": {
+          "en": "This is not a DeepSeek export: manifest.json is missing.",
+          "zh": "这不是 DeepSeek 导出数据：缺少 manifest.json。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.no-conversations": {
+          "en": "The export contains no conversations that can be imported.",
+          "zh": "导出数据中没有可导入的会话。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.too-large": {
+          "en": "The file is too large: the limit is {limit}.",
+          "zh": "文件过大：最多 {limit}。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.unknown": {
+          "en": "Import failed: {message}",
+          "zh": "导入失败：{message}",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.unreadable-archive": {
+          "en": "The file is not a readable ZIP archive.",
+          "zh": "该文件不是可读取的 ZIP 压缩包。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.unsupported-version": {
+          "en": "This export format version is not supported.",
+          "zh": "不支持该导出格式版本。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.upload-failed": {
+          "en": "Upload failed: {message}",
+          "zh": "上传失败：{message}",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "error.workspace-not-found": {
+          "en": "The chosen workspace no longer exists. Choose another one.",
+          "zh": "所选工作区已不存在，请重新选择。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import"
+        },
+        "result.imported.one": {
+          "en": "Imported {count} session into the {name} workspace.",
+          "zh": "已导入 {count} 个会话到工作区 {name}。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "result.imported.other": {
+          "en": "Imported {count} sessions into the {name} workspace.",
+          "zh": "已导入 {count} 个会话到工作区 {name}。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "result.omitted.one": {
+          "en": "{count} older conversation exceeded the import limit and was not imported.",
+          "zh": "{count} 个较早的会话超出导入上限，未导入。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "result.omitted.other": {
+          "en": "{count} older conversations exceeded the import limit and were not imported.",
+          "zh": "{count} 个较早的会话超出导入上限，未导入。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "result.skipped.one": {
+          "en": "{count} conversation could not be imported.",
+          "zh": "{count} 个会话无法导入。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
+        },
+        "result.skipped.other": {
+          "en": "{count} conversations could not be imported.",
+          "zh": "{count} 个会话无法导入。",
+          "origin": "app",
+          "context": "dsh-deepseek-chat-import",
+          "plural": true
         }
       }
     },
@@ -6063,6 +6940,18 @@
           "zh": "浏览更多插件",
           "origin": "app",
           "context": "dsh-client-ui-entry-customization"
+        },
+        "pin": {
+          "en": "Pin {name} to sidebar",
+          "zh": "将{name}固定到侧边栏",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
+        },
+        "pinTooltip": {
+          "en": "Pin to left sidebar",
+          "zh": "固定到左侧栏",
+          "origin": "app",
+          "context": "dsh-client-ui-entry-customization"
         }
       }
     },
@@ -6306,9 +7195,39 @@
         "app"
       ],
       "keys": {
+        "branch.behind": {
+          "en": "Behind {base}",
+          "zh": "落后于 {base}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.changed": {
+          "en": "New commits arrived. Review them, then open this menu again.",
+          "zh": "提交已更新，请重新检查后再打开更新菜单",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.confirm": {
+          "en": "Confirm update",
+          "zh": "确认更新",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "branch.linked": {
           "en": "Worktree: {path}",
           "zh": "工作树：{path}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.method.merge": {
+          "en": "Update with merge commit",
+          "zh": "合并更新",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.method.rebase": {
+          "en": "Update with rebase",
+          "zh": "变基更新",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -6318,9 +7237,33 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "branch.note.merge": {
+          "en": "Adds a merge commit to the branch",
+          "zh": "在分支上新增一个合并提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.note.rebase": {
+          "en": "Rebases the branch's commits onto {base}, rewriting them",
+          "zh": "把分支上的提交逐个变基到 {base}，会改写这些提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "branch.project": {
           "en": "Project directory: {path}",
           "zh": "项目目录：{path}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.update": {
+          "en": "Update branch",
+          "zh": "更新分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "branch.updateTitle": {
+          "en": "Update {head} with new commits from {base}",
+          "zh": "用 {base} 的新提交更新 {head}",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -6626,13 +7569,6 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
-        "change.review.threads": {
-          "en": "{review} · {count} unresolved",
-          "zh": "{review} · {count} 条未解决讨论",
-          "origin": "app",
-          "context": "dsh-experimental-client-ui-forge",
-          "plural": true
-        },
         "change.row.changes": {
           "en": "Changes",
           "zh": "变更",
@@ -6698,6 +7634,13 @@
           "zh": "变更请求状态：{state}",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
+        },
+        "change.threads": {
+          "en": "{count} unresolved threads",
+          "zh": "{count} 条未解决讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
         },
         "change.unserved": {
           "en": "Change request status is not supported for this code host yet",
@@ -6828,6 +7771,132 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "checks.allPassed": {
+          "en": "All {count} checks passed",
+          "zh": "{count} 项检查全部通过",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "checks.group.cancelled": {
+          "en": "Cancelled",
+          "zh": "已取消",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "checks.group.failed": {
+          "en": "Failed",
+          "zh": "失败",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "checks.group.other": {
+          "en": "Skipped and other",
+          "zh": "跳过与其他",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "checks.group.passed": {
+          "en": "Passed",
+          "zh": "通过",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "checks.group.running": {
+          "en": "Running",
+          "zh": "进行中",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "checks.rerunFailed": {
+          "en": "Rerun failed",
+          "zh": "重跑失败项",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "checks.showQuiet": {
+          "en": "Show {count} more (passed, skipped)",
+          "zh": "显示其余 {count} 项（通过、跳过）",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "commits.all": {
+          "en": "All commits",
+          "zh": "全部提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.aria": {
+          "en": "Commits shown: {commits}",
+          "zh": "查看的提交：{commits}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.count": {
+          "en": "{count} commits",
+          "zh": "{count} 个提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "commits.failed": {
+          "en": "Could not load commits",
+          "zh": "无法读取提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.loading": {
+          "en": "Loading commits…",
+          "zh": "正在读取提交…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.missing": {
+          "en": "The selected commits are no longer included",
+          "zh": "所选的提交已不在其中",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.notLinear": {
+          "en": "These commits are not on one line of history",
+          "zh": "这些提交不在同一条提交链上",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.range": {
+          "en": "{from}…{to}",
+          "zh": "{from}…{to}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.shiftHint": {
+          "en": "Hold Shift to select consecutive commits",
+          "zh": "按住 Shift 选择连续多个提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.showAll": {
+          "en": "Show all commits",
+          "zh": "查看全部提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "commits.truncatedNewest": {
+          "en": "Only the latest {count} commits are listed",
+          "zh": "只列出了最新的 {count} 个提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "commits.truncatedOldest": {
+          "en": "Only the earliest {count} commits are listed",
+          "zh": "只列出了最早的 {count} 个提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
         "creation.base": {
           "en": "From",
           "zh": "基于",
@@ -6925,6 +7994,78 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "diff.base.aria": {
+          "en": "Base branch: {base}",
+          "zh": "基准分支：{base}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.automatic": {
+          "en": "Default",
+          "zh": "默认",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.empty": {
+          "en": "No matching branches",
+          "zh": "没有匹配的分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.loading": {
+          "en": "Reading branches…",
+          "zh": "正在读取分支…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.local": {
+          "en": "Local branches",
+          "zh": "本地分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.note": {
+          "en": "Compared with the merge base of HEAD and the selected branch, including uncommitted changes",
+          "zh": "与 HEAD 和所选分支的合并基准比较，包含未提交的修改",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.remote": {
+          "en": "Remote branches",
+          "zh": "远程分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.search": {
+          "en": "Search branches",
+          "zh": "搜索分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.uncommitted": {
+          "en": "Including uncommitted changes",
+          "zh": "包含未提交的修改",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.base.worktree": {
+          "en": "Worktree start",
+          "zh": "工作树起点",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.baseMissing": {
+          "en": "The base branch {base} was not found; it may have been deleted",
+          "zh": "找不到基准分支 {base}，它可能已被删除",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "diff.baseUnrelated": {
+          "en": "{base} shares no history with HEAD",
+          "zh": "{base} 与 HEAD 没有共同历史",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "diff.binary": {
           "en": "Binary file; its changes cannot be shown",
           "zh": "二进制文件，无法显示变更",
@@ -7016,6 +8157,12 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "diff.moreOptions": {
+          "en": "More view options",
+          "zh": "更多视图选项",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "diff.moveFileTreeRight": {
           "en": "Move file tree to the right",
           "zh": "将文件树移到右侧",
@@ -7029,8 +8176,8 @@
           "context": "dsh-experimental-client-ui-forge"
         },
         "diff.noForkPoint": {
-          "en": "No fork point was found for this branch; choose another scope",
-          "zh": "找不到本分支的分叉点，请选择其他范围",
+          "en": "No fork point was found for this branch; choose a base branch or another scope",
+          "zh": "找不到本分支的分叉点，请选择基准分支或其他范围",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7110,12 +8257,6 @@
         "diff.scope.unstaged": {
           "en": "Unstaged",
           "zh": "未暂存",
-          "origin": "app",
-          "context": "dsh-experimental-client-ui-forge"
-        },
-        "diff.scopeNote.branch": {
-          "en": "Compared with {base}, including uncommitted changes",
-          "zh": "与 {base} 比较，包含未提交的修改",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7199,6 +8340,12 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "diff.useAutomaticBase": {
+          "en": "Use the default base branch",
+          "zh": "使用默认基准分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "diff.viewInBrowser": {
           "en": "View in browser",
           "zh": "在浏览器中查看",
@@ -7256,6 +8403,78 @@
         "header.label": {
           "en": "Change requests of this Session",
           "zh": "本会话的变更请求",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "issues.aria": {
+          "en": "Open issue {label}: {title}",
+          "zh": "打开 issue {label}：{title}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "issues.label": {
+          "en": "Linked issues",
+          "zh": "关联 issue",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "issues.more": {
+          "en": " and more",
+          "zh": " 等",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "issues.separator": {
+          "en": ", ",
+          "zh": "、",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.all": {
+          "en": "All",
+          "zh": "全部",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.aria": {
+          "en": "Review layer",
+          "zh": "分层透镜",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.empty": {
+          "en": "No files to show",
+          "zh": "没有要显示的文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.implementation": {
+          "en": "Implementation",
+          "zh": "实现",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.interface": {
+          "en": "Interface",
+          "zh": "接口",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.menuAria": {
+          "en": "Review layer: {lens}",
+          "zh": "分层透镜：{lens}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.test": {
+          "en": "Tests",
+          "zh": "测试",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "lens.testHidden": {
+          "en": "Test files are hidden",
+          "zh": "测试文件已隐藏",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7362,6 +8581,19 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "review.browserDraft": {
+          "en": "Browser draft",
+          "zh": "浏览器草稿",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "review.browserDrafts": {
+          "en": "{count} comment drafts are saved only in this browser, not in your pending GitHub review. Add them to the review or delete them first.",
+          "zh": "有 {count} 条评论草稿只保存在此浏览器中，不在 GitHub 的待提交评审里。请先将它们加入评审或删除",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
         "review.cancel": {
           "en": "Cancel",
           "zh": "取消",
@@ -7389,6 +8621,31 @@
         "review.confirmRetry": {
           "en": "Checked; allow resubmission",
           "zh": "已核对，允许重新提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "review.discard": {
+          "en": "Discard review",
+          "zh": "丢弃评审",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "review.discardConfirm": {
+          "en": "Discard your pending review and its {count} comments? This cannot be undone.",
+          "zh": "丢弃待提交的评审及其中的 {count} 条评论？此操作无法撤销",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "review.discarded": {
+          "en": "Review discarded",
+          "zh": "已丢弃评审",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "review.discarding": {
+          "en": "Discarding…",
+          "zh": "丢弃中…",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7438,6 +8695,12 @@
         "review.outdated": {
           "en": "Code updated",
           "zh": "代码已更新",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "review.ownChangeRequest": {
+          "en": "This is your own PR. GitHub lets you comment on it, but not approve it or request changes.",
+          "zh": "这是你自己的 PR，GitHub 只允许评论，不能批准或请求更改",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7573,6 +8836,156 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "reviewers.approved": {
+          "en": "Approved",
+          "zh": "已批准",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.bot": {
+          "en": "Bot",
+          "zh": "bot",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.changesRequested": {
+          "en": "Changes requested",
+          "zh": "要求修改",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.codeOwner": {
+          "en": "Code owner",
+          "zh": "代码所有者",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.commented": {
+          "en": "Commented",
+          "zh": "已评论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.dismissed": {
+          "en": "Dismissed",
+          "zh": "已被撤销",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.empty": {
+          "en": "No matching people",
+          "zh": "没有匹配的成员",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.loadFailed": {
+          "en": "Could not list people",
+          "zh": "无法列出成员",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.loading": {
+          "en": "Loading people",
+          "zh": "正在加载成员",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.none": {
+          "en": "No reviewers yet",
+          "zh": "还没有评审者",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.older": {
+          "en": "Before the latest commit",
+          "zh": "早于最新提交",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.pending": {
+          "en": "Awaiting review",
+          "zh": "待评审",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.requestMore": {
+          "en": "Request a review from someone else…",
+          "zh": "请求其他人评审…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.rerequestAria": {
+          "en": "Re-request a review from {login}",
+          "zh": "重新请求 {login} 评审",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.search": {
+          "en": "Search people",
+          "zh": "搜索成员",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.suggested": {
+          "en": "Suggested",
+          "zh": "建议",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.team": {
+          "en": "Team",
+          "zh": "团队",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "reviewers.truncated": {
+          "en": "Some reviewers are not listed; open the change request for all of them",
+          "zh": "评审者较多，完整列表请在浏览器中查看",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.readOnly": {
+          "en": "This deployment stores settings read-only.",
+          "zh": "此部署以只读方式保存设置。",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.retainOnArchive.description": {
+          "en": "When on, archiving a Session keeps the worktree it created; when off, a clean, unreferenced worktree is removed while its branch and commits remain.",
+          "zh": "开启后，归档会话时保留它创建的工作树；关闭时，干净且无人引用的工作树会被删除，分支和提交仍然保留。",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.retainOnArchive.title": {
+          "en": "Keep worktrees when archiving",
+          "zh": "归档时不删除工作树",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.save": {
+          "en": "Save",
+          "zh": "保存",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.saveFailed": {
+          "en": "The deployment did not accept these values; they were left for you to correct.",
+          "zh": "此部署未接受这些值，已保留以便修改。",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.saving": {
+          "en": "Saving…",
+          "zh": "保存中…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "settings.unavailable": {
+          "en": "Worktree settings are unavailable.",
+          "zh": "工作树设置不可用。",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "signin.copy": {
           "en": "Copy sign-in command",
           "zh": "复制登录命令",
@@ -7600,6 +9013,373 @@
         "tab.title": {
           "en": "Change requests",
           "zh": "变更请求",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "tests.hide": {
+          "en": "Hide test files",
+          "zh": "隐藏测试文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "tests.hideHint": {
+          "en": "Hides tests, snapshots, locale files, lockfiles, and generated files",
+          "zh": "不显示测试、快照、本地化文件、锁文件和生成的文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.author": {
+          "en": "Author",
+          "zh": "作者",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.back": {
+          "en": "Back to changes",
+          "zh": "返回变更",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.bot": {
+          "en": "bot",
+          "zh": "bot",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.close": {
+          "en": "Close the thread list",
+          "zh": "关闭讨论列表",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.codeBlock": {
+          "en": "Code block",
+          "zh": "代码块",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.collapse": {
+          "en": "Collapse",
+          "zh": "收起",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.commentActions": {
+          "en": "Actions for the comment by {author}",
+          "zh": "{author} 的评论操作",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.copied": {
+          "en": "Copied",
+          "zh": "复制成功",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.copy": {
+          "en": "Copy",
+          "zh": "复制",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.deleteConfirm": {
+          "en": "Delete this comment?",
+          "zh": "删除这条评论？",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.deleteLast": {
+          "en": "Delete this comment? It is the only comment, so the thread is deleted too.",
+          "zh": "删除这条评论？它是讨论中唯一的评论，讨论也会一并删除",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.deletedAuthor": {
+          "en": "Deleted account",
+          "zh": "已删除的账号",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.deleting": {
+          "en": "Deleting…",
+          "zh": "删除中…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.editAria": {
+          "en": "Edit comment",
+          "zh": "编辑评论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.elsewhereTag": {
+          "en": "Not in the chosen commits",
+          "zh": "不在所选提交中",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.empty": {
+          "en": "No review threads yet",
+          "zh": "还没有评审讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.expand": {
+          "en": "Expand",
+          "zh": "展开",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.fileLevel": {
+          "en": "File thread",
+          "zh": "文件级讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.filter.all": {
+          "en": "All",
+          "zh": "全部",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.filter.resolved": {
+          "en": "Resolved",
+          "zh": "已解决",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.filter.unresolved": {
+          "en": "Unresolved",
+          "zh": "未解决",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.filterAria": {
+          "en": "Filter threads",
+          "zh": "筛选讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.footnotes": {
+          "en": "Footnotes",
+          "zh": "脚注",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.hideOriginal": {
+          "en": "Hide file at that commit",
+          "zh": "收起当时的文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.inputFailed": {
+          "en": "The input could not take this thread; try again later",
+          "zh": "输入框暂时无法添加这个讨论，请稍后重试",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.list": {
+          "en": "Threads",
+          "zh": "讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.listAria": {
+          "en": "Review threads, {count} in total",
+          "zh": "讨论列表，共 {count} 个",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.loadFailed": {
+          "en": "Could not read GitHub threads: {message}",
+          "zh": "无法读取 GitHub 讨论：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.next": {
+          "en": "Go to the next unresolved thread",
+          "zh": "跳到下一条未解决的讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.none": {
+          "en": "No threads match this filter",
+          "zh": "没有符合筛选条件的讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.onCommit": {
+          "en": "on {commit}",
+          "zh": "在 {commit} 上",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.openAll": {
+          "en": "View on GitHub",
+          "zh": "在 GitHub 中查看",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.openOnHost": {
+          "en": "View on GitHub",
+          "zh": "在 GitHub 中查看",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.originalFailed": {
+          "en": "Could not read the file at that commit: {message}",
+          "zh": "无法读取当时的文件：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.originalLoading": {
+          "en": "Reading the file at that commit…",
+          "zh": "正在读取当时的文件…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.originally": {
+          "en": "Originally {range}",
+          "zh": "原在 {range}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.outdatedSection": {
+          "en": "{count} outdated threads: later commits changed their code",
+          "zh": "{count} 条讨论已过期：所在代码已被后续提交修改",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.outdatedTag": {
+          "en": "Outdated",
+          "zh": "已过期",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.replies": {
+          "en": "{count} replies",
+          "zh": "{count} 条回复",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.reply": {
+          "en": "Reply",
+          "zh": "回复",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.replyActions": {
+          "en": "Reply options",
+          "zh": "回复选项",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.replyPlaceholder": {
+          "en": "Reply…",
+          "zh": "回复…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.resolve": {
+          "en": "Resolve thread",
+          "zh": "解决讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.resolvedRow": {
+          "en": "Resolved thread · {author}",
+          "zh": "已解决的讨论 · {author}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.save": {
+          "en": "Save",
+          "zh": "保存",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.saving": {
+          "en": "Saving…",
+          "zh": "保存中…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.treeCount": {
+          "en": "{count} unresolved threads",
+          "zh": "{count} 条未解决的讨论",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.truncated": {
+          "en": "Too many threads; showing the first {count}",
+          "zh": "讨论太多，只显示了前 {count} 个",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.unresolve": {
+          "en": "Unresolve thread",
+          "zh": "取消解决",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.unresolvedAria": {
+          "en": "{name} has {count} unresolved threads; go to the next one",
+          "zh": "{name} 有 {count} 条未解决的讨论，跳到下一条",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.unresolvedCount": {
+          "en": "{count} unresolved",
+          "zh": "{count} 条未解决",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "thread.unwrap": {
+          "en": "Do not wrap lines",
+          "zh": "取消自动换行",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.viewOriginal": {
+          "en": "View file at that commit",
+          "zh": "查看当时的文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.wrap": {
+          "en": "Wrap lines",
+          "zh": "自动换行",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.writeFailed": {
+          "en": "GitHub did not apply this: {message}",
+          "zh": "GitHub 未执行此操作：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.writeStale": {
+          "en": "The PR has new commits. The threads are read again at the new head; check them, then retry.",
+          "zh": "PR 已有新提交。讨论会按新提交重新读取，请核对后重试",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.writeUnknown": {
+          "en": "Could not confirm whether GitHub applied this. The threads are being read again; check them before retrying.",
+          "zh": "无法确认 GitHub 是否已执行。正在重新读取讨论，请核对后再重试",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "thread.writeUnsupported": {
+          "en": "This code host does not support changing threads here.",
+          "zh": "此代码托管服务不支持在这里修改讨论",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7649,6 +9429,42 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge",
           "plural": true
+        },
+        "toast.actionUnknown": {
+          "en": "Could not confirm whether the action on {name} took effect. Check it in the browser before trying again.",
+          "zh": "未能确认对 {name} 的操作是否已生效，请在浏览器中查看后再重试",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.archiveCleanupFailed": {
+          "en": "Archived; worktree cleanup failed. The branch is retained. Check the worktree.",
+          "zh": "已归档，工作树清理失败。分支已保留，请检查工作树。",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.archiveCleanupScheduled": {
+          "en": "Archived; the worktree will be cleaned up",
+          "zh": "已归档，工作树将被清理",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.branchUpdateFailed": {
+          "en": "Could not update the branch: {message}",
+          "zh": "无法更新分支：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.branchUpdateStale": {
+          "en": "{name} has new commits. Review them before updating.",
+          "zh": "{name} 已有新提交，请重新检查后再更新",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.branchUpdated": {
+          "en": "Started updating the branch of {name}",
+          "zh": "已开始更新 {name} 的分支",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
         },
         "toast.branchesFailed": {
           "en": "Branches could not be read",
@@ -7752,6 +9568,24 @@
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
+        "toast.rerunFailed": {
+          "en": "Could not rerun the checks: {message}",
+          "zh": "无法重跑检查：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.rerunRequested": {
+          "en": "Requested a rerun of the checks of {name}",
+          "zh": "已请求重跑 {name} 的检查",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.rerunStale": {
+          "en": "{name} has new commits. Check the new commit's checks before rerunning.",
+          "zh": "{name} 已有新提交，请查看新提交的检查后再重跑",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
         "toast.restoreFailed": {
           "en": "The worktree could not be restored: {message}",
           "zh": "无法恢复工作树：{message}",
@@ -7761,6 +9595,18 @@
         "toast.restored": {
           "en": "Worktree restored",
           "zh": "工作树已恢复",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.reviewRequestFailed": {
+          "en": "Could not request the review: {message}",
+          "zh": "无法请求评审：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "toast.reviewRequested": {
+          "en": "Requested a review of {name} from {login}",
+          "zh": "已请求 {login} 评审 {name}",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7785,6 +9631,98 @@
         "toast.worktreeStarted": {
           "en": "This Session has started, so it can no longer use a worktree",
           "zh": "会话已开始，无法再改用工作树",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.aria": {
+          "en": "Mark {name} as viewed",
+          "zh": "将 {name} 标记为已审阅",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.changed": {
+          "en": "Changed since viewed",
+          "zh": "有新改动",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.count": {
+          "en": "{viewed}/{total}",
+          "zh": "{viewed}/{total}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "viewed.hint": {
+          "en": "Press V to toggle the current file",
+          "zh": "按 V 切换当前文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.hintHost": {
+          "en": "Saved on GitHub · Press V to toggle the current file",
+          "zh": "保存在 GitHub · 按 V 切换当前文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.label": {
+          "en": "Viewed",
+          "zh": "已审阅",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.progress": {
+          "en": "{viewed} / {total} viewed",
+          "zh": "已审阅 {viewed} / {total}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge",
+          "plural": true
+        },
+        "viewed.progressAria": {
+          "en": "Viewed files",
+          "zh": "已审阅的文件",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.readFailed": {
+          "en": "Could not read viewed files from GitHub, so files cannot be marked: {message}",
+          "zh": "未能读取 GitHub 上的已审阅状态，暂时不能标记文件：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.saveFailed": {
+          "en": "Could not save the viewed state",
+          "zh": "无法保存已审阅状态",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.saving": {
+          "en": "Saving to GitHub…",
+          "zh": "正在保存到 GitHub…",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.syncFailed": {
+          "en": "Could not save the viewed mark to GitHub: {message}",
+          "zh": "已审阅状态未能保存到 GitHub：{message}",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.syncStale": {
+          "en": "The PR has new commits, so the viewed mark was not saved. Refresh and mark the file again.",
+          "zh": "PR 已有新提交，已审阅状态未保存。请刷新后再标记",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.syncUnknown": {
+          "en": "Could not confirm that the viewed mark was saved: {message}. Refresh to see where it stands.",
+          "zh": "未能确认已审阅状态是否已保存：{message}。刷新后可查看实际状态",
+          "origin": "app",
+          "context": "dsh-experimental-client-ui-forge"
+        },
+        "viewed.unavailable": {
+          "en": "Could not read viewed files from GitHub",
+          "zh": "未能读取 GitHub 上的已审阅状态",
           "origin": "app",
           "context": "dsh-experimental-client-ui-forge"
         },
@@ -7917,7 +9855,7 @@
         },
         "phase.active.disarmed": {
           "en": "Inactive Goal",
-          "zh": "已暂停的目标",
+          "zh": "待继续的目标",
           "origin": "app",
           "context": "dsh-client-ui-goal"
         },
@@ -8003,14 +9941,14 @@
         "count.live.one": {
           "en": "{count} background job running",
           "zh": "{count} 个后台任务运行中",
-          "origin": "app",
+          "origin": "installed",
           "context": "dsh-client-ui-jobs",
           "plural": true
         },
         "count.live.other": {
           "en": "{count} background jobs running",
           "zh": "{count} 个后台任务运行中",
-          "origin": "app",
+          "origin": "installed",
           "context": "dsh-client-ui-jobs",
           "plural": true
         },
@@ -8280,22 +10218,9 @@
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.count": {
-          "en": "Endpoints open to viewers: {count}",
-          "zh": "已向观看者开放 {count} 个端点",
-          "origin": "app",
-          "context": "dsh-experimental-liveshare",
-          "plural": true
-        },
         "dialog.capabilities.createFailed": {
           "en": "The share was created, but its plugin endpoints were not saved; retry in Share permissions.",
           "zh": "分享已创建，但插件端点未保存；请到分享权限中重试。",
-          "origin": "app",
-          "context": "dsh-experimental-liveshare"
-        },
-        "dialog.capabilities.description": {
-          "en": "Choose one tier for this share; the tier expands at save time into the endpoints the plugins declare now, so endpoints they add later stay closed.",
-          "zh": "对这个分享统一选一个档位；档位在保存时展开成插件当前声明的全部端点，之后新增的端点不会自动开放。",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
@@ -8305,64 +10230,45 @@
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.noReadable": {
-          "en": "No plugin offers a read-only endpoint, so Read-only cannot be chosen.",
-          "zh": "没有插件提供只读端点，因此不能选择「可读」。",
+        "dialog.capabilities.global": {
+          "en": "Plugin permissions",
+          "zh": "插件权限",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.noWritable": {
-          "en": "No plugin offers a writable endpoint, so Writable cannot be chosen.",
-          "zh": "没有插件提供可写端点，因此不能选择「可写」。",
+        "dialog.capabilities.global.all": {
+          "en": "Allow all",
+          "zh": "允许全部",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.none": {
-          "en": "Not open to viewers",
-          "zh": "不向观看者开放",
+        "dialog.capabilities.global.custom": {
+          "en": "Custom",
+          "zh": "自定义",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.stale": {
-          "en": "The saved selection is not one whole tier; saving again replaces it with the tier you pick.",
-          "zh": "当前记录不是整档选择；重新保存会按所选档位覆盖。",
+        "dialog.capabilities.global.none": {
+          "en": "Deny all",
+          "zh": "拒绝全部",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.summary.read": {
-          "en": "Read-only · {count} endpoints",
-          "zh": "只读 · {count} 个端点",
+        "dialog.capabilities.partial": {
+          "en": "Partial",
+          "zh": "部分",
           "origin": "app",
-          "context": "dsh-experimental-liveshare",
-          "plural": true
+          "context": "dsh-experimental-liveshare"
         },
-        "dialog.capabilities.summary.write": {
-          "en": "Writable · {readable} read-only + {writable} writable",
-          "zh": "可写 · {readable} 只读 + {writable} 可写",
+        "dialog.capabilities.tier.all": {
+          "en": "All methods",
+          "zh": "全部方法",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
         "dialog.capabilities.tier.none": {
           "en": "Unavailable",
           "zh": "不可用",
-          "origin": "app",
-          "context": "dsh-experimental-liveshare"
-        },
-        "dialog.capabilities.tier.read": {
-          "en": "Read-only",
-          "zh": "可读",
-          "origin": "app",
-          "context": "dsh-experimental-liveshare"
-        },
-        "dialog.capabilities.tier.write": {
-          "en": "Writable",
-          "zh": "可写",
-          "origin": "app",
-          "context": "dsh-experimental-liveshare"
-        },
-        "dialog.capabilities.writeHint": {
-          "en": "A writable endpoint takes effect only when the shared Session allows writing, and is destructive inside a writable share.",
-          "zh": "可写端点在被分享会话允许写入时才生效，且在可写分享中具有破坏性。",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
@@ -8739,6 +10645,12 @@
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
+        "dialog.ptcSandboxWarning": {
+          "en": "Note: LiveShare’s PTC sandbox is not yet complete - a viewer may read or write files outside the shared workspace through run_code. Share only with people you trust.",
+          "zh": "注意：LiveShare 的 PTC 沙箱尚不完善——被分享者可能通过 run_code 读写分享工作区之外的文件，请只分享给可信任的人。",
+          "origin": "app",
+          "context": "dsh-experimental-liveshare"
+        },
         "dialog.relay": {
           "en": "Share service address",
           "zh": "分享服务地址",
@@ -8826,13 +10738,13 @@
         },
         "dialog.sessionMode.hint.view": {
           "en": "Read only: viewers read files and the session record within the share's scope and can message the session, but every tool runs in a read-only sandbox and no file can be written.",
-          "zh": "仅可查看：观看者可以读取分享范围内的文件与会话记录，也能向这个会话发消息；所有工具都在只读沙箱中运行，不能写文件。",
+          "zh": "仅可查看：观看者可以读取工作区内的文件与会话记录，也能向这个会话发消息；所有工具都在只读沙箱中运行，不能写文件。",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
         "dialog.sessionMode.hint.write": {
           "en": "Workspace write: the viewer works in a bounded writable sandbox — it modifies files inside the share’s scope under the writable ceiling; reads and writes beyond that scope are refused, and your global settings, credentials, and other Sessions stay closed.",
-          "zh": "工作区内修改：观看者在可写沙箱里工作——可以在分享范围内修改文件，写入受可写上限约束；分享范围之外的读写都会被拒绝，你的全局设置、凭据与其它会话仍不开放。",
+          "zh": "工作区内修改：观看者在可写沙箱里工作——可以在工作区内修改文件，写入受可写上限约束；工作区之外的读写都会被拒绝，你的全局设置、凭据与其它会话仍不开放。",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
@@ -9136,6 +11048,12 @@
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
+        "viewer.dismiss": {
+          "en": "Dismiss",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-experimental-liveshare"
+        },
         "viewer.empty": {
           "en": "This session has no content to show yet.",
           "zh": "这个会话还没有可显示的内容。",
@@ -9257,9 +11175,15 @@
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
+        "viewer.pluginUnsupported": {
+          "en": "Plugin {plugin} is not available in this share; some features are unavailable.",
+          "zh": "插件 {plugin} 未适配当前分享，部分功能不可用。",
+          "origin": "app",
+          "context": "dsh-experimental-liveshare"
+        },
         "viewer.readonlyNote": {
           "en": "Read only: you can drive this Session, but you read files inside the share’s scope only and modify nothing.",
-          "zh": "仅可查看：可以驱动这个会话，但只能在分享范围内读取文件，不能修改内容。",
+          "zh": "仅可查看：可以驱动这个会话，但只能在工作区内读取文件，不能修改内容。",
           "origin": "app",
           "context": "dsh-experimental-liveshare"
         },
@@ -10052,6 +11976,12 @@
         "menu.finder": {
           "en": "Show in Finder",
           "zh": "在 Finder 中显示",
+          "origin": "app",
+          "context": "dsh-client-ui-open-in-app"
+        },
+        "menu.openIn": {
+          "en": "Open in",
+          "zh": "在应用中打开",
           "origin": "app",
           "context": "dsh-client-ui-open-in-app"
         },
@@ -11463,6 +13393,12 @@
           "origin": "app",
           "context": "dsh-client-ui-plugin-manager"
         },
+        "reasonUnexpectedPackage": {
+          "en": "The plugin source installed another package or version than requested; the installation was undone. Report it to the plugin's publisher or the index maintainer.",
+          "zh": "插件来源安装了与所请求不同的包或版本，已撤销这次安装。请向插件发布者或插件索引维护者报告此问题。",
+          "origin": "app",
+          "context": "dsh-client-ui-plugin-manager"
+        },
         "reasonUnknownPlugin": {
           "en": "No such plugin.",
           "zh": "找不到该插件",
@@ -11688,6 +13624,12 @@
         "statusNotInstalled": {
           "en": "Not installed",
           "zh": "未安装",
+          "origin": "app",
+          "context": "dsh-client-ui-plugin-manager"
+        },
+        "statusNotRunning": {
+          "en": "Not running",
+          "zh": "未运行",
           "origin": "app",
           "context": "dsh-client-ui-plugin-manager"
         },
@@ -11947,8 +13889,8 @@
           "context": "dsh-client-ui-plugin-manager"
         },
         "updateStepInstalling": {
-          "en": "Install {version} from {registry}",
-          "zh": "从 {registry} 安装 {version}",
+          "en": "Install {version} from {source}",
+          "zh": "从 {source} 安装 {version}",
           "origin": "app",
           "context": "dsh-client-ui-plugin-manager"
         },
@@ -12684,6 +14626,18 @@
         "title": {
           "en": "Discover",
           "zh": "发现",
+          "origin": "app",
+          "context": "dsh-client-ui-plugin-market"
+        },
+        "update": {
+          "en": "Update",
+          "zh": "更新",
+          "origin": "app",
+          "context": "dsh-client-ui-plugin-market"
+        },
+        "updateTitle": {
+          "en": "Update {name} to {version}",
+          "zh": "将 {name} 更新到 {version}",
           "origin": "app",
           "context": "dsh-client-ui-plugin-market"
         },
@@ -15692,14 +17646,21 @@
           "context": "dsh-session-log-export"
         },
         "dialog.preparingDescription": {
-          "en": "Preparing a ZIP containing this Session, its sub-Sessions, and attachments.",
-          "zh": "正在准备包含当前 Session、子 Session 和附件的 ZIP 文件。",
+          "en": "Preparing a ZIP containing the selected Session, its sub-Sessions, and attachments.",
+          "zh": "正在准备包含指定 Session、子 Session 和附件的 ZIP 文件",
           "origin": "app",
-          "context": "dsh-session-log-export"
+          "context": "dsh-session-log-export",
+          "wordingChangedFrom": "Preparing a ZIP containing this Session, its sub-Sessions, and attachments."
         },
         "dialog.preparingTitle": {
           "en": "Exporting Session",
           "zh": "正在导出 Session",
+          "origin": "app",
+          "context": "dsh-session-log-export"
+        },
+        "dialog.session": {
+          "en": "Session: {sessionId}",
+          "zh": "Session：{sessionId}",
           "origin": "app",
           "context": "dsh-session-log-export"
         },
@@ -15718,7 +17679,7 @@
         "header.more": {
           "en": "More actions",
           "zh": "更多操作",
-          "origin": "app",
+          "origin": "installed",
           "context": "dsh-session-log-export"
         },
         "menu.copyMarkdown": {
@@ -15813,6 +17774,96 @@
           "origin": "installed",
           "context": "dsh-client-ui-settings-general"
         },
+        "desktop.channel.description": {
+          "en": "Stable is suitable for everyday use. Development offers early access to new features but may be unstable.",
+          "zh": "正式版适合日常使用；开发版可提前体验新功能，但可能不稳定。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.details": {
+          "en": "View details",
+          "zh": "查看详情",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.error": {
+          "en": "Could not apply update settings. Open the desktop update indicator for details.",
+          "zh": "未能应用更新配置。请点击桌面更新入口查看原因。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.nightly": {
+          "en": "Development",
+          "zh": "开发版",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.readError": {
+          "en": "Could not read the update channel. Restart the app.",
+          "zh": "无法读取更新渠道状态，请重启应用。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.applied": {
+          "en": "Update channel changed",
+          "zh": "更新渠道已切换",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.apply": {
+          "en": "Settings save error",
+          "zh": "设置保存异常",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.configuration": {
+          "en": "Settings file error; updates are paused",
+          "zh": "配置文件异常，更新已暂停",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.format": {
+          "en": "Could not save: invalid settings file",
+          "zh": "保存失败，配置文件格式有误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.permission": {
+          "en": "Could not save: permission denied",
+          "zh": "保存失败，没有写入权限",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.save": {
+          "en": "Could not save",
+          "zh": "保存失败",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.result.uncertain": {
+          "en": "Settings save error",
+          "zh": "设置保存异常",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.stable": {
+          "en": "Stable",
+          "zh": "正式版",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.title": {
+          "en": "Update channel",
+          "zh": "更新渠道",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.channel.unavailable": {
+          "en": "Configuration unavailable",
+          "zh": "配置不可用",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
         "desktop.update.available": {
           "en": "Update",
           "zh": "新版本",
@@ -15837,6 +17888,42 @@
           "origin": "app",
           "context": "dsh-client-ui-settings-general"
         },
+        "desktop.update.configuration.channel": {
+          "en": "Updates paused: channel must be nightly or stable",
+          "zh": "更新已暂停：channel 只能是 nightly 或 stable",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.configuration.cleanup": {
+          "en": "Updates paused: cannot discard previous update; restart the app",
+          "zh": "更新已暂停：无法清理旧更新，请重启应用",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.configuration.format": {
+          "en": "Updates paused: invalid settings file",
+          "zh": "更新已暂停：配置文件格式有误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.configuration.read": {
+          "en": "Updates paused: cannot read settings file",
+          "zh": "更新已暂停：无法读取配置文件",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.configurationFailed": {
+          "en": "Could not apply update settings. Open the desktop update indicator for details.",
+          "zh": "未能应用更新配置。请点击桌面更新入口查看原因。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.downloadBusyFailed": {
+          "en": "An update file is in use. Close the program using it, then retry.",
+          "zh": "更新文件正被占用，请关闭占用它的程序后重试。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
         "desktop.update.downloadDetail": {
           "en": "Downloading update: {percent}%\nTarget version: {version}",
           "zh": "正在下载更新：{percent}%\n目标版本：{version}",
@@ -15852,6 +17939,18 @@
         "desktop.update.downloadNetworkFailed": {
           "en": "Could not download the update. Check your connection and try again.",
           "zh": "下载更新失败，请检查网络连接后重试。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.downloadPermissionFailed": {
+          "en": "Cannot write the update files. Check the folder permissions and retry.",
+          "zh": "无法写入更新文件，请检查目录权限后重试。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-general"
+        },
+        "desktop.update.downloadSpaceFailed": {
+          "en": "Not enough disk space to download the update. Free up space, then retry.",
+          "zh": "磁盘空间不足，无法下载更新。请释放空间后重试。",
           "origin": "app",
           "context": "dsh-client-ui-settings-general"
         },
@@ -16086,7 +18185,7 @@
         "bonusNoticeTitle": {
           "en": "Bonus credited",
           "zh": "赠金已到账",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-account"
         },
         "browserDescription": {
@@ -16890,8 +18989,8 @@
           "context": "dsh-client-ui-agent-preset"
         },
         "guideCordisExplanation": {
-          "en": "### What you can create\n\nCreator mode includes the standard task tools plus runtime inspection and guidance for authoring Cordis plugins and agent presets. It can create a plugin that adds a capability or UI, or a preset that combines tools and prompts for a particular job.\n\n### Plugins and modes\n\nA plugin adds capabilities to DSH, such as a tool, a service connection, or a UI entry. A mode is an agent preset that selects tools and defines how the agent works in a task. A plugin can be included in a custom preset.\n\n### How the result takes effect\n\nAsk the agent to install and verify the result, not just generate source code. A plugin may load immediately or require a restart, depending on what it changes. A newly created preset is selected when starting a new task.",
-          "zh": "### 可以创造什么\n\n创造模式具备标准任务工具，并增加运行时检查，以及 Cordis 插件和 Agent 预设的开发指引。可以编写插件来添加功能或界面，也可以组合工具和提示词，创建适合特定任务的模式。\n\n### 插件与模式的关系\n\n插件为 DSH 增加能力，例如工具、服务连接或界面入口。模式是一份 Agent 预设，用来选择任务可用的工具，并约定 Agent 的工作方式。自定义模式中也可以使用自己开发的插件。\n\n### 怎样让成果生效\n\n可以要求 Agent 完成安装并验证实际效果。插件可能即时加载，也可能需要重启，取决于修改内容；新建的模式在创建新任务时选择。",
+          "en": "### What you can create\n\nCreator mode includes the standard task tools and adds runtime inspection. Standard and Creator share the dsh-doc guidance for plugin and preset development. The agent can create a plugin that adds a capability or UI, or a preset that combines tools and prompts for a particular job.\n\n### Plugins and modes\n\nA plugin adds capabilities to DSH, such as a tool, a service connection, or a UI entry. A mode is an agent preset that selects tools and defines how the agent works in a task. A plugin can be included in a custom preset.\n\n### How the result takes effect\n\nAsk the agent to install and verify the result, not just generate source code. A plugin may load immediately or require a restart, depending on what it changes. A newly created preset is selected when starting a new task.",
+          "zh": "### 可以创造什么\n\n创造模式包含标准任务工具，并增加了运行时检查。标准模式和创造模式共用 dsh-doc 指引，用于插件和预设开发。Agent 可以创建插件来添加能力或界面，也可以创建预设，为特定工作组合工具和提示词。\n\n### 插件与模式的关系\n\n插件为 DSH 增加能力，例如工具、服务连接或界面入口。模式是一份 Agent 预设，用来选择任务可用的工具，并约定 Agent 的工作方式。自定义模式中也可以使用自己开发的插件。\n\n### 怎样让成果生效\n\n可以要求 Agent 完成安装并验证实际效果。插件可能即时加载，也可能需要重启，取决于修改内容；新建的模式在创建新任务时选择。",
           "origin": "app",
           "context": "dsh-client-ui-agent-preset"
         },
@@ -16962,8 +19061,8 @@
           "context": "dsh-client-ui-agent-preset"
         },
         "guideStandardExplanation": {
-          "en": "### How it works\n\nThe agent calls tools directly to read and edit files, search, and run terminal commands. It includes Skills, planning, goals, subagents, workflows, plugin management, and context compaction.\n\n### When to choose it\n\nStart here for everyday coding, file work, and research. Standard mode can also write scripts and process files in batches. PTC changes how tool calls are organized; it is not required for batch tasks.",
-          "zh": "### 工作方式\n\nAgent 直接调用工具来读写文件、检索资料和执行终端命令。包含 Skills、计划、目标、子 Agent、工作流、插件管理和上下文压缩等能力。\n\n### 什么时候选\n\n日常编程、文件处理和资料整理可以从这里开始。标准模式也能编写脚本、批量处理文件；PTC 改变的是工具调用方式，批量任务并不必须使用 PTC。",
+          "en": "### How it works\n\nThe agent calls tools directly to read and edit files, search, and run terminal commands. It includes Skills, planning, goals, subagents, workflows, plugin management, and context compaction.\n\nFor questions about DSH and plugin or preset work you request, the dsh-doc skill guides the agent to the installed documentation and source. Its instructions load only when requested or relevant; loading it does not change files, tools, or the profile.\n\n### When to choose it\n\nStart here for everyday coding, file work, and research. Standard mode can also write scripts and process files in batches. PTC changes how tool calls are organized; it is not required for batch tasks.",
+          "zh": "### 工作方式\n\nAgent 直接调用工具来读写文件、检索资料和执行终端命令。包含 Skills、计划、目标、子 Agent、工作流、插件管理和上下文压缩等能力。\n\n对于 DSH 相关问题以及你要求的插件或预设工作，dsh-doc skill 引导 Agent 查阅已安装的文档和源码。其指令仅在被要求加载或与当前任务相关时加载；加载该 skill 不会改变文件、工具或 profile。\n\n### 什么时候选\n\n日常编程、文件处理和资料整理可以从这里开始。标准模式也能编写脚本、批量处理文件；PTC 改变的是工具调用方式，批量任务并不必须使用 PTC。",
           "origin": "app",
           "context": "dsh-client-ui-agent-preset"
         },
@@ -17239,10 +19338,11 @@
           "context": "dsh-client-ui-settings-models"
         },
         "addCustomHint": {
-          "en": "Connect a relay, a self-hosted server, or any other OpenAI- or Anthropic-compatible endpoint by its base URL, protocol, and models.",
-          "zh": "连接中转站、自部署服务或其他兼容 OpenAI / Anthropic 协议的接口，需填写 API 地址、协议和模型。",
+          "en": "Connect a relay, a self-hosted server, or any other OpenAI-, Anthropic-, or Gemini-compatible endpoint by its base URL, protocol, and models.",
+          "zh": "连接中转站、自部署服务或其他兼容 OpenAI / Anthropic / Gemini 协议的接口，需填写 API 地址、协议和模型。",
           "origin": "app",
-          "context": "dsh-client-ui-settings-models"
+          "context": "dsh-client-ui-settings-models",
+          "wordingChangedFrom": "Connect a relay, a self-hosted server, or any other OpenAI- or Anthropic-compatible endpoint by its base URL, protocol, and models."
         },
         "addCustomUnavailable": {
           "en": "No API protocol is available to declare.",
@@ -17411,6 +19511,12 @@
         "customDisplayName": {
           "en": "Display name",
           "zh": "显示名称",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "customGeminiBaseUrlPlaceholder": {
+          "en": "https://gateway.example/v1beta",
+          "zh": "https://gateway.example/v1beta",
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
@@ -17696,6 +19802,30 @@
         "keyPlaceholderSaved": {
           "en": "Leave blank to use saved credentials",
           "zh": "留空使用已保存凭据",
+          "origin": "repo",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "keyRemoveApplied": {
+          "en": "Key cleared. Apply again to finish settings; this deletion cannot be undone.",
+          "zh": "密钥已清除，请重试保存以完成配置更新；此删除无法撤销",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "keyRemovePending": {
+          "en": "Apply to clear the saved API key and use environment authentication.",
+          "zh": "保存以清除已保存的 API key，并改用环境认证。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "keyRemovePendingEnvironment": {
+          "en": "Apply to clear the saved API key. Environment authentication will be used ({hint}).",
+          "zh": "保存以清除已保存的 API key。之后使用环境认证（{hint}）。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "keyReplacePending": {
+          "en": "Apply to replace the saved API key.",
+          "zh": "保存以替换已保存的 API key。",
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
@@ -17708,6 +19838,12 @@
         "keyReveal": {
           "en": "Show secret",
           "zh": "显示密钥",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "keySaved": {
+          "en": "Use the existing saved API key.",
+          "zh": "使用已保存的 API key。",
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
@@ -17868,6 +20004,12 @@
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
+        "modelReasoningLevelsOnly": {
+          "en": "This API protocol accepts only the minimal, low, medium, and high levels, each with its level name as the API value. Change or remove the other levels.",
+          "zh": "此 API 协议仅接受 minimal、low、medium 和 high 档位，且每个档位的 API 参数值须与档位名称相同。请修改或删除其他档位。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
         "modelReasoningNeedsLevel": {
           "en": "Add at least one level besides Off, or turn reasoning levels off.",
           "zh": "至少添加一个 Off 以外的档位；不需要思考请关闭推理等级。",
@@ -17964,6 +20106,12 @@
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
+        "protocolGemini": {
+          "en": "Gemini API",
+          "zh": "Gemini API",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
         "protocolOpenAiCompletions": {
           "en": "OpenAI Chat Completions",
           "zh": "OpenAI Chat Completions",
@@ -18027,6 +20175,180 @@
         "retry": {
           "en": "Retry",
           "zh": "重试",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryAlwaysHint": {
+          "en": "Failed requests retry until they succeed or the turn is stopped.",
+          "zh": "失败的请求会持续重试，直到成功或本轮被停止。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryBackoff": {
+          "en": "Backoff",
+          "zh": "退避",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeAdd": {
+          "en": "Add",
+          "zh": "添加",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeCustom": {
+          "en": "Custom error code",
+          "zh": "自定义错误码",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeEmptyResponse": {
+          "en": "Empty response",
+          "zh": "空响应",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeMalformedResponse": {
+          "en": "Malformed response",
+          "zh": "响应格式错误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeQuota": {
+          "en": "Quota exceeded",
+          "zh": "配额已用尽",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeRateLimit": {
+          "en": "Rate limited",
+          "zh": "请求限流",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeServer": {
+          "en": "Server error",
+          "zh": "服务器错误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeStreamClosed": {
+          "en": "Stream closed early",
+          "zh": "流提前结束",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeTimeout": {
+          "en": "Timeout",
+          "zh": "超时",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodeTransport": {
+          "en": "Network error",
+          "zh": "网络错误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodes": {
+          "en": "Error codes",
+          "zh": "错误码",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodesDuplicate": {
+          "en": "Each error code may appear once.",
+          "zh": "每个错误码只能出现一次。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryCodesInvalid": {
+          "en": "Error codes must be non-empty text.",
+          "zh": "错误码必须是非空文本。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryDelayOrder": {
+          "en": "Initial delay cannot exceed max delay.",
+          "zh": "初始延迟不能大于最大延迟。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryInitialDelay": {
+          "en": "Initial delay (ms)",
+          "zh": "初始延迟 (ms)",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryJitter": {
+          "en": "Jitter ratio",
+          "zh": "抖动比例",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryMaxDelay": {
+          "en": "Max delay (ms)",
+          "zh": "最大延迟 (ms)",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryMaxRetries": {
+          "en": "Max retries",
+          "zh": "最大重试次数",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryModeAlways": {
+          "en": "All errors",
+          "zh": "所有错误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryModeDefault": {
+          "en": "Default ({mode})",
+          "zh": "默认（{mode}）",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryModeNormal": {
+          "en": "Transient errors",
+          "zh": "仅临时错误",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryPolicy": {
+          "en": "Retry policy",
+          "zh": "重试策略",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryValueInteger": {
+          "en": "Enter a whole number.",
+          "zh": "请输入整数。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryValueMax": {
+          "en": "Must be at most {max}.",
+          "zh": "不能大于 {max}。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryValueMin": {
+          "en": "Must be at least {min}.",
+          "zh": "不能小于 {min}。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryValueNumber": {
+          "en": "Enter a number.",
+          "zh": "请输入数字。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-models"
+        },
+        "retryValuePositive": {
+          "en": "Must be greater than 0.",
+          "zh": "必须大于 0。",
           "origin": "app",
           "context": "dsh-client-ui-settings-models"
         },
@@ -19299,13 +21621,13 @@
         "apiKey": {
           "en": "API key",
           "zh": "API Key",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-web-search"
         },
         "apiKeyHint": {
           "en": "Stored outside the settings file. Leave blank to keep the current key.",
           "zh": "不写入设置文件。留空表示保持当前密钥。",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-web-search"
         },
         "apiKeySet": {
@@ -19317,18 +21639,74 @@
         "apiKeyUnset": {
           "en": "No key is configured; only conversations using a DeepSeek Account model can search, through the default endpoint.",
           "zh": "未配置密钥；仅使用 DeepSeek 账号模型的对话可以通过默认接口地址搜索。",
+          "origin": "repo",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "apiKeyUnsetApi": {
+          "en": "No key is configured.",
+          "zh": "未配置密钥。",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
         "baseUrl": {
-          "en": "Messages API base URL",
-          "zh": "Messages API 基础地址",
+          "en": "Base URL",
+          "zh": "Base URL",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Messages API base URL"
+        },
+        "baseUrlHint": {
+          "en": "Include the API prefix. Leave blank to use the official address. The provider appends {path}.",
+          "zh": "填写含 API 前缀的地址；留空时使用官方地址；程序追加 {path}",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Include the API prefix, such as https://api.deepseek.com/anthropic/v1. The provider appends /messages. Leave blank to restore the default."
+        },
+        "billing": {
+          "en": "Billing",
+          "zh": "计费方式",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
-        "baseUrlHint": {
-          "en": "Include the API prefix, such as https://api.deepseek.com/anthropic/v1. The provider appends /messages. Leave blank to restore the default.",
-          "zh": "填写含 API 前缀的地址，例如 https://api.deepseek.com/anthropic/v1；程序追加 /messages，留空恢复默认。",
+        "billingAccount": {
+          "en": "Signed-in DeepSeek account",
+          "zh": "已登录的 DeepSeek 账号",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingAccountHint": {
+          "en": "Requires signing in to DeepSeek.",
+          "zh": "需要先登录 DeepSeek 账号。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingAdvancedOverride": {
+          "en": "Overridden by {fields}",
+          "zh": "已被 {fields} 覆盖",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingApiKey": {
+          "en": "DeepSeek API key",
+          "zh": "DeepSeek API Key",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingApiKeyHint": {
+          "en": "Uses the API key from the Models page; set one first.",
+          "zh": "使用「模型」页配置的 API Key，需要先配置。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingAuto": {
+          "en": "Automatic",
+          "zh": "自动",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "billingAutoHint": {
+          "en": "Follows the conversation's DeepSeek account or API key; with other models, uses the API key first, then the signed-in account.",
+          "zh": "跟随当前会话的 DeepSeek 账号或 API Key；会话用其他模型时，优先用 API Key，没有则用已登录账号。",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
@@ -19339,14 +21717,28 @@
           "context": "dsh-client-ui-settings-web-search"
         },
         "countHint": {
-          "en": "Results returned per query: an integer from 1 to 50, default 10. This controls result count, not search calls. web_search keeps no more sources than its own result limit.",
-          "zh": "每个查询返回的结果条数，须为 1–50 的整数，默认 10；不控制搜索调用次数。web_search 保留的来源数不超过其自身的结果上限。",
+          "en": "Results returned per search: 1 to 50, default 10.",
+          "zh": "每次搜索返回的结果条数，1–50，默认 10。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Results returned per query: an integer from 1 to 50, default 10. This controls result count, not search calls. web_search keeps no more sources than its own result limit."
+        },
+        "credential": {
+          "en": "API key",
+          "zh": "API Key",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
         "description": {
-          "en": "Set up the DeepSeek search provider.",
-          "zh": "设置 DeepSeek 的搜索提供方。",
+          "en": "Choose the providers web search and web fetch use.",
+          "zh": "选择网页搜索与网页获取使用的提供方。",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Set up the DeepSeek search provider."
+        },
+        "fetchSection": {
+          "en": "Web fetch provider",
+          "zh": "网页获取提供方",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
@@ -19356,27 +21748,89 @@
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
+        "invalidMaxUses": {
+          "en": "Enter a positive integer, or leave blank to use the default.",
+          "zh": "请填正整数；留空表示使用默认值",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
         "invalidNumber": {
           "en": "Enter a number, or leave blank to use the default.",
           "zh": "请填数字；留空表示使用默认值。",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
-        "maxUses": {
-          "en": "Max searches per request",
-          "zh": "单次请求最多搜索次数",
+        "legacyKeyHint": {
+          "en": "Uses the signed-in account on account-model requests; otherwise uses this API key ({ref}), shared with Models by default.",
+          "zh": "账号模型发起的请求使用已登录账号；其他请求使用此 API Key（{ref}），默认与「模型」页共用",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
-        "maxUsesHint": {
-          "en": "How many searches the auxiliary model may run within one Messages request. Applies only to the Messages API.",
-          "zh": "辅助模型在一次 Messages 请求内最多可执行的搜索次数，仅适用于 Messages API。",
+        "maxUses": {
+          "en": "Maximum searches per request",
+          "zh": "单次请求最多搜索次数",
           "origin": "app",
-          "context": "dsh-client-ui-settings-web-search"
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Max searches per request"
+        },
+        "maxUsesHint": {
+          "en": "Maximum server-side searches per Messages request: a positive integer, default 5.",
+          "zh": "每次 Messages 请求允许的服务端搜索次数上限，须为正整数，默认 5",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "How many searches the auxiliary model may run within one Messages request. Applies only to the Messages API."
         },
         "overridden": {
           "en": "Overridden",
           "zh": "已覆盖",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "pluginProviderHint": {
+          "en": "Configure this provider in its own plugin settings.",
+          "zh": "请在该插件自己的设置中配置",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerAuto": {
+          "en": "Automatic",
+          "zh": "自动选择",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerDeepSeek": {
+          "en": "DeepSeek Search API",
+          "zh": "DeepSeek Search API",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerDeepSeekFetch": {
+          "en": "DeepSeek Fetch API",
+          "zh": "DeepSeek Fetch API",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerLegacy": {
+          "en": "DeepSeek server-side search",
+          "zh": "DeepSeek 服务端搜索",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerLocal": {
+          "en": "Direct fetch",
+          "zh": "本机直接获取",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providerMissing": {
+          "en": "{id} (not loaded)",
+          "zh": "{id}（未加载）",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "providersFailed": {
+          "en": "Couldn't load the provider list, so this menu may be incomplete.",
+          "zh": "无法读取提供方列表，此菜单可能不完整",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
@@ -19389,6 +21843,12 @@
         "reset": {
           "en": "Reset to default",
           "zh": "恢复默认",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "retry": {
+          "en": "Retry",
+          "zh": "重试",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
@@ -19413,18 +21873,24 @@
         "searchApiBaseUrl": {
           "en": "Search / Fetch API base URL",
           "zh": "Search / Fetch API 基础地址",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-web-search"
         },
         "searchApiBaseUrlHint": {
           "en": "Include the API prefix, such as https://api.deepseek.com/v1/tools. The provider appends /search or /fetch. Leave blank to restore the default.",
           "zh": "填写含 API 前缀的地址，例如 https://api.deepseek.com/v1/tools；程序追加 /search 或 /fetch，留空恢复默认。",
+          "origin": "repo",
+          "context": "dsh-client-ui-settings-web-search"
+        },
+        "searchAutoHint": {
+          "en": "Follows the conversation's model: DeepSeek models use DeepSeek server-side search, which has no per-search charge; other models use DeepSeek Search API.",
+          "zh": "跟随当前会话的模型：DeepSeek 模型使用 DeepSeek 服务端搜索，搜索不按次收费；其他模型使用 DeepSeek Search API。",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
         "searchGuide": {
           "en": "Search & Fetch guide",
-          "zh": "网页搜索与抓取指南",
+          "zh": "网页搜索与获取指南",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
@@ -19434,11 +21900,18 @@
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
         },
-        "title": {
-          "en": "Web search",
-          "zh": "网页搜索",
+        "searchSection": {
+          "en": "Web search provider",
+          "zh": "网页搜索提供方",
           "origin": "app",
           "context": "dsh-client-ui-settings-web-search"
+        },
+        "title": {
+          "en": "Web search and fetch",
+          "zh": "网页搜索与获取",
+          "origin": "app",
+          "context": "dsh-client-ui-settings-web-search",
+          "wordingChangedFrom": "Web search"
         },
         "unavailable": {
           "en": "This plugin is not loaded, so it cannot be configured right now.",
@@ -19449,13 +21922,13 @@
         "useSearchApi": {
           "en": "Use the new Web Search API",
           "zh": "启用新版 Web 搜索 API",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-web-search"
         },
         "useSearchApiHint": {
           "en": "Off by default: search runs through DeepSeek Messages. For the new Web Search API's features and pricing, see the ",
           "zh": "默认关闭，搜索通过 DeepSeek Messages 完成。新版 Web 搜索 API 功能与计费详见",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-settings-web-search"
         }
       }
@@ -19853,6 +22326,18 @@
         "panels.more": {
           "en": "More",
           "zh": "更多",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar"
+        },
+        "panels.unpin": {
+          "en": "Unpin {name} from sidebar",
+          "zh": "从侧边栏取消固定{name}",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar"
+        },
+        "panels.unpinTooltip": {
+          "en": "Unpin from left sidebar",
+          "zh": "从左侧栏取消固定",
           "origin": "app",
           "context": "dsh-client-ui-sidebar"
         },
@@ -20388,6 +22873,12 @@
           "origin": "app",
           "context": "dsh-client-ui-sidebar-files"
         },
+        "emptyHidden": {
+          "en": "Hidden entries are not shown",
+          "zh": "隐藏项未显示",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
         "entry.noViewer": {
           "en": "No viewer can open this file.",
           "zh": "没有可以打开此文件的查看器。",
@@ -20470,6 +22961,194 @@
         "reload": {
           "en": "Reload",
           "zh": "重新读取",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.clear": {
+          "en": "Clear search",
+          "zh": "清空搜索",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.empty": {
+          "en": "No matches",
+          "zh": "没有匹配项",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.all": {
+          "en": "Hidden entries, excluded files and directories, and those ignored by ignore files such as .gitignore, are not shown.",
+          "zh": "隐藏项、排除的文件和目录，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.both": {
+          "en": "Hidden entries and excluded files and directories are not shown.",
+          "zh": "隐藏项以及排除的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.excluded": {
+          "en": "Excluded files and directories are not shown.",
+          "zh": "排除的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.excludedIgnored": {
+          "en": "Excluded files and directories, and those ignored by ignore files such as .gitignore, are not shown.",
+          "zh": "排除的文件和目录，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.hidden": {
+          "en": "Hidden entries are not shown.",
+          "zh": "隐藏项不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.hiddenIgnored": {
+          "en": "Hidden entries, and files and directories ignored by ignore files such as .gitignore, are not shown.",
+          "zh": "隐藏项，以及被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.ignored": {
+          "en": "Files and directories ignored by ignore files such as .gitignore are not shown.",
+          "zh": "被忽略文件（如 .gitignore）忽略的文件和目录不会显示。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.emptyHint.label": {
+          "en": "Why there are no matches",
+          "zh": "为什么没有匹配项",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.failed": {
+          "en": "Search failed: {message}",
+          "zh": "搜索失败：{message}",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.incomplete": {
+          "en": "The search passed its file limit, or some directories could not be read, so results may be incomplete.",
+          "zh": "文件数超过搜索上限，或部分目录未能读取，因此结果可能不完整。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.placeholder": {
+          "en": "Search files",
+          "zh": "搜索文件",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.results": {
+          "en": "Results: {count}",
+          "zh": "{count} 个结果",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files",
+          "plural": true
+        },
+        "search.retry": {
+          "en": "Retry",
+          "zh": "重试",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.settings": {
+          "en": "Search settings",
+          "zh": "搜索设置",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.showHidden": {
+          "en": "Show hidden entries",
+          "zh": "显示隐藏项",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "search.truncated": {
+          "en": "Showing only the first {count} results. Narrow the search to see the rest.",
+          "zh": "只显示前 {count} 个结果，请缩小搜索范围。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files",
+          "plural": true
+        },
+        "settings.add": {
+          "en": "Add file or directory",
+          "zh": "添加文件或目录",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.close": {
+          "en": "Close",
+          "zh": "关闭",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.description": {
+          "en": "Only affects search results, not the file tree.",
+          "zh": "只影响搜索结果，不影响文件树。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.invalid.absolute": {
+          "en": "Use a path relative to the workspace.",
+          "zh": "请使用相对于工作区的路径。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.invalid.empty": {
+          "en": "Enter a name or relative path.",
+          "zh": "请输入名称或相对路径。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.invalid.glob": {
+          "en": "The path cannot contain wildcards * ? [ ] { } !.",
+          "zh": "路径不能包含通配符 * ? [ ] { } !。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.invalid.nul": {
+          "en": "The path cannot contain a NUL character.",
+          "zh": "路径不能包含 NUL 字符。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.invalid.parent": {
+          "en": "The path cannot contain . or .. segments.",
+          "zh": "路径不能包含 . 或 .. 段。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.remove": {
+          "en": "Remove {path}",
+          "zh": "删除 {path}",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.respectGitignore": {
+          "en": "Respect ignore files (.gitignore, etc.)",
+          "zh": "尊重忽略文件（.gitignore 等）",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.restore": {
+          "en": "Restore default list",
+          "zh": "还原默认列表",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.title": {
+          "en": "Excluded files and directories",
+          "zh": "排除的文件和目录",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-files"
+        },
+        "settings.toggle": {
+          "en": "Exclude {path}",
+          "zh": "排除 {path}",
           "origin": "app",
           "context": "dsh-client-ui-sidebar-files"
         },
@@ -21035,6 +23714,36 @@
         "attachmentEnded": {
           "en": "The terminal connection ended. Reconnect to continue.",
           "zh": "终端连接已结束，请重新连接。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-terminal"
+        },
+        "badge.agent": {
+          "en": "Agent",
+          "zh": "Agent",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-terminal"
+        },
+        "badge.agentHint": {
+          "en": "Opened by the agent. Typing here takes over; the agent can then only read it.",
+          "zh": "由 Agent 打开。你一输入就由你接管，Agent 之后只能读取。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-terminal"
+        },
+        "badge.readOnlyHint": {
+          "en": "Commands run in the agent's read-only sandbox, including commands you type here.",
+          "zh": "命令在 Agent 的只读沙箱里运行，包括你在这里输入的命令。",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-terminal"
+        },
+        "badge.sandbox": {
+          "en": "Sandbox",
+          "zh": "沙箱",
+          "origin": "app",
+          "context": "dsh-client-ui-sidebar-terminal"
+        },
+        "badge.workspaceWriteHint": {
+          "en": "Commands run in the agent's workspace sandbox, including commands you type here.",
+          "zh": "命令在 Agent 的工作区沙箱里运行，包括你在这里输入的命令。",
           "origin": "app",
           "context": "dsh-client-ui-sidebar-terminal"
         },
@@ -22467,7 +25176,7 @@
         "catalog.migrationRequired": {
           "en": "Migration required",
           "zh": "需要迁移",
-          "origin": "app",
+          "origin": "repo",
           "context": "dsh-client-ui-subagent"
         },
         "count.running.one": {
@@ -22588,6 +25297,12 @@
           "origin": "app",
           "context": "dsh-client-ui-subagent"
         },
+        "load.idle": {
+          "en": "Subagents not loaded",
+          "zh": "尚未加载子智能体",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent"
+        },
         "loading.aria": {
           "en": "Loading subagents",
           "zh": "正在加载子代理",
@@ -22642,10 +25357,38 @@
           "origin": "app",
           "context": "dsh-client-ui-subagent"
         },
+        "progress.active": {
+          "en": "{count} in progress",
+          "zh": "{count} 进行中",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent",
+          "plural": true
+        },
+        "progress.completed": {
+          "en": "{count} completed",
+          "zh": "{count} 已完成",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent",
+          "plural": true
+        },
+        "progress.external": {
+          "en": "{count} external",
+          "zh": "{count} 外部任务",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent",
+          "plural": true
+        },
+        "progress.inactive": {
+          "en": "{count} not running",
+          "zh": "{count} 未运行",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent",
+          "plural": true
+        },
         "readonly.body": {
           "en": "The parent session is offline; reopen it to continue sending messages.",
           "zh": "父会话当前不在线，重新打开父会话后即可继续发送消息。",
-          "origin": "app",
+          "origin": "installed",
           "context": "dsh-client-ui-subagent"
         },
         "readonly.oneShot.body": {
@@ -22675,6 +25418,18 @@
         "retry": {
           "en": "Retry",
           "zh": "重试",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent"
+        },
+        "section.empty": {
+          "en": "No subagents",
+          "zh": "暂无子智能体",
+          "origin": "app",
+          "context": "dsh-client-ui-subagent"
+        },
+        "section.title": {
+          "en": "Subagents",
+          "zh": "子智能体",
           "origin": "app",
           "context": "dsh-client-ui-subagent"
         },

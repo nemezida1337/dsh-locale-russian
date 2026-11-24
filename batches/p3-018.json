@@ -1,0 +1,270 @@
+{
+  "id": "p3-018",
+  "namespace": "settings.webSearch",
+  "priority": "p3",
+  "count": 31,
+  "items": [
+    {
+      "namespace": "settings.webSearch",
+      "key": "apiKeyUnsetApi",
+      "en": "No key is configured.",
+      "zh": "未配置密钥。",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "baseUrl",
+      "en": "Base URL",
+      "zh": "Base URL",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Базовый адрес Messages API",
+      "priority": "p3",
+      "previousEn": "Messages API base URL"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "baseUrlHint",
+      "en": "Include the API prefix. Leave blank to use the official address. The provider appends {path}.",
+      "zh": "填写含 API 前缀的地址；留空时使用官方地址；程序追加 {path}",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Укажите адрес с префиксом API, например https://api.deepseek.com/anthropic/v1. Провайдер дописывает /messages. Оставьте поле пустым, чтобы вернуть значение по умолчанию.",
+      "priority": "p3",
+      "previousEn": "Include the API prefix, such as https://api.deepseek.com/anthropic/v1. The provider appends /messages. Leave blank to restore the default."
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billing",
+      "en": "Billing",
+      "zh": "计费方式",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingAccount",
+      "en": "Signed-in DeepSeek account",
+      "zh": "已登录的 DeepSeek 账号",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingAccountHint",
+      "en": "Requires signing in to DeepSeek.",
+      "zh": "需要先登录 DeepSeek 账号。",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingAdvancedOverride",
+      "en": "Overridden by {fields}",
+      "zh": "已被 {fields} 覆盖",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingApiKey",
+      "en": "DeepSeek API key",
+      "zh": "DeepSeek API Key",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingApiKeyHint",
+      "en": "Uses the API key from the Models page; set one first.",
+      "zh": "使用「模型」页配置的 API Key，需要先配置。",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingAuto",
+      "en": "Automatic",
+      "zh": "自动",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "billingAutoHint",
+      "en": "Follows the conversation's DeepSeek account or API key; with other models, uses the API key first, then the signed-in account.",
+      "zh": "跟随当前会话的 DeepSeek 账号或 API Key；会话用其他模型时，优先用 API Key，没有则用已登录账号。",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "countHint",
+      "en": "Results returned per search: 1 to 50, default 10.",
+      "zh": "每次搜索返回的结果条数，1–50，默认 10。",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Число результатов, возвращаемых на один запрос: целое число от 1 до 50, по умолчанию 10. Задаёт количество результатов, а не число вызовов поиска. web_search сохраняет не больше источников, чем допускает его собственный лимит результатов.",
+      "priority": "p3",
+      "previousEn": "Results returned per query: an integer from 1 to 50, default 10. This controls result count, not search calls. web_search keeps no more sources than its own result limit."
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "credential",
+      "en": "API key",
+      "zh": "API Key",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "description",
+      "en": "Choose the providers web search and web fetch use.",
+      "zh": "选择网页搜索与网页获取使用的提供方。",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Настройка поискового провайдера DeepSeek.",
+      "priority": "p3",
+      "previousEn": "Set up the DeepSeek search provider."
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "fetchSection",
+      "en": "Web fetch provider",
+      "zh": "网页获取提供方",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "invalidMaxUses",
+      "en": "Enter a positive integer, or leave blank to use the default.",
+      "zh": "请填正整数；留空表示使用默认值",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "legacyKeyHint",
+      "en": "Uses the signed-in account on account-model requests; otherwise uses this API key ({ref}), shared with Models by default.",
+      "zh": "账号模型发起的请求使用已登录账号；其他请求使用此 API Key（{ref}），默认与「模型」页共用",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "maxUses",
+      "en": "Maximum searches per request",
+      "zh": "单次请求最多搜索次数",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Максимум поисков на запрос",
+      "priority": "p3",
+      "previousEn": "Max searches per request"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "maxUsesHint",
+      "en": "Maximum server-side searches per Messages request: a positive integer, default 5.",
+      "zh": "每次 Messages 请求允许的服务端搜索次数上限，须为正整数，默认 5",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Сколько поисков вспомогательная модель может выполнить в рамках одного запроса Messages. Действует только для Messages API.",
+      "priority": "p3",
+      "previousEn": "How many searches the auxiliary model may run within one Messages request. Applies only to the Messages API."
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "pluginProviderHint",
+      "en": "Configure this provider in its own plugin settings.",
+      "zh": "请在该插件自己的设置中配置",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerAuto",
+      "en": "Automatic",
+      "zh": "自动选择",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerDeepSeek",
+      "en": "DeepSeek Search API",
+      "zh": "DeepSeek Search API",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerDeepSeekFetch",
+      "en": "DeepSeek Fetch API",
+      "zh": "DeepSeek Fetch API",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerLegacy",
+      "en": "DeepSeek server-side search",
+      "zh": "DeepSeek 服务端搜索",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerLocal",
+      "en": "Direct fetch",
+      "zh": "本机直接获取",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providerMissing",
+      "en": "{id} (not loaded)",
+      "zh": "{id}（未加载）",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "providersFailed",
+      "en": "Couldn't load the provider list, so this menu may be incomplete.",
+      "zh": "无法读取提供方列表，此菜单可能不完整",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "retry",
+      "en": "Retry",
+      "zh": "重试",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "searchAutoHint",
+      "en": "Follows the conversation's model: DeepSeek models use DeepSeek server-side search, which has no per-search charge; other models use DeepSeek Search API.",
+      "zh": "跟随当前会话的模型：DeepSeek 模型使用 DeepSeek 服务端搜索，搜索不按次收费；其他模型使用 DeepSeek Search API。",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "searchSection",
+      "en": "Web search provider",
+      "zh": "网页搜索提供方",
+      "context": "dsh-client-ui-settings-web-search",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings.webSearch",
+      "key": "title",
+      "en": "Web search and fetch",
+      "zh": "网页搜索与获取",
+      "context": "packages/client/ui-settings-web-search/src/client/locales.ts",
+      "currentRu": "Поиск в интернете",
+      "priority": "p3",
+      "previousEn": "Web search"
+    }
+  ]
+}

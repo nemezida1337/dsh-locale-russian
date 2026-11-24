@@ -5,6 +5,48 @@
   "items": [
     {
       "kind": "description",
+      "en": "Model-facing background job control tools (job_output, job_list, job_kill) over the ctx.jobs registry",
+      "packages": [
+        "@deepseek-ai/dsh-tool-jobs"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing bash tool with optional generic background-job and sandbox-escalation support",
+      "packages": [
+        "@deepseek-ai/dsh-tool-bash"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing filesystem discovery tools (glob, grep) backed by the packaged ripgrep binary (@vscode/ripgrep)",
+      "packages": [
+        "@deepseek-ai/dsh-tool-fs-search"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing filesystem tools (read, write, edit) over the DeepSeek Harness filesystem seam (ctx.fs)",
+      "packages": [
+        "@deepseek-ai/dsh-tool-fs"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing fresh-agent Ralph loop over the workflow and subagent seams",
+      "packages": [
+        "@deepseek-ai/dsh-tool-ralph"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Model-facing lsp tool over the DeepSeek Harness LSP capability seam (ctx.lsp) — one read-only tool with goToDefinition/findReferences/goToImplementation/hover operations, one-based UTF-16 cursor coordinates, bounded location rendering, and hover normalization",
+      "packages": [
+        "@deepseek-ai/dsh-tool-lsp"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Model-facing owner-scoped persistent Bash tool backed by the Harness PTY service",
       "packages": [
         "@deepseek-ai/dsh-tool-bash-persistent"
@@ -103,7 +145,7 @@
     },
     {
       "kind": "description",
-      "en": "Official DeepSeek Harness brand occupants for the Web client's sidebar slots",
+      "en": "Official DeepSeek Harness brand artwork and click-triggered home background",
       "packages": [
         "@deepseek-ai/dsh-client-ui-brand-official"
       ]
@@ -127,6 +169,13 @@
       "en": "Out-of-process SDK subagent backend: drives a child DeepSeek Harness runtime subprocess over stdio JSON-RPC through the TypeScript SDK client",
       "packages": [
         "@deepseek-ai/dsh-subagent-dsh-sdk"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Packaged ripgrep resolution and subprocess streaming helpers",
+      "packages": [
+        "@deepseek-ai/dsh-util-ripgrep"
       ]
     },
     {
@@ -334,6 +383,13 @@
     },
     {
       "kind": "description",
+      "en": "Provide native macOS applications and windows for the shared Computer Use service.",
+      "packages": [
+        "@deepseek-ai/dsh-experimental-cua-macos"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Provide shared model guidance for file links and deliverables across application environments.",
       "packages": [
         "@deepseek-ai/dsh-deliverable-file-references"
@@ -411,13 +467,6 @@
     },
     {
       "kind": "description",
-      "en": "Read account state and resolve official API credentials",
-      "packages": [
-        "@deepseek-ai/dsh-deepseek-account"
-      ]
-    },
-    {
-      "kind": "description",
       "en": "Read and change the current session's working directory.",
       "packages": [
         "@deepseek-ai/dsh-tool-working-directory"
@@ -467,6 +516,13 @@
     },
     {
       "kind": "description",
+      "en": "Register Computer Use providers by name, with one provider per name.",
+      "packages": [
+        "@deepseek-ai/dsh-computer-use"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Remote BFF assembly for application-selected Host capabilities",
       "packages": [
         "@deepseek-ai/dsh-api-remotes"
@@ -484,6 +540,13 @@
       "en": "Remote POSIX sandbox argv provider over the shared SSH helper",
       "packages": [
         "@deepseek-ai/dsh-sandbox-ssh"
+      ]
+    },
+    {
+      "kind": "description",
+      "en": "Renders, converts, and recalculates Word, Excel, and PowerPoint documents for previews and the Office tools.",
+      "packages": [
+        "@deepseek-ai/dsh-office-kit"
       ]
     },
     {
@@ -551,6 +614,13 @@
     },
     {
       "kind": "description",
+      "en": "Run the agent's persistent terminals as sidebar tabs the user can watch and take over, and let the agent read the user's own terminals.",
+      "packages": [
+        "@deepseek-ai/dsh-terminal-panel"
+      ]
+    },
+    {
+      "kind": "description",
       "en": "Runtime registry for generated package reflection and Zod schemas",
       "packages": [
         "@deepseek-ai/dsh-typert-registry"
@@ -561,76 +631,6 @@
       "en": "Sandbox-consuming implementation of the DeepSeek Harness bash executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
       "packages": [
         "@deepseek-ai/dsh-bash-sandbox"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Sandbox-consuming implementation of the DeepSeek Harness PowerShell executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
-      "packages": [
-        "@deepseek-ai/dsh-pwsh-sandbox"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Sandbox-enforcing implementation of the DeepSeek Harness filesystem seam: fences write/edit by the per-call sandbox mode (read-only denies mutation, workspace-write contains it to the workspace + temp roots) while reads pass through",
-      "packages": [
-        "@deepseek-ai/dsh-fs-sandbox"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Sandboxed Web browser tabs for the right Sidebar",
-      "packages": [
-        "@deepseek-ai/dsh-client-ui-sidebar-browser"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Save tmux pane and window locations for each step when needed.",
-      "packages": [
-        "@deepseek-ai/dsh-tmux-context"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Scoped MCP resource discovery and reading through shared model tools",
-      "packages": [
-        "@deepseek-ai/dsh-mcp-resources"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Scoped-context registration primitive (scope tags, scope-filtered event dispatch) for the DeepSeek Harness",
-      "packages": [
-        "@deepseek-ai/dsh-scope"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Scriptable Messages HTTP/SSE fault server for LLM recovery tests",
-      "packages": [
-        "@deepseek-ai/dsh-llm-mock-server"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Search session history and read trajectories and events according to workspace permissions.",
-      "packages": [
-        "@deepseek-ai/dsh-tool-session-query"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Semantic session durability checkpoints before model requests and tool side effects",
-      "packages": [
-        "@deepseek-ai/dsh-session-checkpoint-policy"
-      ]
-    },
-    {
-      "kind": "description",
-      "en": "Serve SDK clients in separate processes through JSON-RPC over standard input and output.",
-      "packages": [
-        "@deepseek-ai/dsh-sdk-jsonrpc-server"
       ]
     }
   ]

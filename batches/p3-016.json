@@ -1,0 +1,192 @@
+{
+  "id": "p3-016",
+  "namespace": "settings",
+  "priority": "p3",
+  "count": 23,
+  "items": [
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.description",
+      "en": "Stable is suitable for everyday use. Development offers early access to new features but may be unstable.",
+      "zh": "正式版适合日常使用；开发版可提前体验新功能，但可能不稳定。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.details",
+      "en": "View details",
+      "zh": "查看详情",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.error",
+      "en": "Could not apply update settings. Open the desktop update indicator for details.",
+      "zh": "未能应用更新配置。请点击桌面更新入口查看原因。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.nightly",
+      "en": "Development",
+      "zh": "开发版",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.readError",
+      "en": "Could not read the update channel. Restart the app.",
+      "zh": "无法读取更新渠道状态，请重启应用。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.applied",
+      "en": "Update channel changed",
+      "zh": "更新渠道已切换",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.apply",
+      "en": "Settings save error",
+      "zh": "设置保存异常",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.configuration",
+      "en": "Settings file error; updates are paused",
+      "zh": "配置文件异常，更新已暂停",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.format",
+      "en": "Could not save: invalid settings file",
+      "zh": "保存失败，配置文件格式有误",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.permission",
+      "en": "Could not save: permission denied",
+      "zh": "保存失败，没有写入权限",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.save",
+      "en": "Could not save",
+      "zh": "保存失败",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.result.uncertain",
+      "en": "Settings save error",
+      "zh": "设置保存异常",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.stable",
+      "en": "Stable",
+      "zh": "正式版",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.title",
+      "en": "Update channel",
+      "zh": "更新渠道",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.channel.unavailable",
+      "en": "Configuration unavailable",
+      "zh": "配置不可用",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.configuration.channel",
+      "en": "Updates paused: channel must be nightly or stable",
+      "zh": "更新已暂停：channel 只能是 nightly 或 stable",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.configuration.cleanup",
+      "en": "Updates paused: cannot discard previous update; restart the app",
+      "zh": "更新已暂停：无法清理旧更新，请重启应用",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.configuration.format",
+      "en": "Updates paused: invalid settings file",
+      "zh": "更新已暂停：配置文件格式有误",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.configuration.read",
+      "en": "Updates paused: cannot read settings file",
+      "zh": "更新已暂停：无法读取配置文件",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.configurationFailed",
+      "en": "Could not apply update settings. Open the desktop update indicator for details.",
+      "zh": "未能应用更新配置。请点击桌面更新入口查看原因。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.downloadBusyFailed",
+      "en": "An update file is in use. Close the program using it, then retry.",
+      "zh": "更新文件正被占用，请关闭占用它的程序后重试。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.downloadPermissionFailed",
+      "en": "Cannot write the update files. Check the folder permissions and retry.",
+      "zh": "无法写入更新文件，请检查目录权限后重试。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    },
+    {
+      "namespace": "settings",
+      "key": "desktop.update.downloadSpaceFailed",
+      "en": "Not enough disk space to download the update. Free up space, then retry.",
+      "zh": "磁盘空间不足，无法下载更新。请释放空间后重试。",
+      "context": "dsh-client-ui-settings-general",
+      "priority": "p3"
+    }
+  ]
+}

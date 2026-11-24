@@ -1,0 +1,272 @@
+{
+  "id": "p3-007",
+  "namespace": "deepseekChatImport",
+  "priority": "p3",
+  "count": 31,
+  "items": [
+    {
+      "namespace": "deepseekChatImport",
+      "key": "action.label",
+      "en": "Import DeepSeek chats",
+      "zh": "导入 DeepSeek 会话",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.cancel",
+      "en": "Cancel",
+      "zh": "取消",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.changeFile",
+      "en": "Change",
+      "zh": "重新选择",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.chooseFile",
+      "en": "Choose file…",
+      "zh": "选择文件…",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.chooseWorkspace",
+      "en": "Choose workspace",
+      "zh": "选择工作区",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.close",
+      "en": "Close",
+      "zh": "关闭",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.description",
+      "en": "Choose the ZIP file exported from the DeepSeek website (deepseek_data-*.zip) and the workspace that receives the sessions.",
+      "zh": "选择从 DeepSeek 官网导出的 ZIP 文件（deepseek_data-*.zip），以及接收这些会话的工作区。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.done",
+      "en": "Done",
+      "zh": "完成",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.file",
+      "en": "Export file",
+      "zh": "导出文件",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.import",
+      "en": "Import",
+      "zh": "导入",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.importing",
+      "en": "Importing…",
+      "zh": "正在导入…",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.importingCount",
+      "en": "Importing {done}/{total}",
+      "zh": "正在导入 {done}/{total}",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.title",
+      "en": "Import DeepSeek chat history",
+      "zh": "导入 DeepSeek 会话记录",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.uploading",
+      "en": "Uploading {percent}%",
+      "zh": "正在上传 {percent}%",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "dialog.workspace",
+      "en": "Workspace",
+      "zh": "工作区",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.busy",
+      "en": "Another import is running. Try again later.",
+      "zh": "已有一个导入正在进行，请稍后再试。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.missing-index",
+      "en": "This is not a DeepSeek export: chat_session_index.json is missing or unreadable.",
+      "zh": "这不是 DeepSeek 导出数据：缺少 chat_session_index.json，或该文件无法读取。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.missing-manifest",
+      "en": "This is not a DeepSeek export: manifest.json is missing.",
+      "zh": "这不是 DeepSeek 导出数据：缺少 manifest.json。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.no-conversations",
+      "en": "The export contains no conversations that can be imported.",
+      "zh": "导出数据中没有可导入的会话。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.too-large",
+      "en": "The file is too large: the limit is {limit}.",
+      "zh": "文件过大：最多 {limit}。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.unknown",
+      "en": "Import failed: {message}",
+      "zh": "导入失败：{message}",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.unreadable-archive",
+      "en": "The file is not a readable ZIP archive.",
+      "zh": "该文件不是可读取的 ZIP 压缩包。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.unsupported-version",
+      "en": "This export format version is not supported.",
+      "zh": "不支持该导出格式版本。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.upload-failed",
+      "en": "Upload failed: {message}",
+      "zh": "上传失败：{message}",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "error.workspace-not-found",
+      "en": "The chosen workspace no longer exists. Choose another one.",
+      "zh": "所选工作区已不存在，请重新选择。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.imported.one",
+      "en": "Imported {count} session into the {name} workspace.",
+      "zh": "已导入 {count} 个会话到工作区 {name}。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.imported"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.imported.other",
+      "en": "Imported {count} sessions into the {name} workspace.",
+      "zh": "已导入 {count} 个会话到工作区 {name}。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.imported",
+      "siblingIsOne": true
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.omitted.one",
+      "en": "{count} older conversation exceeded the import limit and was not imported.",
+      "zh": "{count} 个较早的会话超出导入上限，未导入。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.omitted"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.omitted.other",
+      "en": "{count} older conversations exceeded the import limit and were not imported.",
+      "zh": "{count} 个较早的会话超出导入上限，未导入。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.omitted",
+      "siblingIsOne": true
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.skipped.one",
+      "en": "{count} conversation could not be imported.",
+      "zh": "{count} 个会话无法导入。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.skipped"
+    },
+    {
+      "namespace": "deepseekChatImport",
+      "key": "result.skipped.other",
+      "en": "{count} conversations could not be imported.",
+      "zh": "{count} 个会话无法导入。",
+      "context": "dsh-deepseek-chat-import",
+      "priority": "p3",
+      "plural": true,
+      "pair": "result.skipped",
+      "siblingIsOne": true
+    }
+  ]
+}

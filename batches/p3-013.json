@@ -1,0 +1,24 @@
+{
+  "id": "p3-013",
+  "namespace": "pluginManager",
+  "priority": "p3",
+  "count": 2,
+  "items": [
+    {
+      "namespace": "pluginManager",
+      "key": "reasonUnexpectedPackage",
+      "en": "The plugin source installed another package or version than requested; the installation was undone. Report it to the plugin's publisher or the index maintainer.",
+      "zh": "插件来源安装了与所请求不同的包或版本，已撤销这次安装。请向插件发布者或插件索引维护者报告此问题。",
+      "context": "dsh-client-ui-plugin-manager",
+      "priority": "p3"
+    },
+    {
+      "namespace": "pluginManager",
+      "key": "statusNotRunning",
+      "en": "Not running",
+      "zh": "未运行",
+      "context": "dsh-client-ui-plugin-manager",
+      "priority": "p3"
+    }
+  ]
+}

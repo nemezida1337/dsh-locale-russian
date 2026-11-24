@@ -1,0 +1,68 @@
+{
+  "id": "p3-022",
+  "namespace": "subagent",
+  "priority": "p3",
+  "count": 7,
+  "items": [
+    {
+      "namespace": "subagent",
+      "key": "load.idle",
+      "en": "Subagents not loaded",
+      "zh": "尚未加载子智能体",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3"
+    },
+    {
+      "namespace": "subagent",
+      "key": "progress.active",
+      "en": "{count} in progress",
+      "zh": "{count} 进行中",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "subagent",
+      "key": "progress.completed",
+      "en": "{count} completed",
+      "zh": "{count} 已完成",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "subagent",
+      "key": "progress.external",
+      "en": "{count} external",
+      "zh": "{count} 外部任务",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "subagent",
+      "key": "progress.inactive",
+      "en": "{count} not running",
+      "zh": "{count} 未运行",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3",
+      "plural": true
+    },
+    {
+      "namespace": "subagent",
+      "key": "section.empty",
+      "en": "No subagents",
+      "zh": "暂无子智能体",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3"
+    },
+    {
+      "namespace": "subagent",
+      "key": "section.title",
+      "en": "Subagents",
+      "zh": "子智能体",
+      "context": "dsh-client-ui-subagent",
+      "priority": "p3"
+    }
+  ]
+}
