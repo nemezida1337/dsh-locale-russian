@@ -95,11 +95,20 @@ jobs:
             npm init -y > /dev/null
             npm install --no-save --no-package-lock "@deepseek-ai/dsh@$PREVIEW" > /dev/null
             cd "$REPO"
-            node tools/refresh.mjs \
+            if node tools/refresh.mjs \
               --skip-asar --skip-repo \
               --packages "$DIR/node_modules/@deepseek-ai" \
               --install-root "$DIR/node_modules/@deepseek-ai" \
-              --check 2>&1 | tee -a drift.log
+              --check 2>&1 | tee -a drift.log; then
+              :
+            elif [ "$TAG" = 'alpha' ]; then
+              # Альфа меняется по несколько раз в неделю: строки успевают
+              # переписать раньше, чем мы их переведём. Дельту фиксируем в issue,
+              # но сборку не роняем; блокируют latest/next и release candidate.
+              echo "::warning::альфа $PREVIEW: дельта не блокирует сборку (переводим на этапе RC)"
+            else
+              exit 1
+            fi
           done
 
       - name: Проверить живой индекс маркета

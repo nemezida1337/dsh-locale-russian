@@ -1,0 +1,7 @@
+{
+  "id": "plugin-13",
+  "kind": "plugin-meta",
+  "translations": {
+    "Portable Node WebAssembly Office-to-PDF engine assets": "Переносимые ресурсы движка Node WebAssembly для преобразования Office в PDF"
+  }
+}
