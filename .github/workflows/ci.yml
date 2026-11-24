@@ -207,32 +207,60 @@ jobs:
         with:
           path: ${{ runner.temp }}/dsh-app-check
           key: dsh-app-${{ steps.feed.outputs.version }}
-      - name: Проверить покрытие сборки приложения
+      - name: Альфа или релизный канал
+        id: channel
         shell: bash
+        run: |
+          VERSION='${{ steps.feed.outputs.version }}'
+          if [[ "$VERSION" == *-alpha* ]]; then
+            # Альфа меняется по несколько раз в неделю: переводить её заранее
+            # бессмысленно, строки успевают переписать. Дельту фиксируем в issue,
+            # но сборку не роняем; блокирует только RC и стабильный канал.
+            echo 'blocking=false' >> "$GITHUB_OUTPUT"
+            echo "канал: альфа $VERSION — дельта не блокирует сборку"
+          else
+            echo 'blocking=true' >> "$GITHUB_OUTPUT"
+            echo "канал: $VERSION — дельта блокирует сборку"
+          fi
+      - name: Проверить покрытие сборки приложения
+        id: coverage
+        shell: bash
+        continue-on-error: ${{ steps.channel.outputs.blocking == 'false' }}
         run: |
           set -o pipefail
           node tools/check-app.mjs --work "$RUNNER_TEMP/dsh-app-check" --keep 2>&1 | tee drift.log
       - name: Отчёт в summary
-        if: failure()
+        if: steps.coverage.outcome == 'failure'
         shell: bash
         run: |
           {
             echo '### Дельта перевода в сборке приложения'
             echo
+            if [ '${{ steps.channel.outputs.blocking }}' = 'false' ]; then
+              echo 'Альфа-канал: дельта записана в issue, но сборку не блокирует. Переводим на этапе RC.'
+              echo
+            fi
             echo '```'
             if [ -f drift.log ]; then tail -40 drift.log; else echo 'лог не создан'; fi
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Открыть issue с дельтой
-        if: failure()
+        if: steps.coverage.outcome == 'failure'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TITLE: 'Новая версия приложения DSH: появились строки для перевода'
+          VERSION: ${{ steps.feed.outputs.version }}
+          BLOCKING: ${{ steps.channel.outputs.blocking }}
         run: |
           {
-            echo "Проверка сборки приложения $(date -u +%Y-%m-%d) нашла расхождение."
+            echo "Проверка сборки приложения $(date -u +%Y-%m-%d) нашла расхождение (версия $VERSION)."
             echo
+            if [ "$BLOCKING" = 'false' ]; then
+              echo 'Это альфа-канал: дельта записана для сведения и **не блокирует** сборку.'
+              echo 'Переводим, когда сборка станет RC или попадёт в стабильный канал: до этого строки ещё меняются.'
+              echo
+            fi
             echo '```'
             if [ -f drift.log ]; then tail -40 drift.log; else echo 'лог не создан'; fi
             echo '```'
